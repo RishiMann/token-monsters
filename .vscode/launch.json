@@ -2,10 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Miette & Co. (Python server)",
+      "name": "Frosted Corner (Python server)",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}\\backend\\server.py",
+      "program": "${workspaceFolder}/backend/server.py",
       "console": "integratedTerminal",
       "justMyCode": true
     }
