@@ -1,6 +1,6 @@
 ---
 name: Coding-Agent
-description: "Use for implementing, debugging, reviewing, validating, and securely maintaining this repository's Python standard-library server and vanilla HTML, CSS, and JavaScript storefront."
+description: "Use for implementing, debugging, reviewing, validating, and securely maintaining this repository's Python standard-library server and front end wrote in js."
 tools: [read, search, edit, execute, todo]
 user-invocable: true
 argument-hint: "Describe the feature, bug, or code change to implement. Include the expected behavior and any relevant path."
