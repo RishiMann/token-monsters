@@ -1,2 +1,3 @@
-# The current development server uses only Python's standard library.
-# Add backend dependencies here as the API is implemented.
+# Backend dependencies.
+# The dev server itself is standard library only; the agent runtime needs the SDK.
+anthropic>=1.0

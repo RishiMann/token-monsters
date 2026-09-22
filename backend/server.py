@@ -29,6 +29,51 @@ class AppHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=ROOT, **kwargs)
 
+    def do_POST(self) -> None:
+        if self.path != "/api/agent":
+            self.send_error(404)
+            return
+
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+            if length > 64_000:
+                raise ValueError("payload too large")
+            body = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self._json({"error": "invalid request body"}, status=400)
+            return
+
+        try:
+            from agent_runtime import AgentUnavailable, run
+        except ImportError as exc:
+            self._json({"error": f"agent runtime unavailable: {exc}"}, status=503)
+            return
+
+        try:
+            payload = run(
+                str(body.get("agent", "recommendation")),
+                text=str(body.get("text", ""))[:2000],
+                cart=body.get("cart") or {},
+            )
+        except AgentUnavailable as exc:
+            # The frontend falls back to its rule-based path on 503.
+            self._json({"error": str(exc)}, status=503)
+            return
+        except Exception as exc:
+            self._json({"error": f"agent failed: {exc}"}, status=500)
+            return
+
+        self._json(payload)
+
+    def _json(self, payload, status: int = 200) -> None:
+        data = json.dumps(payload).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+
     def do_GET(self) -> None:
         sources = {
             "/api/context": CONTEXT_SOURCE,
@@ -36,13 +81,10 @@ class AppHandler(SimpleHTTPRequestHandler):
         }
         source = sources.get(self.path)
         if source:
-            payload = json.dumps(json.loads(source.read_text(encoding="utf-8"))).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Content-Length", str(len(payload)))
-            self.send_header("Cache-Control", "no-store")
-            self.end_headers()
-            self.wfile.write(payload)
+            try:
+                self._json(json.loads(source.read_text(encoding="utf-8")))
+            except (OSError, json.JSONDecodeError) as exc:
+                self._json({"error": f"data source unavailable: {exc}"}, status=500)
             return
         super().do_GET()
 
