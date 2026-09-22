@@ -12,6 +12,7 @@ import {
 } from "./data.js";
 import { ask } from "./agents.js";
 import * as bag from "./bag.js";
+import { getSession, homeFor } from "./auth.js";
 import { generateContext } from "./context.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -556,3 +557,18 @@ $("[data-checkout]").addEventListener("click", () => {
 
 /* ── Boot ──────────────────────────────────────────────────── */
 renderMenu();
+
+/* ── Header account state ──────────────────────────────────── */
+(function showAccount() {
+  const link = $("[data-account-link]");
+  if (!link) return;
+  const session = getSession();
+  if (!session) return;
+
+  link.href = homeFor(session);
+  $("[data-account-label]").textContent = session.name.split(" ")[0];
+  const avatar = $("[data-account-avatar]");
+  avatar.textContent = session.initials;
+  avatar.classList.add("is-signed-in");
+  link.setAttribute("aria-label", `Your account, signed in as ${session.name}`);
+})();
