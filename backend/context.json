@@ -1,0 +1,135 @@
+{
+    "customer": {
+        "id": "demo-customer-001",
+        "name": "Alex",
+        "location": "Frisco Corner",
+        "savedEvent": {
+            "name": "Saturday garden party",
+            "guests": 14,
+            "date": "2026-09-26"
+        },
+        "dietary": [],
+        "preferences": {
+            "sweetness": "balanced",
+            "texture": "light",
+            "adventurousness": "curious"
+        },
+        "repeatPattern": "Friday pickup"
+    },
+    "orderHistory": [
+        {
+            "date": "2026-09-18",
+            "items": [
+                {
+                    "id": "brown-butter",
+                    "quantity": 4
+                },
+                {
+                    "id": "lemon-cloud",
+                    "quantity": 2
+                }
+            ],
+            "channel": "pickup",
+            "occasion": "Friday treat"
+        },
+        {
+            "date": "2026-09-11",
+            "items": [
+                {
+                    "id": "brown-butter",
+                    "quantity": 4
+                },
+                {
+                    "id": "pink-velvet",
+                    "quantity": 2
+                }
+            ],
+            "channel": "pickup",
+            "occasion": "Friday treat"
+        },
+        {
+            "date": "2026-09-04",
+            "items": [
+                {
+                    "id": "brown-butter",
+                    "quantity": 2
+                },
+                {
+                    "id": "strawberry-stack",
+                    "quantity": 2
+                }
+            ],
+            "channel": "delivery",
+            "occasion": "family dessert"
+        },
+        {
+            "date": "2026-08-29",
+            "items": [
+                {
+                    "id": "lemon-cloud",
+                    "quantity": 2
+                },
+                {
+                    "id": "coconut-matcha",
+                    "quantity": 2
+                }
+            ],
+            "channel": "pickup",
+            "occasion": "brunch"
+        }
+    ],
+    "marketHabits": [
+        {
+            "signal": "Friday pickup",
+            "detail": "Customers tend to reorder familiar flavors for end-of-week pickup.",
+            "strength": 0.82
+        },
+        {
+            "signal": "mixed boxes",
+            "detail": "Six-count boxes perform best when they include at least three flavors.",
+            "strength": 0.76
+        },
+        {
+            "signal": "occasion-led orders",
+            "detail": "Party and thank-you orders skew toward shareable, fruit-forward picks.",
+            "strength": 0.71
+        },
+        {
+            "signal": "seasonal discovery",
+            "detail": "Customers who buy citrus are more likely to try orchard flavors next.",
+            "strength": 0.68
+        }
+    ],
+    "popularity": [
+        {
+            "id": "pink-velvet",
+            "orders": 842,
+            "trend": "steady"
+        },
+        {
+            "id": "midnight-fudge",
+            "orders": 796,
+            "trend": "rising"
+        },
+        {
+            "id": "brown-butter",
+            "orders": 774,
+            "trend": "steady"
+        },
+        {
+            "id": "strawberry-stack",
+            "orders": 731,
+            "trend": "rising"
+        },
+        {
+            "id": "lemon-cloud",
+            "orders": 688,
+            "trend": "rising"
+        },
+        {
+            "id": "coconut-matcha",
+            "orders": 412,
+            "trend": "new audience"
+        }
+    ]
+}

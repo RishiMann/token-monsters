@@ -9,6 +9,7 @@
  */
 
 import { fullMenu, weeklyMenu, eventMenus, agents as roster } from "./data.js";
+import { runRecommendationTools } from "./recommendation-tools.js";
 
 /** Simulated round-trip so the UI exercises its real loading states. */
 const think = (ms = 420) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -54,38 +55,51 @@ const KEYWORD_HINTS = [
 ];
 
 const pick = (ids) => ids.map(byId).filter(Boolean);
+const uniqueItems = (items) => items.filter((item, index, all) =>
+  item && all.findIndex((candidate) => candidate.id === item.id) === index
+);
 
 const recommendation = async ({ occasion, text, context } = {}) => {
   await think();
 
-  const contextualFavorites = context?.signals?.personalizedFavorites || [];
+  const analysis = runRecommendationTools(context);
+  const { cart, history, deals } = analysis;
   const popularNext = context?.signals?.popularNext || [];
+
+  const dealNote = deals.regular[0] || deals.seasonal[1] || deals.seasonal[0];
+  const dealMessage = dealNote ? ` ${dealNote.title}: ${dealNote.reason || dealNote.detail}` : "";
 
   if (occasion && OCCASION_PICKS[occasion]) {
     const { ids, line } = OCCASION_PICKS[occasion];
-    return { agent: "recommendation", message: line, items: pick(ids) };
+    return { agent: "recommendation", message: `${line}${dealMessage}`, items: pick(ids), analysis, deals };
   }
 
   if (text) {
     const hit = KEYWORD_HINTS.find((hint) => hint.match.test(text));
-    if (hit) return { agent: "recommendation", message: hit.line, items: pick(hit.ids) };
+    if (hit) return { agent: "recommendation", message: `${hit.line}${dealMessage}`, items: pick(hit.ids), analysis, deals };
   }
 
-  if (contextualFavorites.length) {
+  if (history.availableFavorites.length) {
+    const favorite = history.availableFavorites[0];
+    const favoriteItem = byId(favorite.id);
     return {
       agent: "recommendation",
-      message: `You usually come back for ${contextualFavorites[0].name}. I paired it with a popular pick from this week's counter.`,
-      items: [contextualFavorites[0], popularNext[0]].filter(Boolean)
+      message: `You usually come back for ${favorite.name}. I paired it with a popular pick from this week's counter.${dealMessage}`,
+      items: uniqueItems([favoriteItem, popularNext[0]]),
+      analysis,
+      deals
     };
   }
 
-  const top = popularNext.length
+  const top = popularNext.length && cart.remaining > 0
     ? popularNext.slice(0, 2)
     : [...weeklyMenu].sort((a, b) => b.rating - a.rating).slice(0, 2);
   return {
     agent: "recommendation",
-    message: "Here's what the corner is loving this week. Tell me the occasion and I'll get more specific.",
-    items: top
+    message: `Here's what the corner is loving this week. Tell me the occasion and I'll get more specific.${dealMessage}`,
+    items: top,
+    analysis,
+    deals
   };
 };
 

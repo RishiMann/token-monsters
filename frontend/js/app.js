@@ -8,7 +8,7 @@
 
 import {
   fullMenu, weeklyMenu, eventMenus, smartOffers,
-  plans, reviews, reviewSummary, agents, occasions
+  plans, reviews, reviewSummary, agents, occasions, announcements, dataLoadError
 } from "./data.js";
 import { ask } from "./agents.js";
 import * as bag from "./bag.js";
@@ -24,9 +24,16 @@ const esc = (value) =>
   );
 
 const money = (value) => `$${value.toFixed(2)}`;
-let storefrontContext = generateContext();
+let storefrontContext = null;
+let contextReady = generateContext().then((context) => {
+  storefrontContext = context;
+  return context;
+});
 
-const withContext = (input = {}) => ({ ...input, context: storefrontContext });
+const withContext = async (input = {}) => ({
+  ...input,
+  context: await contextReady
+});
 
 /* ── Toast ─────────────────────────────────────────────────── */
 const toastEl = $("[data-toast]");
@@ -39,21 +46,16 @@ function toast(message) {
 }
 
 /* ── Announcement rotator ──────────────────────────────────── */
-const ANNOUNCEMENTS = [
-  "Free delivery over $45",
-  "New flavors drop every Thursday",
-  "Now at 40+ corners nationwide",
-  "Ask the concierge — it knows your table"
-];
 (function rotateAnnouncements() {
   const slot = $("[data-announce]");
+  if (!announcements.length) return;
   let i = 0;
   setInterval(() => {
-    i = (i + 1) % ANNOUNCEMENTS.length;
+    i = (i + 1) % announcements.length;
     slot.style.animation = "none";
     void slot.offsetWidth; // restart the entrance animation
     slot.style.animation = "";
-    slot.textContent = ANNOUNCEMENTS[i];
+    slot.textContent = announcements[i];
   }, 4200);
 })();
 
@@ -94,6 +96,8 @@ const ANNOUNCEMENTS = [
 const grid = $("[data-product-grid]");
 const gridEmpty = $("[data-grid-empty]");
 
+if (dataLoadError) toast("Storefront data is temporarily unavailable");
+
 function productCard(item, index) {
   return `
     <article class="product-card tint-${item.tint}" style="animation-delay:${index * 45}ms">
@@ -117,7 +121,11 @@ function productCard(item, index) {
 function renderMenu(filter = "all") {
   const source = filter === "all" ? weeklyMenu : fullMenu;
   const items = filter === "all" ? source : source.filter((item) => item.tags.includes(filter));
-  grid.innerHTML = items.map(productCard).join("");
+  if (items.length === 0) {
+    grid.innerHTML = '<p class="menu-error">Failed to load menu. Please try again later.</p>';
+  } else {
+    grid.innerHTML = items.map(productCard).join("");
+  }
   gridEmpty.hidden = items.length > 0;
 }
 
@@ -287,7 +295,7 @@ function recStrip(items) {
 
 async function conciergeReply(input) {
   const typing = typingBubble();
-  const reply = await ask("recommendation", withContext(input));
+  const reply = await ask("recommendation", await withContext(input));
   typing.remove();
   const body = `<div>${esc(reply.message)}</div>${reply.items?.length ? recStrip(reply.items) : ""}`;
   bubble(body);
@@ -356,7 +364,7 @@ $("[data-plan]").addEventListener("click", async (event) => {
   button.disabled = true;
   button.textContent = "Planning…";
 
-  const reply = await ask("planner", withContext({
+  const reply = await ask("planner", await withContext({
     guests: Number(guestInput.value), vibe, dietary
   }));
 
@@ -396,7 +404,7 @@ async function supportReply(text) {
   supportLog.appendChild(typing);
   supportLog.scrollTop = supportLog.scrollHeight;
 
-  const reply = await ask("support", withContext({ text }));
+  const reply = await ask("support", await withContext({ text }));
   typing.remove();
   const chips = reply.chips?.length
     ? `<div class="reply-chips">${reply.chips.map((c) => `<button class="reply-chip" type="button" data-support-chip="${esc(c)}">${esc(c)}</button>`).join("")}</div>`
@@ -441,7 +449,7 @@ document.addEventListener("click", (event) => {
 /* ── Voice ordering (affordance only for now) ──────────────── */
 $('[data-action="voice"]').addEventListener("click", async () => {
   toast("Listening… (voice ordering ships with the Orders Agent)");
-  const reply = await ask("orders", withContext({ text: "" }));
+  const reply = await ask("orders", await withContext({ text: "" }));
   openSupport(true);
   supportBubble(esc(reply.message));
 });
@@ -506,7 +514,10 @@ function renderBox(snapshot) {
 }
 
 bag.onChange((snapshot) => {
-  storefrontContext = generateContext({ cart: snapshot });
+  contextReady = generateContext({ cart: snapshot }).then((context) => {
+    storefrontContext = context;
+    return context;
+  });
   renderBox(snapshot);
 });
 
