@@ -12,6 +12,7 @@ import {
 } from "./data.js";
 import { ask } from "./agents.js";
 import * as bag from "./bag.js";
+import { generateContext } from "./context.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -23,6 +24,9 @@ const esc = (value) =>
   );
 
 const money = (value) => `$${value.toFixed(2)}`;
+let storefrontContext = generateContext();
+
+const withContext = (input = {}) => ({ ...input, context: storefrontContext });
 
 /* ── Toast ─────────────────────────────────────────────────── */
 const toastEl = $("[data-toast]");
@@ -219,7 +223,7 @@ const crewGrid = $("[data-crew-grid]");
 function renderCrew(audience = "all") {
   const list = agents.filter((agent) =>
     audience === "all" ? true :
-    audience === "franchise" ? agent.audience === "franchise" : !agent.audience
+      audience === "franchise" ? agent.audience === "franchise" : !agent.audience
   );
   crewGrid.innerHTML = list.map((agent, i) => `
     <article class="crew-card tint-${agent.tint}" style="position:relative;animation-delay:${i * 45}ms">
@@ -283,7 +287,7 @@ function recStrip(items) {
 
 async function conciergeReply(input) {
   const typing = typingBubble();
-  const reply = await ask("recommendation", input);
+  const reply = await ask("recommendation", withContext(input));
   typing.remove();
   const body = `<div>${esc(reply.message)}</div>${reply.items?.length ? recStrip(reply.items) : ""}`;
   bubble(body);
@@ -352,9 +356,9 @@ $("[data-plan]").addEventListener("click", async (event) => {
   button.disabled = true;
   button.textContent = "Planning…";
 
-  const reply = await ask("planner", {
+  const reply = await ask("planner", withContext({
     guests: Number(guestInput.value), vibe, dietary
-  });
+  }));
 
   plannerResult.innerHTML = `
     <p class="eyebrow"><span class="agent-dot tint-plum"></span>Planner result</p>
@@ -392,7 +396,7 @@ async function supportReply(text) {
   supportLog.appendChild(typing);
   supportLog.scrollTop = supportLog.scrollHeight;
 
-  const reply = await ask("support", { text });
+  const reply = await ask("support", withContext({ text }));
   typing.remove();
   const chips = reply.chips?.length
     ? `<div class="reply-chips">${reply.chips.map((c) => `<button class="reply-chip" type="button" data-support-chip="${esc(c)}">${esc(c)}</button>`).join("")}</div>`
@@ -437,7 +441,7 @@ document.addEventListener("click", (event) => {
 /* ── Voice ordering (affordance only for now) ──────────────── */
 $('[data-action="voice"]').addEventListener("click", async () => {
   toast("Listening… (voice ordering ships with the Orders Agent)");
-  const reply = await ask("orders", { text: "" });
+  const reply = await ask("orders", withContext({ text: "" }));
   openSupport(true);
   supportBubble(esc(reply.message));
 });
@@ -480,9 +484,9 @@ function renderBox(snapshot) {
 
   $("[data-box-hint]").textContent =
     count === 0 ? "A Frosted Corner box holds six."
-    : count < capacity ? `${capacity - count} slot${capacity - count === 1 ? "" : "s"} left in this box.`
-    : count === capacity ? "Box is full — nicely done."
-    : `${Math.ceil(count / capacity)} boxes for this order.`;
+      : count < capacity ? `${capacity - count} slot${capacity - count === 1 ? "" : "s"} left in this box.`
+        : count === capacity ? "Box is full — nicely done."
+          : `${Math.ceil(count / capacity)} boxes for this order.`;
 
   linesWrap.innerHTML = lines.length
     ? lines.map((line) => `
@@ -501,7 +505,10 @@ function renderBox(snapshot) {
     : `<div class="drawer-empty"><span aria-hidden="true">🧁</span><p>Your box is waiting for something sweet.</p></div>`;
 }
 
-bag.onChange(renderBox);
+bag.onChange((snapshot) => {
+  storefrontContext = generateContext({ cart: snapshot });
+  renderBox(snapshot);
+});
 
 function openBag(open) {
   drawer.hidden = !open;

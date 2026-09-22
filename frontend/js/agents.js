@@ -55,8 +55,11 @@ const KEYWORD_HINTS = [
 
 const pick = (ids) => ids.map(byId).filter(Boolean);
 
-const recommendation = async ({ occasion, text } = {}) => {
+const recommendation = async ({ occasion, text, context } = {}) => {
   await think();
+
+  const contextualFavorites = context?.signals?.personalizedFavorites || [];
+  const popularNext = context?.signals?.popularNext || [];
 
   if (occasion && OCCASION_PICKS[occasion]) {
     const { ids, line } = OCCASION_PICKS[occasion];
@@ -68,7 +71,17 @@ const recommendation = async ({ occasion, text } = {}) => {
     if (hit) return { agent: "recommendation", message: hit.line, items: pick(hit.ids) };
   }
 
-  const top = [...weeklyMenu].sort((a, b) => b.rating - a.rating).slice(0, 2);
+  if (contextualFavorites.length) {
+    return {
+      agent: "recommendation",
+      message: `You usually come back for ${contextualFavorites[0].name}. I paired it with a popular pick from this week's counter.`,
+      items: [contextualFavorites[0], popularNext[0]].filter(Boolean)
+    };
+  }
+
+  const top = popularNext.length
+    ? popularNext.slice(0, 2)
+    : [...weeklyMenu].sort((a, b) => b.rating - a.rating).slice(0, 2);
   return {
     agent: "recommendation",
     message: "Here's what the corner is loving this week. Tell me the occasion and I'll get more specific.",
@@ -116,14 +129,15 @@ const planner = async ({ guests = 12, vibe = "classic", dietary = [] } = {}) => 
   };
 };
 
-const offers = async ({ basketSize = 0 } = {}) => {
+const offers = async ({ basketSize = 0, context } = {}) => {
   await think(300);
+  const boxGap = context?.signals?.boxGap ?? Math.max(0, 6 - basketSize);
   return {
     agent: "offers",
-    message: basketSize >= 6
+    message: boxGap === 0
       ? "Your box is full — the party upgrade is the better value from here."
       : "Three offers are live for you right now, each tied to something you've actually done.",
-    note: "Offers are reasoned per customer. No blanket codes."
+    note: boxGap > 0 ? `${boxGap} slot${boxGap === 1 ? "" : "s"} remain in the current box.` : "Offers are reasoned per customer. No blanket codes."
   };
 };
 
@@ -166,12 +180,13 @@ const support = async ({ text = "" } = {}) => {
   };
 };
 
-const seasonal = async () => {
+const seasonal = async ({ context } = {}) => {
   await think(300);
   const live = eventMenus.find((menu) => menu.status === "live") || eventMenus[0];
+  const seasonalName = context?.market?.liveSeasonal?.name || live.name;
   return {
     agent: "seasonal",
-    message: `${live.name} is live through ${live.window.split("–")[1].trim()}. ${live.blurb}`,
+    message: `${seasonalName} is live through ${live.window.split("–")[1].trim()}. ${live.blurb}`,
     note: live.highlights.join(" · ")
   };
 };
