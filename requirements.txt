@@ -1,0 +1,2 @@
+# The current development server uses only Python's standard library.
+# Add backend dependencies here as the API is implemented.
