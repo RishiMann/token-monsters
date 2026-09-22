@@ -1012,3 +1012,32 @@ input[type="range"]::-moz-range-thumb {
   }
   .box-lid { transform: rotateX(62deg); }
 }
+
+/* ── Header account button ──────────────────────────────────── */
+.account-button {
+  display: flex; align-items: center; gap: 9px;
+  height: 42px; padding: 0 16px 0 7px;
+  border-radius: 999px; text-decoration: none;
+  border: 1px solid var(--line); background: var(--card);
+  font-size: .88rem; font-weight: 600; color: var(--ink);
+  transition: transform .18s var(--ease-bounce), border-color .18s ease;
+  white-space: nowrap;
+}
+.account-button:hover { transform: translateY(-2px); border-color: var(--berry); }
+
+.account-avatar {
+  width: 28px; height: 28px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: var(--pink-wash); color: var(--berry-deep);
+  font-size: .78rem; font-weight: 700;
+}
+.account-avatar.is-signed-in {
+  background: linear-gradient(150deg, var(--pink), var(--berry));
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  /* Keep the avatar as the tap target; the word would crowd the bag. */
+  .account-button { padding: 0; width: 42px; justify-content: center; }
+  .account-button [data-account-label] { display: none; }
+}
