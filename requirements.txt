@@ -1,3 +1,8 @@
 # Backend dependencies.
-# The dev server itself is standard library only; the agent runtime needs the SDK.
-anthropic>=1.0
+# The dev server itself is standard library only; the agent runtime needs these.
+
+# Chat Completions against the Foundry / Azure OpenAI endpoint.
+openai>=1.0
+
+# Entra ID auth, so App Service can use its managed identity instead of a key.
+azure-identity>=1.19
