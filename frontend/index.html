@@ -3,30 +3,350 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Miette & Co. — an AI-powered pastry shop experience." />
-    <title>Miette & Co. | Pastries for every little moment</title>
+    <meta name="description" content="Frosted Corner — an AI-infused dessert ordering experience. Weekly flavors, smart offers, party planning and a concierge that actually knows your table." />
+    <meta name="theme-color" content="#D95286" />
+    <title>Frosted Corner | Desserts, figured out</title>
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="announcement">Free local delivery on orders over $45 <span>·</span> Meet your new dessert concierge ✨</div>
-    <header class="site-header">
-      <a class="brand" href="#top" aria-label="Miette and Co. home"><span class="brand-mark">M</span><span><strong>Miette</strong><small>& CO.</small></span></a>
-      <nav class="main-nav" aria-label="Main navigation"><a href="#menu">This week</a><a href="#seasons">Seasonal</a><a href="#concierge">Dessert concierge</a><a href="#reviews">Reviews</a></nav>
-      <div class="header-actions"><button class="icon-button" aria-label="Search" data-action="search">⌕</button><button class="bag-button" aria-label="Open bag" data-action="cart">Bag <span class="bag-count">0</span></button></div>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <div class="announcement" id="announcement">
+      <span data-announce>Free delivery over $45</span>
+    </div>
+
+    <header class="site-header" id="top">
+      <a class="brand" href="#top" aria-label="Frosted Corner, home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64" focusable="false">
+            <defs>
+              <linearGradient id="hdrBadge" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#F58BB4" />
+                <stop offset="55%" stop-color="#D95286" />
+                <stop offset="100%" stop-color="#A62F5D" />
+              </linearGradient>
+            </defs>
+            <path d="M18 2 H46 A16 16 0 0 1 62 18 V46 A16 16 0 0 1 46 62 H2 V18 A16 16 0 0 1 18 2 Z" fill="url(#hdrBadge)" />
+            <g fill="#fff">
+              <rect x="16.5" y="39.5" width="31" height="14" rx="7" />
+              <rect x="20" y="28.5" width="24" height="13" rx="6.5" />
+              <rect x="24" y="18.5" width="16" height="12" rx="6" />
+            </g>
+            <circle cx="32" cy="14" r="3.4" fill="#F5C451" />
+          </svg>
+        </span>
+        <span class="brand-word"><strong>Frosted</strong><small>Corner</small></span>
+      </a>
+
+      <nav class="main-nav" aria-label="Main">
+        <a href="#menu">This week</a>
+        <a href="#events">Seasonal</a>
+        <a href="#concierge">Concierge</a>
+        <a href="#party">Parties</a>
+        <a href="#plans">Subscribe</a>
+        <a href="#crew">AI crew</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-button" type="button" data-action="voice" aria-label="Order by voice">
+          <span aria-hidden="true">🎙</span>
+        </button>
+        <button class="bag-button" type="button" data-action="bag" aria-expanded="false" aria-controls="bag-drawer">
+          <span class="bag-glyph" aria-hidden="true">🧁</span>
+          <span>Box</span>
+          <span class="bag-count" data-bag-count>0</span>
+        </button>
+      </div>
     </header>
-    <main id="top">
-      <section class="hero section-wrap"><div class="hero-copy"><p class="eyebrow">Baked for the moment</p><h1>Good things<br /><em>are</em> coming.</h1><p class="hero-lede">Small-batch pastries, big little feelings. Tell us what you're celebrating and we'll find the sweet spot.</p><div class="hero-actions"><a class="button button-dark" href="#concierge">Find my perfect treat <span>→</span></a><a class="text-link" href="#menu">Shop this week <span>↘</span></a></div><div class="hero-proof"><div class="avatar-stack"><span>AM</span><span>JL</span><span>SK</span></div><span><strong>4.9</strong> from 1,200+ happy moments</span></div></div><div class="hero-art"><div class="hero-sticker">Fresh<br /><strong>today</strong></div><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><div class="hero-pastry pastry-main" aria-label="Illustration of a berry pastry">🍓</div><div class="hero-pastry pastry-small">🥐</div><div class="hero-pastry pastry-cookie">🍪</div><span class="scribble">made with<br />a little magic</span></div></section>
-      <section class="season-banner section-wrap" id="seasons"><div><p class="eyebrow">The season is looking sweet</p><h2>Late summer,<br /><em>served.</em></h2></div><div class="season-detail"><p>Juicy berries, lemon zest, and the last golden hours. Explore our limited-edition menu before it changes.</p><a class="button button-light" href="#menu">Explore the season <span>→</span></a></div><div class="season-fruit" aria-hidden="true">🍋<span>🍓</span></div></section>
-      <section class="section-wrap menu-section" id="menu"><div class="section-heading"><div><p class="eyebrow">On the counter now</p><h2>Meet the weekly <em>lineup.</em></h2></div><button class="filter-button" data-action="filter">Filter <span>☷</span></button></div><div class="filter-bar" id="filter-bar" hidden><button class="filter-chip active" data-filter="all">All treats</button><button class="filter-chip" data-filter="shareable">Party-sized</button><button class="filter-chip" data-filter="vegan">Plant-based</button><button class="filter-chip" data-filter="new">New this week</button></div><div class="product-grid" id="product-grid"></div><div class="view-all"><a class="text-link" href="#menu">See the full menu <span>→</span></a></div></section>
-      <section class="concierge-section" id="concierge"><div class="section-wrap concierge-layout"><div class="concierge-intro"><div class="concierge-icon">✦</div><p class="eyebrow">Your dessert concierge</p><h2>Not sure what<br /><em>you want?</em></h2><p>Give us the occasion, the vibe, or just a craving. Our little AI helper will make a shortlist worth sharing.</p><span class="privacy-note">✦ Your preferences stay yours</span></div><div class="concierge-card"><div class="chat-top"><span class="online-dot"></span><span><strong>Miette AI</strong><small>Here to make choosing easy</small></span><span class="sparkle">✦</span></div><div class="chat-bubble">Hi, sweet friend! What are we celebrating?</div><div class="choice-label">Choose an occasion</div><div class="choice-grid"><button class="choice" data-occasion="Just because">☀️ <span>Just because</span></button><button class="choice" data-occasion="Dinner party">🍽️ <span>Dinner party</span></button><button class="choice" data-occasion="Birthday">🎈 <span>Birthday</span></button><button class="choice" data-occasion="Thank you">💌 <span>Thank you</span></button></div><div class="concierge-result" id="concierge-result" hidden></div></div></div></section>
-      <section class="party-section section-wrap"><div class="party-copy"><p class="eyebrow">Planning something special?</p><h2>Make it a <em>spread.</em></h2><p>From six friends to sixty, we'll help you build a dessert table that feels like you.</p><a class="button button-dark" href="#concierge">Plan my party <span>→</span></a></div><div class="party-cards"><div class="party-card card-berry"><span>01</span><strong>Pick a vibe</strong><small>Garden, cozy, bold or classic</small></div><div class="party-card card-citrus"><span>02</span><strong>Tell us your table</strong><small>We'll make the math delicious</small></div><div class="party-card card-cream"><span>03</span><strong>Make it yours</strong><small>Notes, candles, custom colors</small></div></div></section>
-      <section class="reviews-section" id="reviews"><div class="section-wrap"><div class="section-heading"><div><p class="eyebrow">Kind words</p><h2>Worth writing <em>home</em> about.</h2></div><div class="review-rating">★★★★★ <strong>4.9</strong></div></div><div class="review-grid"><article class="review-card featured-review"><div class="quote-mark">“</div><p>The AI suggested the berry cloud for my sister's garden party and it was <em>the</em> centerpiece. Gone in minutes.</p><footer><span class="review-avatar">JM</span><span><strong>Jules M.</strong><small>Verified celebration</small></span><span class="review-stars">★★★★★</span></footer></article><article class="review-card"><div class="mini-product">🍋</div><p>Bright, buttery, and not too sweet. The lemon cloud is my new personality.</p><footer><span class="review-avatar peach">AK</span><span><strong>Ari K.</strong><small>Verified customer</small></span></footer></article><article class="review-card"><div class="mini-product">🍪</div><p>It tastes like someone made it just for you. Because, basically, they did.</p><footer><span class="review-avatar lavender">RS</span><span><strong>Riley S.</strong><small>Verified customer</small></span></footer></article></div></div></section>
+
+    <main id="main">
+      <!-- ── Hero ─────────────────────────────────────────────── -->
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Week of September 22</p>
+          <h1>Six new flavors.<br /><em>Every single week.</em></h1>
+          <p class="lede">
+            Frosted Corner rotates the whole menu weekly — and an AI crew learns what
+            you like, sizes your party, and finds you an offer worth taking.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#menu">See this week's six <span aria-hidden="true">→</span></a>
+            <a class="button button-ghost" href="#concierge">Ask the concierge <span aria-hidden="true">✦</span></a>
+          </div>
+          <div class="countdown" role="timer" aria-live="off">
+            <span class="countdown-label">New flavors drop in</span>
+            <div class="countdown-clock" data-countdown>
+              <span><strong data-cd="days">–</strong><small>days</small></span>
+              <span><strong data-cd="hours">–</strong><small>hrs</small></span>
+              <span><strong data-cd="mins">–</strong><small>min</small></span>
+              <span><strong data-cd="secs">–</strong><small>sec</small></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-box">
+            <div class="hero-box-lid"></div>
+            <div class="hero-box-body">
+              <span>🧁</span><span>🍪</span><span>🍋</span>
+              <span>🍫</span><span>🍓</span><span>🍯</span>
+            </div>
+          </div>
+          <div class="hero-blob blob-a"></div>
+          <div class="hero-blob blob-b"></div>
+          <span class="hero-sticker">40+<small>corners</small></span>
+        </div>
+      </section>
+
+      <!-- ── Weekly menu ──────────────────────────────────────── -->
+      <section class="section" id="menu">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">On the counter now</p>
+            <h2>This week's <em>lineup</em></h2>
+          </div>
+          <div class="filter-row" role="group" aria-label="Filter the menu">
+            <button class="chip is-active" type="button" data-filter="all">All</button>
+            <button class="chip" type="button" data-filter="new">New</button>
+            <button class="chip" type="button" data-filter="shareable">Party-sized</button>
+            <button class="chip" type="button" data-filter="vegan">Plant-based</button>
+            <button class="chip" type="button" data-filter="rich">Rich</button>
+            <button class="chip" type="button" data-filter="fruity">Fruity</button>
+          </div>
+        </div>
+        <div class="product-grid" data-product-grid></div>
+        <p class="grid-empty" data-grid-empty hidden>Nothing matches that filter this week — try another.</p>
+      </section>
+
+      <!-- ── Smart offers ─────────────────────────────────────── -->
+      <section class="section offers-section" id="offers">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow"><span class="agent-dot tint-gold"></span>Offers Agent</p>
+            <h2>Offers with a <em>reason</em></h2>
+            <p class="section-lede">No blanket codes. Each of these exists because of something you actually did.</p>
+          </div>
+        </div>
+        <div class="offer-rail" data-offer-rail></div>
+      </section>
+
+      <!-- ── Concierge ────────────────────────────────────────── -->
+      <section class="section concierge-section" id="concierge">
+        <div class="concierge-grid">
+          <div class="concierge-intro">
+            <p class="eyebrow"><span class="agent-dot tint-pink"></span>Recommendation Agent</p>
+            <h2>Not sure what <em>you want?</em></h2>
+            <p>
+              Tell it the occasion, the crowd, or just a craving. It reads the live menu,
+              your allergen profile and what's actually in stock at your corner.
+            </p>
+            <ul class="signal-list">
+              <li>Past orders</li><li>Saved events</li><li>Allergen profile</li><li>Local stock</li>
+            </ul>
+          </div>
+
+          <div class="chat-card">
+            <div class="chat-head">
+              <span class="online-dot" aria-hidden="true"></span>
+              <span class="chat-title"><strong>Corner Concierge</strong><small>Usually answers instantly</small></span>
+            </div>
+            <div class="chat-log" data-chat-log aria-live="polite"></div>
+            <div class="occasion-grid" data-occasion-grid></div>
+            <form class="chat-form" data-chat-form>
+              <label class="visually-hidden" for="chat-input">Tell the concierge what you need</label>
+              <input id="chat-input" name="message" type="text" autocomplete="off"
+                     placeholder="Nut-free, for 20 people, Saturday…" data-chat-input />
+              <button class="send-button" type="submit" aria-label="Send">→</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Event menus ──────────────────────────────────────── -->
+      <section class="section" id="events">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow"><span class="agent-dot tint-caramel"></span>Seasonal menus</p>
+            <h2>Menus that follow <em>the calendar</em></h2>
+            <p class="section-lede">Festivals, holidays and promotions each get their own menu — not one catalog all year.</p>
+          </div>
+        </div>
+        <div class="event-grid" data-event-grid></div>
+      </section>
+
+      <!-- ── Party planner ────────────────────────────────────── -->
+      <section class="section party-section" id="party">
+        <div class="party-grid">
+          <div class="party-copy">
+            <p class="eyebrow"><span class="agent-dot tint-plum"></span>Party Planner Agent</p>
+            <h2>Make it a <em>spread</em></h2>
+            <p>Six friends or sixty — it does the serving math so you don't run short.</p>
+
+            <div class="planner-controls">
+              <div class="control">
+                <label for="guests">Guests <output data-guest-out>12</output></label>
+                <input id="guests" type="range" min="4" max="60" step="2" value="12" data-guests />
+              </div>
+              <div class="control">
+                <span class="control-label">Vibe</span>
+                <div class="chip-row" role="group" aria-label="Party vibe">
+                  <button class="chip is-active" type="button" data-vibe="classic">Classic</button>
+                  <button class="chip" type="button" data-vibe="garden">Garden</button>
+                  <button class="chip" type="button" data-vibe="bold">Bold</button>
+                  <button class="chip" type="button" data-vibe="cozy">Cozy</button>
+                </div>
+              </div>
+              <div class="control">
+                <span class="control-label">Dietary</span>
+                <div class="chip-row" role="group" aria-label="Dietary needs">
+                  <button class="chip" type="button" data-diet="vegan" aria-pressed="false">Plant-based</button>
+                  <button class="chip" type="button" data-diet="nut-free" aria-pressed="false">Nut-free</button>
+                </div>
+              </div>
+              <button class="button button-primary" type="button" data-plan>Plan my spread <span aria-hidden="true">→</span></button>
+            </div>
+          </div>
+
+          <div class="planner-result" data-planner-result>
+            <div class="planner-placeholder">
+              <span aria-hidden="true">◈</span>
+              <p>Set your headcount and the planner will build the box list.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Subscriptions ────────────────────────────────────── -->
+      <section class="section" id="plans">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Subscriptions</p>
+            <h2>Dessert, <em>handled</em></h2>
+            <p class="section-lede">Skip, swap or pause any week. The concierge fills the box if you'd rather not think about it.</p>
+          </div>
+        </div>
+        <div class="plan-grid" data-plan-grid></div>
+      </section>
+
+      <!-- ── Reviews ──────────────────────────────────────────── -->
+      <section class="section reviews-section" id="reviews">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Kind words</p>
+            <h2>Worth writing <em>home</em> about</h2>
+          </div>
+        </div>
+        <div class="review-layout">
+          <aside class="review-summary" data-review-summary></aside>
+          <div class="review-grid" data-review-grid></div>
+        </div>
+      </section>
+
+      <!-- ── AI crew ──────────────────────────────────────────── -->
+      <section class="section crew-section" id="crew">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Under the hood</p>
+            <h2>Meet the <em>AI crew</em></h2>
+            <p class="section-lede">Seven specialized agents, each owning one job and handing off when it isn't theirs.</p>
+          </div>
+          <div class="chip-row" role="group" aria-label="Filter agents by audience">
+            <button class="chip is-active" type="button" data-crew="all">All</button>
+            <button class="chip" type="button" data-crew="customer">Customer</button>
+            <button class="chip" type="button" data-crew="franchise">Franchise &amp; HQ</button>
+          </div>
+        </div>
+        <div class="crew-grid" data-crew-grid></div>
+      </section>
+
+      <!-- ── Franchise ────────────────────────────────────────── -->
+      <section class="section franchise-section">
+        <div class="franchise-card">
+          <div>
+            <p class="eyebrow">For franchise partners</p>
+            <h2>The other side of <em>the counter</em></h2>
+            <p>
+              40+ locations order supplies from HQ through the same platform. Inventory
+              agents tune reorder points per corner; insights agents explain the week.
+            </p>
+            <a class="button button-light" href="#crew">See the franchise agents <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="franchise-stats">
+            <div><strong>40+</strong><small>corners</small></div>
+            <div><strong>10%</strong><small>market growth target</small></div>
+            <div><strong>Nov 2</strong><small>go-live</small></div>
+          </div>
+        </div>
+      </section>
     </main>
-    <footer class="site-footer"><div class="footer-brand"><span class="brand-mark">M</span><p><strong>Miette & Co.</strong><br />A little joy, baked daily.</p></div><div class="footer-links"><a href="#menu">Menu</a><a href="#seasons">Seasonal</a><a href="#concierge">Concierge</a><a href="#reviews">Reviews</a></div><p class="footer-note">© 2026 Miette & Co. <span>Made for sweet moments.</span></p></footer>
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="app.js"></script>
+
+    <footer class="site-footer">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="assets/logo.svg" alt="" width="40" height="40" />
+          <p><strong>Frosted Corner</strong><br />Desserts, figured out.</p>
+        </div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="#menu">This week</a><a href="#events">Seasonal</a>
+          <a href="#party">Parties</a><a href="#plans">Subscribe</a><a href="#crew">AI crew</a>
+        </nav>
+      </div>
+      <p class="footer-note">© 2026 Frosted Corner · Prototype built for Cap-A-Thon</p>
+    </footer>
+
+    <!-- ── The box (bag drawer) ───────────────────────────────── -->
+    <div class="drawer-scrim" data-scrim hidden></div>
+    <aside class="bag-drawer" id="bag-drawer" data-drawer aria-label="Your box" hidden>
+      <header class="drawer-head">
+        <div>
+          <p class="eyebrow">Your box</p>
+          <h2 data-drawer-title>Empty box</h2>
+        </div>
+        <button class="icon-button" type="button" data-close-bag aria-label="Close box">✕</button>
+      </header>
+
+      <div class="box-stage">
+        <div class="box" data-box>
+          <div class="box-lid"><span class="lid-logo">Frosted Corner</span></div>
+          <div class="box-inner" data-box-slots></div>
+        </div>
+      </div>
+
+      <p class="box-hint" data-box-hint>A Frosted Corner box holds six.</p>
+
+      <div class="drawer-lines" data-drawer-lines></div>
+
+      <footer class="drawer-foot">
+        <div class="drawer-total"><span>Subtotal</span><strong data-subtotal>$0.00</strong></div>
+        <button class="button button-primary full" type="button" data-checkout>Checkout</button>
+        <button class="text-button" type="button" data-clear-bag>Empty the box</button>
+      </footer>
+    </aside>
+
+    <!-- ── Support agent ──────────────────────────────────────── -->
+    <button class="support-fab" type="button" data-support-open aria-expanded="false" aria-controls="support-panel">
+      <span aria-hidden="true">◍</span><span class="visually-hidden">Open help</span>
+    </button>
+    <section class="support-panel" id="support-panel" data-support-panel hidden aria-label="Support">
+      <header class="support-head">
+        <span class="agent-dot tint-mint" aria-hidden="true"></span>
+        <span><strong>Support Agent</strong><small>Allergens, orders, refunds</small></span>
+        <button class="icon-button" type="button" data-support-close aria-label="Close help">✕</button>
+      </header>
+      <div class="support-log" data-support-log aria-live="polite"></div>
+      <form class="chat-form" data-support-form>
+        <label class="visually-hidden" for="support-input">Ask support</label>
+        <input id="support-input" type="text" autocomplete="off" placeholder="Is anything nut-free?" data-support-input />
+        <button class="send-button" type="submit" aria-label="Send">→</button>
+      </form>
+    </section>
+
+    <div class="toast" data-toast role="status" aria-live="polite"></div>
+
+    <script type="module" src="js/app.js"></script>
   </body>
 </html>

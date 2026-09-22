@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - tokenmonster
+name: Build and deploy Python app to Azure Web App - tokenmonster
 
 on:
   push:
@@ -18,22 +18,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      - name: Set up Python version
+        uses: actions/setup-python@v5
         with:
-          node-version: '24.x'
+          python-version: '3.13'
 
-      - name: npm install, build, and test
+      # requirements.txt currently declares no third-party packages; this step
+      # keeps working once backend dependencies are added.
+      - name: Install dependencies
         run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Check the server imports and the frontend is present
+        run: |
+          python -m compileall -q backend
+          test -f frontend/index.html
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
-          path: .
+          name: python-app
+          path: |
+            backend
+            frontend
+            requirements.txt
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,8 +55,8 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: node-app
-      
+          name: python-app
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -62,4 +71,6 @@ jobs:
           app-name: 'tokenmonster'
           slot-name: 'Production'
           package: .
-          
+          # App Service has no way to guess how to start a bare stdlib server,
+          # so name the entry point explicitly.
+          startup-command: 'python backend/server.py'
