@@ -1,0 +1,72 @@
+{
+  "locations": [
+    { "id": "frisco",   "name": "Frisco Corner",    "region": "North TX",   "status": "healthy",  "ordersWeek": 842, "revenueWeek": 18420, "change": 6.4,  "stockHealth": 92 },
+    { "id": "plano",    "name": "Plano Corner",     "region": "North TX",   "status": "healthy",  "ordersWeek": 671, "revenueWeek": 14380, "change": 3.1,  "stockHealth": 88 },
+    { "id": "austin",   "name": "South Congress",   "region": "Central TX", "status": "watch",    "ordersWeek": 918, "revenueWeek": 21050, "change": 11.2, "stockHealth": 61 },
+    { "id": "houston",  "name": "Heights Corner",   "region": "Gulf",       "status": "healthy",  "ordersWeek": 604, "revenueWeek": 13110, "change": -1.8, "stockHealth": 84 },
+    { "id": "scottsdale","name": "Scottsdale Corner","region": "Southwest",  "status": "critical", "ordersWeek": 512, "revenueWeek": 11740, "change": 2.2,  "stockHealth": 38 }
+  ],
+
+  "inventory": [
+    { "sku": "FLR-001", "name": "Pastry flour",        "unit": "kg",    "onHand": 240, "reorderPoint": 120, "onOrder": 0,   "leadTimeDays": 3, "usedBy": ["pink-velvet", "brown-butter", "lemon-cloud"] },
+    { "sku": "BTR-002", "name": "Cultured butter",     "unit": "kg",    "onHand": 86,  "reorderPoint": 90,  "onOrder": 120, "leadTimeDays": 2, "usedBy": ["brown-butter", "biscoff"] },
+    { "sku": "CHC-003", "name": "Dark chocolate 70%",  "unit": "kg",    "onHand": 31,  "reorderPoint": 60,  "onOrder": 0,   "leadTimeDays": 5, "usedBy": ["midnight-fudge", "brown-butter"] },
+    { "sku": "CRM-004", "name": "Cream cheese",        "unit": "kg",    "onHand": 54,  "reorderPoint": 45,  "onOrder": 0,   "leadTimeDays": 2, "usedBy": ["pink-velvet"] },
+    { "sku": "FRT-005", "name": "Strawberry purée",    "unit": "L",     "onHand": 18,  "reorderPoint": 40,  "onOrder": 60,  "leadTimeDays": 4, "usedBy": ["strawberry-stack", "pink-velvet"] },
+    { "sku": "CTR-006", "name": "Lemon curd base",     "unit": "L",     "onHand": 62,  "reorderPoint": 35,  "onOrder": 0,   "leadTimeDays": 3, "usedBy": ["lemon-cloud"] },
+    { "sku": "SPC-007", "name": "Speculoos spread",    "unit": "kg",    "onHand": 12,  "reorderPoint": 30,  "onOrder": 0,   "leadTimeDays": 6, "usedBy": ["biscoff"] },
+    { "sku": "PKG-008", "name": "Six-count boxes",     "unit": "units", "onHand": 4200,"reorderPoint": 2500,"onOrder": 0,   "leadTimeDays": 7, "usedBy": [] },
+    { "sku": "MTC-009", "name": "Matcha powder",       "unit": "kg",    "onHand": 7,   "reorderPoint": 10,  "onOrder": 15,  "leadTimeDays": 9, "usedBy": ["coconut-matcha"] }
+  ],
+
+  "supplyOrders": [
+    { "id": "SO-1042", "location": "Frisco Corner",     "placed": "2026-09-18", "eta": "2026-09-24", "status": "in-transit", "total": 2840.50, "lines": 6 },
+    { "id": "SO-1043", "location": "Scottsdale Corner", "placed": "2026-09-19", "eta": "2026-09-25", "status": "in-transit", "total": 4115.00, "lines": 9 },
+    { "id": "SO-1044", "location": "South Congress",    "placed": "2026-09-21", "eta": "2026-09-27", "status": "submitted",  "total": 3260.75, "lines": 7 },
+    { "id": "SO-1041", "location": "Plano Corner",      "placed": "2026-09-15", "eta": "2026-09-20", "status": "delivered",  "total": 1980.25, "lines": 5 }
+  ],
+
+  "salesInsights": {
+    "revenueWeek": 78700,
+    "revenueChange": 5.3,
+    "ordersWeek": 3547,
+    "ordersChange": 4.1,
+    "avgBasket": 22.19,
+    "avgBasketChange": 1.2,
+    "subscriberCount": 1284,
+    "subscriberChange": 8.7,
+    "weekly": [
+      { "label": "W32", "revenue": 68200 },
+      { "label": "W33", "revenue": 71400 },
+      { "label": "W34", "revenue": 69850 },
+      { "label": "W35", "revenue": 74100 },
+      { "label": "W36", "revenue": 74700 },
+      { "label": "W37", "revenue": 78700 }
+    ],
+    "topFlavors": [
+      { "id": "pink-velvet",     "name": "Pink Velvet Crumb",  "units": 1042, "share": 23.1 },
+      { "id": "brown-butter",    "name": "Brown Butter Chip",  "units": 968,  "share": 21.5 },
+      { "id": "midnight-fudge",  "name": "Midnight Fudge",     "units": 741,  "share": 16.4 },
+      { "id": "strawberry-stack","name": "Strawberry Shortcake","units": 623, "share": 13.8 },
+      { "id": "lemon-cloud",     "name": "Lemon Glaze Cloud",  "units": 588,  "share": 13.0 },
+      { "id": "biscoff",         "name": "Biscoff Butterscotch","units": 549, "share": 12.2 }
+    ],
+    "regions": [
+      { "name": "Central TX", "revenue": 21050, "change": 11.2 },
+      { "name": "North TX",   "revenue": 32800, "change": 4.8 },
+      { "name": "Gulf",       "revenue": 13110, "change": -1.8 },
+      { "name": "Southwest",  "revenue": 11740, "change": 2.2 }
+    ],
+    "channelMix": [
+      { "channel": "App",      "share": 54 },
+      { "channel": "Web",      "share": 27 },
+      { "channel": "In-store", "share": 14 },
+      { "channel": "Voice",    "share": 5 }
+    ],
+    "watchouts": [
+      "Scottsdale stock health is 38% — three SKUs are below reorder point with no order placed.",
+      "Gulf region revenue is down 1.8% week over week, the only declining region.",
+      "Speculoos spread has a 6-day lead time and 12kg on hand; Biscoff sells ~549 units/week."
+    ]
+  }
+}
