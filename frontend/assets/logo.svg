@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Frosted Corner">
+  <title>Frosted Corner</title>
+  <defs>
+    <linearGradient id="fcBadge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F58BB4"/>
+      <stop offset="55%" stop-color="#D95286"/>
+      <stop offset="100%" stop-color="#A62F5D"/>
+    </linearGradient>
+    <linearGradient id="fcSwirl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFE7D6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Badge: three rounded corners, one sharp corner (bottom-left) = "the corner" -->
+  <path d="M18 2 H46 A16 16 0 0 1 62 18 V46 A16 16 0 0 1 46 62 H2 V18 A16 16 0 0 1 18 2 Z"
+        fill="url(#fcBadge)"/>
+
+  <!-- Frosting swirl -->
+  <g fill="url(#fcSwirl)">
+    <rect x="16.5" y="39.5" width="31" height="14" rx="7"/>
+    <rect x="20"   y="28.5" width="24" height="13" rx="6.5"/>
+    <rect x="24"   y="18.5" width="16" height="12" rx="6"/>
+  </g>
+
+  <!-- Cherry -->
+  <circle cx="32" cy="14" r="3.4" fill="#F5C451"/>
+
+  <!-- Sprinkles -->
+  <g fill="#FFFFFF" opacity=".85">
+    <rect x="11" y="24" width="2.4" height="6" rx="1.2" transform="rotate(-24 12 27)"/>
+    <rect x="50" y="30" width="2.4" height="6" rx="1.2" transform="rotate(22 51 33)"/>
+    <rect x="47" y="14" width="2.4" height="5.5" rx="1.2" transform="rotate(38 48 17)"/>
+  </g>
+</svg>
