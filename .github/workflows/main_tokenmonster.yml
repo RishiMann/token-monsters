@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python version
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       # requirements.txt currently declares no third-party packages; this step
       # keeps working once backend dependencies are added.
