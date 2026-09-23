@@ -125,8 +125,12 @@ class AppHandler(SimpleHTTPRequestHandler):
             self._json({"error": f"data source unavailable: {exc}"}, status=500)
 
     def _health(self):
-        """Which storage the running process actually ended up on."""
-        payload = {"ok": True}
+        """Which storage the process ended up on, and whether the model runtime can run.
+
+        Reports presence, never values: the endpoint host and deployment name
+        are not secrets, the key is, so only its presence is shown.
+        """
+        payload = {"ok": True, "python": sys.version.split()[0]}
         try:
             import db
             payload["driver"] = db.driver()
@@ -135,6 +139,15 @@ class AppHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             payload["ok"] = False
             payload["detail"] = str(exc)[:300]
+        model = {"endpoint_set": bool(os.environ.get("AZURE_OPENAI_ENDPOINT")),
+                 "deployment": os.environ.get("AZURE_OPENAI_DEPLOYMENT") or None,
+                 "key_set": bool(os.environ.get("AZURE_OPENAI_API_KEY"))}
+        try:
+            import openai
+            model["sdk"] = openai.__version__
+        except ImportError:
+            model["sdk"] = None
+        payload["model"] = model
         self._json(payload)
 
     def _context(self):

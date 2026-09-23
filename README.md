@@ -145,10 +145,14 @@ threshold for the hate category.
 ## Deployment (Azure App Service)
 
 `.github/workflows/main_tokenmonster.yml` deploys `main` to the `tokenmonster`
-App Service. It is a Python pipeline: the app has no build step and no
-third-party packages, so the workflow installs `requirements.txt`, checks the
-backend compiles and the frontend is present, then ships `backend/`,
-`frontend/` and `requirements.txt`.
+App Service. The workflow checks the backend compiles and the frontend is
+present, then ships `backend/`, `frontend/` and `requirements.txt`. The
+packages in `requirements.txt` (the model SDK, the database driver) are
+installed by App Service itself during the deploy, which needs the app
+setting `SCM_DO_BUILD_DURING_DEPLOYMENT=true`; without it the site serves
+but `/api/health` reports the SDK missing and the chat runs on the rule-based
+path. `/api/health` shows the Python version, the database driver and
+whether the model endpoint, deployment, key and SDK are present.
 
 App Service starts the app with `python backend/server.py`, set as the deploy
 step's `startup-command`. The server reads `PORT` from the environment and
