@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe0ec"/><stop offset="1" stop-color="#d95286"/></linearGradient></defs>
-<rect width="800" height="600" rx="40" fill="url(#bg)"/><ellipse cx="400" cy="452" rx="210" ry="38" fill="#a62f5d" opacity=".22"/>
-<path d="M235 286h330l-28 162H263z" fill="#fff9f5" stroke="#6b4230" stroke-width="10"/><path d="M235 286c18-76 79-118 165-118s147 42 165 118" fill="#d95286" stroke="#6b4230" stroke-width="10"/>
-<path d="M288 255c42-39 77-55 119-57 47-1 82 16 120 55" fill="none" stroke="#fff9f5" stroke-width="18" stroke-linecap="round"/><circle cx="330" cy="230" r="18" fill="#a62f5d"/><circle cx="470" cy="226" r="18" fill="#a62f5d"/><circle cx="400" cy="194" r="16" fill="#a62f5d"/>
-<text x="400" y="530" text-anchor="middle" font-family="Georgia,serif" font-size="32" fill="#fff9f5">RASPBERRY OAT</text>
-</svg>

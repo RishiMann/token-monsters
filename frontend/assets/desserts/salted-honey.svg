@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff1ca"/><stop offset="1" stop-color="#f5c451"/></linearGradient></defs>
-<rect width="800" height="600" rx="40" fill="url(#bg)"/><ellipse cx="400" cy="452" rx="210" ry="38" fill="#c98246" opacity=".2"/>
-<path d="M235 286h330l-28 162H263z" fill="#fff9f5" stroke="#6b4230" stroke-width="10"/><path d="M235 286c18-76 79-118 165-118s147 42 165 118" fill="#e9a94d" stroke="#6b4230" stroke-width="10"/>
-<path d="M290 250c50-42 88-54 125-55 48 0 83 15 117 51" fill="none" stroke="#fff9f5" stroke-width="20" stroke-linecap="round"/><circle cx="350" cy="210" r="12" fill="#fff9f5"/><circle cx="456" cy="202" r="12" fill="#fff9f5"/>
-<text x="400" y="530" text-anchor="middle" font-family="Georgia,serif" font-size="32" fill="#6b4230">SALTED HONEY</text>
-</svg>
