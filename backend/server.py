@@ -291,6 +291,7 @@ class AppHandler(SimpleHTTPRequestHandler):
             "/api/auth/login": self._login,
             "/api/auth/logout": self._logout,
             "/api/agent": self._agent,
+            "/api/orders": self._place_order,
         }
         handler = routes.get(self.path)
         if not handler:
@@ -335,6 +336,27 @@ class AppHandler(SimpleHTTPRequestHandler):
         # Internal detail goes to the log, not to the visitor's screen.
         print(f"auth failed: {exc}")
         self._json({"error": OFFLINE_MESSAGE}, status=503)
+
+    def _place_order(self, body):
+        """Records a checkout and moves the corner's stock. Needs the database."""
+        try:
+            import db, orders
+            payload = orders.place(
+                body.get("lines") or [],
+                fulfillment=str(body.get("fulfillment") or "pickup"),
+                applied_offer=body.get("appliedOffer") or None,
+                user=self._session_user(),
+            )
+            self._json(payload, status=201)
+        except Exception as exc:
+            try:
+                import orders as orders_module
+                if isinstance(exc, orders_module.OrderError):
+                    return self._json({"error": str(exc)}, status=400)
+            except ImportError:
+                pass
+            print(f"order failed: {exc!r}", file=sys.stderr, flush=True)
+            self._json({"error": OFFLINE_MESSAGE, "demo": True}, status=503)
 
     def _agent(self, body):
         """One conversational turn with the model. The browser sends the history."""

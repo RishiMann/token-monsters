@@ -114,7 +114,9 @@ const HANDLERS = {
 let backendAvailable = true;
 
 async function askBackend(agentId, input) {
-  const cart = input.context?.cart ? { ...input.context.cart, appliedOffer: input.appliedOffer || null } : null;
+  const cart = input.context?.cart
+    ? { ...input.context.cart, appliedOffer: input.appliedOffer || null, lastAdded: input.lastAdded || null }
+    : null;
   const response = await fetch("/api/agent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

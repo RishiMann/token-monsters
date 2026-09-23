@@ -261,12 +261,17 @@ CREATE TABLE IF NOT EXISTS preferences (
     PRIMARY KEY (user_id, key)
 );
 
+-- user_id is NULL for a guest checkout.
 CREATE TABLE IF NOT EXISTS orders (
-    id         BIGSERIAL PRIMARY KEY,
-    user_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    placed_at  DATE NOT NULL,
-    channel    TEXT NOT NULL DEFAULT 'app',
-    status     TEXT NOT NULL DEFAULT 'fulfilled'
+    id           BIGSERIAL PRIMARY KEY,
+    user_id      BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    placed_at    DATE NOT NULL,
+    channel      TEXT NOT NULL DEFAULT 'app',
+    status       TEXT NOT NULL DEFAULT 'fulfilled',
+    fulfillment  TEXT,
+    location_id  TEXT,
+    offer_id     TEXT,
+    total        NUMERIC(10,2)
 );
 CREATE INDEX IF NOT EXISTS orders_user_idx ON orders(user_id);
 
@@ -341,6 +346,18 @@ def _sqlite_schema():
     return sql
 
 
+# Columns added after the first schema shipped. Each statement is best effort:
+# it fails harmlessly where the column already exists (SQLite has no IF NOT
+# EXISTS for columns) and where the table was just created with it.
+MIGRATIONS = [
+    "ALTER TABLE orders ADD COLUMN fulfillment TEXT",
+    "ALTER TABLE orders ADD COLUMN location_id TEXT",
+    "ALTER TABLE orders ADD COLUMN offer_id TEXT",
+    "ALTER TABLE orders ADD COLUMN total NUMERIC(10,2)",
+    "ALTER TABLE orders ALTER COLUMN user_id DROP NOT NULL",   # PostgreSQL only
+]
+
+
 def init_schema():
     with connect() as conn:
         with conn.cursor() as cur:
@@ -348,6 +365,13 @@ def init_schema():
                 cur.executescript(_sqlite_schema())
             else:
                 cur.execute(SCHEMA)
+    for statement in MIGRATIONS:
+        try:
+            with connect() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(statement)
+        except Exception:
+            pass
 
 
 def _json(name):

@@ -83,23 +83,32 @@ function leadingOccasion(totals) {
 /** Score to a percentage the UI can show. Saturates rather than lying. */
 const confidence = (score) => Math.round(Math.min(97, 50 + 46 * (1 - Math.exp(-Math.max(0, score) / 8))));
 
+/** Tags worth matching on when looking for "more like this". */
+const AFFINITY_TAGS = ["rich", "fruity", "signature", "vegan", "shareable", "new"];
+
 /**
  * What to suggest next, and why.
  *
+ * Affinity first: the picks follow the item the customer just added — same
+ * flavor family, similar richness, shared tags, its explicit pairings — so
+ * adding chocolate surfaces more rich, chocolatey things. Balance and
+ * contrast only break ties. Plant-based boxes stay plant-based.
+ *
  * @param catalog  every item on sale today
  * @param lines    [{ item, qty }] currently in the box
- * @param options  avoid: allergens to exclude outright
+ * @param options  focus: id of the item just added (defaults to the last line)
+ *                 avoid: allergens to exclude outright
  *                 limit: how many picks to return
  *                 occasion: an occasion id the customer stated
  *                 favorites: [{ id, units }] from order history, best first
  *                 popular: item ids trending this week, best first
  *                 seasons: live menus [{ id, name, closes }]
  *                 occasionLabels: { id: label } for readable reasons
- * @returns { headline, trace, items: [{ item, reason, confidence, score, signals }] }
+ * @returns { headline, trace, items: [{ item, reason, confidence, score, signals }], focus }
  */
 export function recommend(catalog, lines = [], options = {}) {
   const {
-    avoid = [], limit = 3, occasion = null, favorites = [], popular = [],
+    focus: focusId = null, avoid = [], limit = 3, occasion = null, favorites = [], popular = [],
     seasons = [], occasionLabels = {},
   } = options;
 
@@ -144,76 +153,74 @@ export function recommend(catalog, lines = [], options = {}) {
       headline: occasion ? `Picked for ${label(occasion)}` : "Where most people start",
       trace,
       items: rank(scored, limit),
+      focus: null,
     };
   }
 
-  trace.push(`Read the box: ${totals.count} item${totals.count === 1 ? "" : "s"}, ${money(totals.subtotal)}`);
+  // ── The item the picks follow: what was just added, else the last line.
+  const focusLine = (focusId && lines.find((line) => line.item.id === focusId)) || lines[lines.length - 1];
+  const focus = focusLine.item;
+  const pf = profileOf(focus);
+  const focusWord = FAMILY_WORD[pf.family] || pf.family || "flavor";
+  const focusTags = new Set((focus.tags || []).filter((t) => AFFINITY_TAGS.includes(t)));
+  const richWord = pf.rich >= 3 ? "rich" : pf.bright >= 3 ? "bright" : "balanced";
+  trace.push(`You just added ${focus.name} — ${focusWord}, ${richWord}${pf.texture ? `, ${pf.texture}` : ""}`);
+  trace.push("Looking for more like it: same flavor family, similar richness, its pairings");
 
-  // ── 1. Explicit pairings off what is already in the box.
-  for (const { item } of lines) {
-    for (const pair of profileOf(item).pairsWith || []) {
-      const candidate = catalog.find((entry) => entry.id === pair.id);
-      consider(candidate, 6, "pairing", `${pair.why}, next to your ${item.name}`);
-    }
-  }
-  trace.push(`Matched pairings for ${lines.map((l) => l.item.name).join(", ")}`);
-
-  // ── 2. Flavor families: complements score, repeats cost.
   for (const item of catalog) {
-    const family = profileOf(item).family;
-    if (!family) continue;
-    for (const [boxFamily] of totals.families) {
-      if ((COMPLEMENTS[boxFamily] || []).includes(family)) {
-        consider(item, 3, "complement", `${FAMILY_WORD[family] || family} against the ${FAMILY_WORD[boxFamily] || boxFamily} already in the box`);
-      }
+    const profile = profileOf(item);
+    // 1. Same flavor family as what was just added.
+    if (profile.family && profile.family === pf.family) {
+      consider(item, 6, "family", `more ${focusWord}, like the ${focus.name} you just added`);
     }
-    if (totals.families.has(family)) {
-      consider(item, -2, "repeat", `another ${FAMILY_WORD[family] || family} pick`);
+    // 2. Similar richness and brightness.
+    const richGap = Math.abs((profile.rich ?? 2) - (pf.rich ?? 2));
+    if (richGap <= 1 && pf.rich >= 3) consider(item, 3 - richGap, "rich", `just as rich as the ${focus.name}`);
+    else if (richGap <= 1 && pf.bright >= 3) consider(item, 3 - richGap, "bright", `just as bright as the ${focus.name}`);
+    else if (richGap <= 1) consider(item, 2 - richGap, "richness", `a similar weight to the ${focus.name}`);
+    const brightGap = Math.abs((profile.bright ?? 2) - (pf.bright ?? 2));
+    if (brightGap <= 1) consider(item, 1, "brightness", `a similar brightness to the ${focus.name}`);
+    // 3. Shared tags.
+    const shared = (item.tags || []).filter((t) => focusTags.has(t));
+    if (shared.length) consider(item, Math.min(3, shared.length), "tags", `also ${shared[0]}, like the ${focus.name}`);
+    // 4. Same texture.
+    if (profile.texture && profile.texture === pf.texture) consider(item, 1, "texture", `${profile.texture} like the ${focus.name}`);
+    // 5. Kinship with the rest of the box.
+    let kin = 0;
+    for (const [family, count] of totals.families) {
+      if (family === profile.family && family !== pf.family) kin += Math.min(2, count);
     }
-  }
-
-  // ── 3. Balance: a box that is all one thing gets a counterweight.
-  if (totals.rich >= totals.bright + 4) {
-    trace.push("Box skews rich — weighting bright flavors up");
-    for (const item of catalog) {
-      if (profileOf(item).bright >= 2) consider(item, 4, "balance", "balances a rich box with something bright");
-    }
-  } else if (totals.bright >= totals.rich + 4) {
-    trace.push("Box skews light — weighting richer flavors up");
-    for (const item of catalog) {
-      if (profileOf(item).rich >= 3) consider(item, 4, "balance", "adds depth to a light box");
-    }
-  }
-
-  // ── 4. Texture: contrast when everything is the same.
-  if (totals.textures.size === 1) {
-    const [only] = totals.textures.keys();
-    trace.push(`Every item is ${only} — looking for contrast`);
-    for (const item of catalog) {
-      const texture = profileOf(item).texture;
-      if (texture && texture !== only) consider(item, 2, "texture", `${texture} against a ${only} box`);
-    }
-  } else if (totals.count >= 3) {
-    for (const item of catalog) {
-      const texture = profileOf(item).texture;
-      if (texture && !totals.textures.has(texture)) consider(item, 1, "texture", "a texture the box doesn't have yet");
+    if (kin) consider(item, Math.min(2, kin), "box", "matches what else is in the box");
+    // 6. A little contrast, as a tie-breaker only.
+    if (profile.family && (COMPLEMENTS[pf.family] || []).includes(profile.family)) {
+      consider(item, 1, "contrast", `${FAMILY_WORD[profile.family] || profile.family} against the ${focusWord}`);
     }
   }
 
-  // ── 5. Occasion: what the box already looks like, or what the customer said.
+  // 7. Explicit pairings off what was just added, then the rest of the box.
+  for (const pair of pf.pairsWith || []) {
+    const candidate = catalog.find((entry) => entry.id === pair.id);
+    consider(candidate, 5, "pairing", `${pair.why}, next to the ${focus.name}`);
+  }
+  for (const { item } of lines) {
+    if (item.id === focus.id) continue;
+    for (const pair of profileOf(item).pairsWith || []) {
+      consider(catalog.find((entry) => entry.id === pair.id), 2, "pairing", `${pair.why}, next to your ${item.name}`);
+    }
+  }
+
+  // 8. Occasion: what the customer said, or what the box looks like.
   const lead = occasion || leadingOccasion(totals);
   if (lead) {
     trace.push(occasion
       ? `You said ${label(occasion)} — favoring picks made for it`
       : `Box reads as ${label(lead)} — favoring picks that fit`);
     for (const item of catalog) {
-      if (profileOf(item).occasions.includes(lead)) {
-        consider(item, occasion ? 4 : 2, "occasion", `fits a ${label(lead)} box`);
-      }
+      if (profileOf(item).occasions.includes(lead)) consider(item, occasion ? 4 : 2, "occasion", `fits a ${label(lead)} box`);
     }
   }
 
-  // ── 6. Dietary consistency: an all-plant-based box stays that way.
+  // 9. Dietary consistency: an all-plant-based box stays that way.
   if (totals.allVegan) {
     trace.push("Everything so far is plant-based — keeping it that way");
     for (const item of catalog) {
@@ -222,31 +229,26 @@ export function recommend(catalog, lines = [], options = {}) {
     }
   }
 
-  // ── 7. Signed-in history and this week's popularity.
+  // 10. Signed-in history, popularity, live seasons.
   for (const item of catalog) {
     if (favoriteUnits.has(item.id)) {
-      consider(item, 3, "favorite", `you've ordered this ${favoriteUnits.get(item.id)} time${favoriteUnits.get(item.id) === 1 ? "" : "s"} before`);
+      consider(item, 5, "favorite", `you've ordered this ${favoriteUnits.get(item.id)} time${favoriteUnits.get(item.id) === 1 ? "" : "s"} before`);
     }
     if (popularRank.has(item.id)) consider(item, 1, "popular", "trending at the counter this week");
+    const season = seasonById.get(item.season);
+    if (season) consider(item, 1, "season", `${season.name} runs until ${longDate(season.closes)}`);
   }
   if (favorites.length) trace.push("Checked your past boxes for favorites not in this one");
 
-  // ── 8. Seasonal: a live menu gets a nudge, and a date in the reason.
-  for (const item of catalog) {
-    const season = seasonById.get(item.season);
-    if (season) consider(item, 2, "season", `${season.name} runs until ${longDate(season.closes)}`);
-  }
-  if (seasons.length) trace.push(`${seasons.map((s) => s.name).join(" and ")} ${seasons.length === 1 ? "is" : "are"} live — seasonal picks in the mix`);
-
   const remaining = BOX_TARGET - totals.count;
+  if (remaining > 0 && remaining <= 2) trace.push(`${remaining} slot${remaining === 1 ? "" : "s"} left to fill the six-count`);
   trace.push(`Ranked ${scored.size} candidates`);
 
   return {
-    headline: remaining > 0 && remaining <= 2
-      ? `${remaining} more to complete the box`
-      : "Picked to go with your box",
+    headline: `Because you added ${focus.name}`,
     trace,
     items: rank(scored, limit),
+    focus: focus.id,
   };
 }
 

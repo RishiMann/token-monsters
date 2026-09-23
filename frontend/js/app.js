@@ -60,7 +60,8 @@ const withContext = async (input = {}) => ({
   ...input,
   context: await contextReady,
   signedIn,
-  appliedOffer: bag.appliedOffer()
+  appliedOffer: bag.appliedOffer(),
+  lastAdded: bag.snapshot().lastChange?.type === "add" ? bag.snapshot().lastChange.id : null
 });
 
 /* ── Toast ─────────────────────────────────────────────────── */
@@ -241,11 +242,17 @@ const picksTrace = $("[data-picks-trace]");
 
 function renderPicks(snapshot) {
   if (!picksPanel || !picksRow) return;
-  const { items, trace, headline } = recommend(snapshot.lines, { limit: 3, context: storefrontContext });
+  // Picks follow the item just added; after a removal they follow what is left.
+  const focus = snapshot.lastChange?.type === "add" ? snapshot.lastChange.id : null;
+  const { items, trace, headline } = recommend(snapshot.lines, { limit: 3, focus, context: storefrontContext });
   if (!items.length) { picksPanel.hidden = true; return; }
 
   picksPanel.hidden = false;
   $("[data-picks-headline]").textContent = headline;
+  // Restart the entrance animation so a fresh set visibly arrives.
+  picksPanel.classList.remove("is-fresh");
+  void picksPanel.offsetWidth;
+  picksPanel.classList.add("is-fresh");
   picksTrace.innerHTML = trace.map((step) => `<li>${esc(step)}</li>`).join("");
 
   picksRow.innerHTML = items.map((pick, index) => `
@@ -826,16 +833,47 @@ document.querySelector("[data-checkout]")?.addEventListener("click", () => {
 
 document.querySelector("[data-checkout-close]")?.addEventListener("click", () => checkoutDialog.close());
 
-document.querySelector("[data-checkout-form]")?.addEventListener("submit", (event) => {
+document.querySelector("[data-checkout-form]")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const method = fulfillment();
   const windowLabel = $("select[name=window]", checkoutDialog).value;
   const bill = renderCheckout();
+  const button = $('button[type="submit"]', checkoutDialog);
+  button.disabled = true;
+
+  // Place the order for real: the server records it, prices it again, and
+  // takes the ingredients out of the corner's stock. Without a database it
+  // answers 503 and the order stays a demo.
+  let placed = null;
+  try {
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({
+        lines: latestBox.lines.map((line) => ({ id: line.item.id, quantity: line.qty })),
+        fulfillment: method,
+        window: windowLabel,
+        appliedOffer: latestBox.appliedOffer
+      })
+    });
+    if (response.ok) placed = await response.json();
+  } catch {
+    placed = null;
+  }
+  button.disabled = false;
+
   checkoutDialog.close();
   bag.clear();
   openBag(false);
-  toast(`Demo order placed for ${method}, ${windowLabel.toLowerCase()} · ${money(bill.total)}`
-    + (bill.applied ? ` after ${bill.applied.title.toLowerCase()}` : ""));
+  if (placed) {
+    const low = (placed.stock || []).filter((row) => row.status !== "ok");
+    toast(`Order #${placed.id} placed · ${money(placed.total)} · stock updated at ${placed.location}`
+      + (low.length ? ` — ${low[0].name} now ${low[0].status}` : ""));
+  } else {
+    toast(`Demo order placed for ${method}, ${windowLabel.toLowerCase()} · ${money(bill.total)}`
+      + (bill.applied ? ` after ${bill.applied.title.toLowerCase()}` : ""));
+  }
 });
 
 /* ── Boot ──────────────────────────────────────────────────── */

@@ -3887,3 +3887,9 @@ input[type="range"]::-moz-range-thumb {
     max-height: 72vh;
   }
 }
+
+/* The picks panel re-enters when the box changes, so a new set reads as new. */
+.picks-panel.is-fresh .pick-card { animation: rise .45s var(--ease-bounce, cubic-bezier(.34,1.56,.64,1)) both; }
+.picks-panel.is-fresh .picks-head strong { animation: rise .35s ease both; }
+.admin-live { font-size: .74rem; color: var(--ink-soft); margin-left: 10px; }
+.admin-live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #1f9d6b; margin-right: 6px; animation: pulse-dot 1.6s ease-in-out infinite; }

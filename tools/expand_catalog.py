@@ -416,6 +416,36 @@ OFFERS = [
     },
 ]
 
+# ── What one unit of an item takes out of the corner's stock ─────────────
+#
+# Keyed by the SKUs seeded in backend/seed.py (kg or L per unit). Derived from
+# allergens and flavor family so every item has a recipe; edit per item in
+# storefront.json for anything more exact. Six-count boxes are consumed per
+# order, not per item.
+
+def uses_for(entry):
+    family = PROFILES[entry["id"]][0]
+    allergens = set(entry.get("allergens", []))
+    uses = {}
+    if "wheat" in allergens:
+        uses["FLR-001"] = 0.06
+    if "dairy" in allergens:
+        uses["BTR-002"] = 0.03
+    if family == "cocoa" or entry["id"] in ("brown-butter", "oat-choc-chip"):
+        uses["CHC-003"] = 0.04
+    if family == "cream":
+        uses["CRM-004"] = 0.035
+    if family == "berry":
+        uses["FRT-005"] = 0.03
+    if family == "citrus":
+        uses["CTR-006"] = 0.03
+    if family == "caramel":
+        uses["SPC-007"] = 0.02
+    if family == "green":
+        uses["MTC-009"] = 0.004
+    return uses
+
+
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
@@ -473,6 +503,9 @@ def main():
                 for p in entry["profile"]["pairsWith"] if p["id"] not in ids]
     if dangling:
         raise SystemExit(f"Pairings point at unknown items: {dangling}")
+
+    for entry in every:
+        entry["uses"] = uses_for(entry)
 
     data["smartOffers"] = OFFERS
 

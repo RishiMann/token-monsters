@@ -13,6 +13,7 @@ const STORAGE_KEY = "fc-box";
 const state = {
   lines: [], // { item, qty }
   appliedOffer: null,
+  lastChange: null, // { type: "add" | "remove" | "clear", id }
   open: false
 };
 
@@ -28,6 +29,7 @@ export function snapshot() {
     subtotal: subtotal(),
     capacity: BOX_CAPACITY,
     appliedOffer: state.appliedOffer,
+    lastChange: state.lastChange,
     open: state.open
   };
 }
@@ -78,6 +80,7 @@ export function add(item, qty = 1) {
   const existing = state.lines.find((line) => line.item.id === item.id);
   if (existing) existing.qty += qty;
   else state.lines.push({ item, qty });
+  state.lastChange = { type: "add", id: item.id };
   emit();
 }
 
@@ -87,12 +90,14 @@ export function remove(itemId) {
   const line = state.lines[index];
   line.qty -= 1;
   if (line.qty <= 0) state.lines.splice(index, 1);
+  state.lastChange = { type: "remove", id: itemId };
   emit();
 }
 
 export function clear() {
   state.lines = [];
   state.appliedOffer = null;
+  state.lastChange = { type: "clear", id: null };
   emit();
 }
 
