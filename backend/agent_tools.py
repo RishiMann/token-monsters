@@ -112,26 +112,62 @@ def _live_seasons():
 
 # ── Catalog ──────────────────────────────────────────────────────────────
 
+def _resolve(ref):
+    """An item by id, or by name (case-insensitive, exact or unique prefix)."""
+    if not ref:
+        return None
+    item = item_by_id(ref)
+    if item:
+        return item
+    key = str(ref).strip().lower()
+    exact = [i for i in _menu() if i["name"].lower() == key]
+    if exact:
+        return exact[0]
+    partial = [i for i in _menu() if key in i["name"].lower()]
+    return partial[0] if len(partial) == 1 else None
+
+
 def search_menu(query=None, tags=None, exclude_allergens=None, family=None, occasion=None, **_):
+    """Find items. Allergen exclusion is a hard filter; everything else prefers, then relaxes.
+
+    A query that names an item returns that item whatever else was asked, so
+    "Midnight Fudge" with family=caramel still finds the fudge. When the
+    preferences together would leave nothing, they are dropped one at a time
+    (occasion, tags, family) and `relaxed` says which.
+    """
     items = _menu()
-    if tags:
-        wanted = set(tags)
-        items = [i for i in items if wanted & set(i.get("tags", []))]
     if exclude_allergens:
-        banned = {a.lower() for a in exclude_allergens}
+        banned = {str(a).lower() for a in exclude_allergens}
         items = [i for i in items if not banned & {a.lower() for a in i.get("allergens", [])}]
-    if family:
-        items = [i for i in items if _profile(i).get("family") == family.lower()]
-    if occasion:
-        items = [i for i in items if occasion in _profile(i).get("occasions", [])]
+
     if query:
-        q = query.lower()
+        named = _resolve(query)
+        if named and named in items:
+            return {"count": 1, "items": [_slim(named)], "relaxed": []}
+        q = str(query).lower()
         items = [i for i in items
                  if q in i["name"].lower()
                  or q in (i.get("blurb") or "").lower()
                  or any(q in t.lower() for t in i.get("tags", []))
                  or q in (_profile(i).get("family") or "")]
-    return {"count": len(items), "items": [_slim(i) for i in items]}
+
+    preferences = []
+    if family:
+        preferences.append(("family", lambda i: _profile(i).get("family") == str(family).lower()))
+    if tags:
+        wanted = {str(t).lower() for t in tags}
+        preferences.append(("tags", lambda i: bool(wanted & {t.lower() for t in i.get("tags", [])})))
+    if occasion:
+        preferences.append(("occasion", lambda i: occasion in _profile(i).get("occasions", [])))
+
+    relaxed = []
+    while preferences:
+        narrowed = [i for i in items if all(test(i) for _, test in preferences)]
+        if narrowed:
+            items = narrowed
+            break
+        relaxed.append(preferences.pop()[0])   # drop the least important preference first
+    return {"count": len(items), "items": [_slim(i) for i in items], "relaxed": relaxed}
 
 
 # ── Customer ─────────────────────────────────────────────────────────────
@@ -377,11 +413,12 @@ def add_to_box(cart=None, item_ids=None, quantity=1, **_):
     except (TypeError, ValueError):
         quantity = 1
     added, rejected = [], []
-    for item_id in item_ids or []:
-        item = item_by_id(item_id)
+    for ref in item_ids or []:
+        item = _resolve(ref)
         if not item:
-            rejected.append({"id": item_id, "why": "not on the counter today"})
+            rejected.append({"id": ref, "why": "not on the counter today"})
             continue
+        item_id = item["id"]
         line = next((l for l in lines if l.get("id") == item_id), None)
         if line:
             line["quantity"] = int(line.get("quantity") or line.get("qty") or 1) + quantity
@@ -399,10 +436,11 @@ def remove_from_box(cart=None, item_ids=None, quantity=None, **_):
     cart = cart if isinstance(cart, dict) else {}
     lines = cart.setdefault("lines", [])
     removed, missing = [], []
-    for item_id in item_ids or []:
+    for ref in item_ids or []:
+        item_id = (_resolve(ref) or {}).get("id", ref)
         line = next((l for l in lines if l.get("id") == item_id), None)
         if not line:
-            missing.append(item_id)
+            missing.append(ref)
             continue
         have = int(line.get("quantity") or line.get("qty") or 1)
         take = have if quantity is None else max(1, min(int(quantity), have))
@@ -575,8 +613,8 @@ def _schema(name, description, properties=None, required=None):
 SCHEMAS = {
     "search_menu": _schema(
         "search_menu",
-        "Search today's Frosted Corner menu, seasonal items included. Use before recommending anything so you only name items that exist.",
-        {"query": {"type": "string", "description": "Free text matched against name, description, tags and flavor family."},
+        "Search today's Frosted Corner menu, seasonal items included. An item's name in `query` finds that item. Allergen exclusion is strict; the other filters are preferences and relax rather than return nothing, so use one or two, not all.",
+        {"query": {"type": "string", "description": "An item name, or free text matched against name, description, tags and flavor family."},
          "tags": {"type": "array", "items": {"type": "string"}, "description": "Any of: new, shareable, vegan, rich, fruity, signature."},
          "family": {"type": "string", "description": "Flavor family: cocoa, caramel, citrus, berry, cream, green, nut, spice, coffee, tropical, orchard, mint, sesame, bean."},
          "occasion": {"type": "string", "description": "One of: just-because, birthday, dinner-party, thank-you, office, kids."},
@@ -605,13 +643,13 @@ SCHEMAS = {
     "add_to_box": _schema(
         "add_to_box",
         "Put items into the customer's box, only when they ask for it. Items must be on the counter today. Returns what was added and the new box count.",
-        {"item_ids": {"type": "array", "items": {"type": "string"}, "description": "Menu item ids to add."},
+        {"item_ids": {"type": "array", "items": {"type": "string"}, "description": "Menu item ids, or item names, to add."},
          "quantity": {"type": "integer", "description": "How many of each, 1-12. Defaults to 1."}},
         ["item_ids"]),
     "remove_from_box": _schema(
         "remove_from_box",
         "Take items out of the customer's box, only when they ask for it.",
-        {"item_ids": {"type": "array", "items": {"type": "string"}, "description": "Menu item ids to remove."},
+        {"item_ids": {"type": "array", "items": {"type": "string"}, "description": "Menu item ids, or item names, to remove."},
          "quantity": {"type": "integer", "description": "How many of each to remove. Omit to remove all of that item."}},
         ["item_ids"]),
     "apply_offer": _schema(

@@ -124,6 +124,19 @@ class RuntimeTests(unittest.TestCase):
         removed = agent_tools.remove_from_box(cart=six, item_ids=["brown-butter"], quantity=2)
         self.assertEqual(six["lines"][0]["quantity"], 4); self.assertTrue(removed["ok"])
 
+    def test_search_finds_a_named_item_despite_wrong_filters(self):
+        import agent_tools
+        hit = agent_tools.search_menu(query="Midnight Fudge", family="caramel", tags=["signature"], occasion="birthday",
+                                      exclude_allergens=["tree nut", "peanut"])
+        self.assertEqual([i["id"] for i in hit["items"]], ["midnight-fudge"])
+        soft = agent_tools.search_menu(family="cocoa", occasion="birthday", exclude_allergens=["tree nut"])
+        self.assertTrue(soft["count"] > 0); self.assertIn("occasion", soft["relaxed"])
+        hard = agent_tools.search_menu(query="pistachio", exclude_allergens=["tree nut"])
+        self.assertEqual(hard["count"], 0)                                 # allergens never relax
+        added = agent_tools.add_to_box(cart={"lines": []}, item_ids=["salted caramel brownie", "Nope"])
+        self.assertEqual([a["id"] for a in added["added"]], ["salted-caramel-brownie"])
+        self.assertEqual(added["rejected"][0]["id"], "Nope")
+
     def test_model_failure_is_an_agent_error(self):
         class Boom:
             def create(self, **_):
