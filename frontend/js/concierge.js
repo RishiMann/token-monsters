@@ -290,7 +290,7 @@ function answerLogistics(text) {
   };
 }
 
-function answerOffers(cart) {
+function answerOffers(text, cart) {
   const count = cart.reduce((sum, line) => sum + line.qty, 0);
   const subtotal = cart.reduce((sum, line) => sum + line.item.price * line.qty, 0);
   const evaluated = offersFor({ lines: cart, count, subtotal }, extras);
