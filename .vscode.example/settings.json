@@ -1,8 +1,5 @@
 {
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
-  "python.analysis.extraPaths": [
-    "${workspaceFolder}/backend"
-  ],
+  "python.analysis.extraPaths": ["${workspaceFolder}/backend"],
   "python.analysis.typeCheckingMode": "basic",
   "python.analysis.autoImportCompletions": true,
   "editor.formatOnSave": true,

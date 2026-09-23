@@ -1,28 +1,56 @@
-/** Sign-in page wiring. See auth.js — this is prototype auth, not a security boundary. */
+/** Sign-in and sign-up. Credentials go to the server; nothing is checked here. */
 
-import { DEMO_ACCOUNTS, signIn, getSession, homeFor } from "./auth.js";
+import { signIn, signUp, currentUser, homeFor } from "./auth.js";
 
 const $ = (sel) => document.querySelector(sel);
 const form = $("[data-login-form]");
 const errorEl = $("[data-error]");
 const emailInput = $("#email");
 const passwordInput = $("#password");
+const nameInput = $("#name");
+const nameField = $("[data-name-field]");
+const submit = $("[data-submit]");
+const hint = $("[data-hint]");
 
-/** Honour ?next= so a redirected visitor lands where they were headed. */
 const params = new URLSearchParams(location.search);
 const requestedNext = params.get("next");
 
-const safeNext = (session) => {
-  // Only same-page relative targets — never an absolute or protocol-relative URL.
-  if (requestedNext && /^[\w.-]+\.html$/.test(requestedNext)) return requestedNext;
-  return homeFor(session);
+/** Only same-page relative targets — never an absolute or protocol-relative URL. */
+const safeNext = (user) =>
+  requestedNext && /^[\w.-]+\.html$/.test(requestedNext) ? requestedNext : homeFor(user);
+
+let mode = "signin";
+let selectedRole = "customer";
+
+const fail = (message) => {
+  errorEl.textContent = message;
+  errorEl.hidden = false;
 };
 
-// Already signed in? Skip the form.
-const existing = getSession();
-if (existing) location.replace(safeNext(existing));
+function setMode(next) {
+  mode = next;
+  const signup = mode === "signup";
+  document.querySelectorAll("[data-mode]").forEach((tab) => {
+    const active = tab.dataset.mode === mode;
+    tab.classList.toggle("is-active", active);
+    tab.setAttribute("aria-selected", String(active));
+  });
+  nameField.hidden = !signup;
+  nameInput.required = signup;
+  hint.hidden = !signup;
+  submit.textContent = signup ? "Create account" : "Sign in";
+  $("[data-heading]").textContent = signup ? "Make an account" : "Welcome back";
+  $("[data-lede]").textContent = signup
+    ? "Your box history and preferences are saved to your account."
+    : "Sign in to see your offers, favorites and box history.";
+  // Role choice only applies to sign-in; new accounts are always customers.
+  document.querySelector(".role-toggle").hidden = signup;
+  errorEl.hidden = true;
+}
 
-let selectedRole = "customer";
+document.querySelectorAll("[data-mode]").forEach((tab) =>
+  tab.addEventListener("click", () => setMode(tab.dataset.mode))
+);
 
 document.querySelectorAll("[data-role]").forEach((button) =>
   button.addEventListener("click", () => {
@@ -34,22 +62,16 @@ document.querySelectorAll("[data-role]").forEach((button) =>
 
 document.querySelectorAll("[data-fill]").forEach((row) =>
   row.querySelector("button").addEventListener("click", () => {
-    const account = DEMO_ACCOUNTS.find((a) => a.role === row.dataset.fill);
-    if (!account) return;
-    emailInput.value = account.email;
-    passwordInput.value = account.password;
-    document.querySelector(`[data-role="${account.role}"]`)?.click();
-    errorEl.hidden = true;
+    const admin = row.dataset.fill === "admin";
+    setMode("signin");
+    emailInput.value = admin ? "hq@frostedcorner.com" : "alex@frostedcorner.com";
+    passwordInput.value = admin ? "admin" : "treat";
+    document.querySelector(`[data-role="${row.dataset.fill}"]`)?.click();
     passwordInput.focus();
   })
 );
 
-const fail = (message) => {
-  errorEl.textContent = message;
-  errorEl.hidden = false;
-};
-
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   errorEl.hidden = true;
 
@@ -57,18 +79,30 @@ form.addEventListener("submit", (event) => {
   const password = passwordInput.value;
   if (!email || !password) return fail("Enter your email and password.");
 
-  const result = signIn(email, password);
+  submit.disabled = true;
+  const original = submit.textContent;
+  submit.textContent = mode === "signup" ? "Creating…" : "Signing in…";
+
+  const result = mode === "signup"
+    ? await signUp(email, password, nameInput.value.trim())
+    : await signIn(email, password);
+
+  submit.disabled = false;
+  submit.textContent = original;
+
   if (!result.ok) return fail(result.error);
 
-  // The toggle is a hint, not a gate — the account's own role decides.
-  if (result.session.role !== selectedRole) {
-    fail(
-      result.session.role === "admin"
+  // The toggle is a hint; the account's own role decides where they land.
+  if (mode === "signin" && result.user.role !== selectedRole) {
+    return fail(
+      result.user.role === "admin"
         ? "That's a Franchise & HQ account — switch the toggle above."
         : "That's a customer account — switch the toggle above."
     );
-    return;
   }
 
-  location.assign(safeNext(result.session));
+  location.assign(safeNext(result.user));
 });
+
+// Already signed in? Skip the form.
+currentUser().then((user) => { if (user) location.replace(safeNext(user)); });

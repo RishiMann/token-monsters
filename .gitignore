@@ -4,3 +4,6 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# Editor settings are per-machine; copy .vscode.example/ to .vscode/
+.vscode/

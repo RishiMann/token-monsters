@@ -307,9 +307,48 @@ const orders = async ({ text = "" } = {}) => {
 
 const HANDLERS = { recommendation, concierge, planner, offers, support, seasonal, orders, service: serviceInfo };
 
+/**
+ * Model-backed agents, with the rule-based handlers above as the fallback.
+ *
+ * The browser never holds a key: it posts to /api/agent and the backend runs
+ * the model. Any failure there (no key, rate limit, refusal) falls through to
+ * the local rules so the storefront keeps working.
+ */
+let backendAvailable = true;
+
+async function askBackend(agentId, input) {
+  const response = await fetch("/api/agent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      agent: agentId,
+      text: input.text || input.occasion || "",
+      cart: input.context?.cart || null
+    })
+  });
+
+  if (response.status === 503) {
+    // Runtime is not configured — stop trying for the rest of the session.
+    backendAvailable = false;
+    throw new Error("agent backend unavailable");
+  }
+  if (!response.ok) throw new Error(`agent backend returned ${response.status}`);
+  return response.json();
+}
+
 /** Single entry point the UI calls. Unknown ids fall back to support. */
 export async function ask(agentId, input = {}) {
   const handler = HANDLERS[agentId] || support;
+
+  if (backendAvailable) {
+    try {
+      const reply = await askBackend(agentId, input);
+      if (reply?.message) return { ...reply, agent: agentId };
+    } catch (error) {
+      console.warn("Falling back to local agent logic:", error.message);
+    }
+  }
+
   return handler(input);
 }
 
