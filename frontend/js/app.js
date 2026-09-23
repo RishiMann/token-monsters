@@ -7,7 +7,7 @@
  */
 
 import {
-  fullMenu, weeklyMenu, eventMenus, smartOffers,
+  fullMenu, eventMenus, smartOffers,
   plans, reviews, reviewSummary, agents, occasions, announcements, dataLoadError
 } from "./data.js";
 import { ask } from "./agents.js";
@@ -143,7 +143,7 @@ function productCard(item, index) {
 
 function renderMenu(filter = "all") {
   if (!grid) return;
-  const source = filter === "all" ? weeklyMenu : fullMenu;
+  const source = fullMenu;
   const items = filter === "all" ? source : source.filter((item) => item.tags.includes(filter));
   if (items.length === 0) {
     grid.innerHTML = '<p class="menu-error">Failed to load menu. Please try again later.</p>';
@@ -179,7 +179,25 @@ const offerRail = $("[data-offer-rail]");
 
 function renderOffers(lines) {
   if (!offerRail) return;
-  const offers = offersFor(lines, smartOffers);
+  const offers = offersFor(lines, smartOffers).map((offer) =>
+    offerRail.dataset.offerMode === "generic"
+      ? {
+          ...offer,
+          label: "Frosted Corner offer",
+          title: {
+            "offer-reorder": "15% off a six-count box",
+            "offer-party": "Free flavor flight with a party box",
+            "offer-season": "Save on a seasonal favorite"
+          }[offer.id] || offer.title,
+          detail: {
+            "offer-reorder": "Build a six-count box and save on the treats everyone comes back for.",
+            "offer-party": "Choose a party box and add a complimentary flavor flight.",
+            "offer-season": "Try a seasonal dessert at a special introductory price."
+          }[offer.id] || offer.detail,
+          reason: "Available on qualifying orders while supplies last."
+        }
+      : offer
+  );
   offerRail.innerHTML = offers.map((offer) => `
     <article class="offer-card tint-${offer.tint}${offer.live ? " is-live" : ""}">
       ${offer.live ? '<span class="offer-live">Live<span class="offer-live-dot"></span></span>' : ""}

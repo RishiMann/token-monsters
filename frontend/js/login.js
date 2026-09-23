@@ -12,12 +12,7 @@ const nameField = $("[data-name-field]");
 const submit = $("[data-submit]");
 const hint = $("[data-hint]");
 
-const params = new URLSearchParams(location.search);
-const requestedNext = params.get("next");
-
-/** Only same-page relative targets — never an absolute or protocol-relative URL. */
-const safeNext = (user) =>
-  requestedNext && /^[\w.-]+\.html$/.test(requestedNext) ? requestedNext : homeFor(user);
+const safeNext = (user) => homeFor(user);
 
 let mode = "signin";
 let selectedRole = "customer";

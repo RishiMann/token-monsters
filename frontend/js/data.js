@@ -19,8 +19,22 @@ try {
 
 export const weeklyMenu = source.weeklyMenu || [];
 export const plantBased = source.plantBased || [];
-export const fullMenu = [...weeklyMenu, ...plantBased];
 export const eventMenus = source.eventMenus || [];
+const today = new Date();
+const isLive = (menu) => {
+    if (!menu.opens || !menu.closes) return false;
+    const opens = new Date(`${menu.opens}T00:00:00`);
+    const closes = new Date(`${menu.closes}T23:59:59`);
+    return today >= opens && today <= closes;
+};
+export const seasonalMenu = eventMenus
+    .filter(isLive)
+    .flatMap((menu) => (menu.items || []).map((item) => ({
+        ...item,
+        badge: item.badge || "Seasonal",
+        seasonName: menu.name
+    })));
+export const fullMenu = [...weeklyMenu, ...plantBased, ...seasonalMenu];
 export const smartOffers = source.smartOffers || [];
 export const plans = source.plans || [];
 export const reviews = source.reviews || [];

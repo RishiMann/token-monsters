@@ -44,14 +44,13 @@ async function boot() {
   const me = (!fetched || fetched.error) ? demoProfile(user) : fetched;
 
   if (!me || me.error) {
-    $("[data-stats]").innerHTML = `<p class="empty">Your account data is unavailable right now.</p>`;
+    $("[data-favorites]").innerHTML = `<p class="empty">Your account data is unavailable right now.</p>`;
     return;
   }
 
   const menu = [...(storefront.weeklyMenu || []), ...(storefront.plantBased || [])];
   const byId = (id) => menu.find((i) => i.id === id);
 
-  renderStats(me, menu);
   renderFavorites(me.history?.favorites || [], byId);
   renderOrders(me.orders || [], byId);
   renderPreferences(me.preferences || {});

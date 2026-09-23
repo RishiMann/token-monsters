@@ -5,12 +5,9 @@
  * scrolled to the reviews, which is what people expect a rating to do.
  */
 
-import { fullMenu, eventMenus } from "./data.js";
+import { fullMenu } from "./data.js";
 
-const seasonalItems = eventMenus.flatMap((menu) =>
-  (menu.items || []).map((item) => ({ ...item, seasonName: menu.name })));
-
-const catalog = [...fullMenu, ...seasonalItems];
+const catalog = fullMenu;
 
 export const findItem = (id) => catalog.find((item) => item.id === id);
 

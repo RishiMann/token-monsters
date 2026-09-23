@@ -168,5 +168,5 @@ export async function requireRole(role) {
 }
 
 export function homeFor(user) {
-  return user?.role === "admin" ? "admin.html" : "account.html";
+  return user?.role === "admin" ? "admin.html" : "index.html";
 }
