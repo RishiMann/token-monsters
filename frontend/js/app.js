@@ -12,7 +12,7 @@ import {
 } from "./data.js";
 import { ask } from "./agents.js";
 import * as bag from "./bag.js";
-import { getSession, homeFor } from "./auth.js";
+import { currentUser, homeFor } from "./auth.js";
 import { generateContext } from "./context.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -609,16 +609,17 @@ $("[data-checkout-form]").addEventListener("submit", (event) => {
 renderMenu();
 
 /* ── Header account state ──────────────────────────────────── */
-(function showAccount() {
+(async function showAccount() {
   const link = $("[data-account-link]");
   if (!link) return;
-  const session = getSession();
-  if (!session) return;
+  // The session lives in an HttpOnly cookie, so only the server can read it.
+  const user = await currentUser();
+  if (!user) return;
 
-  link.href = homeFor(session);
-  $("[data-account-label]").textContent = session.name.split(" ")[0];
+  link.href = homeFor(user);
+  $("[data-account-label]").textContent = user.name.split(" ")[0];
   const avatar = $("[data-account-avatar]");
-  avatar.textContent = session.initials;
+  avatar.textContent = user.initials;
   avatar.classList.add("is-signed-in");
-  link.setAttribute("aria-label", `Your account, signed in as ${session.name}`);
+  link.setAttribute("aria-label", `Your account, signed in as ${user.name}`);
 })();

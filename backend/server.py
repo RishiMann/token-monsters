@@ -79,6 +79,9 @@ class AppHandler(SimpleHTTPRequestHandler):
         if self.path.startswith("/api/operations"):
             return self._operations()
 
+        if self.path == "/api/context":
+            return self._context()
+
         self.send_error(404)
 
     def _serve_file(self, path):
@@ -86,6 +89,56 @@ class AppHandler(SimpleHTTPRequestHandler):
             self._json(json.loads(path.read_text(encoding="utf-8")))
         except (OSError, json.JSONDecodeError) as exc:
             self._json({"error": f"data source unavailable: {exc}"}, status=500)
+
+    def _context(self):
+        """Agent-readable context for the storefront.
+
+        context.json supplies the market signals. For a signed-in customer the
+        customer and order-history sections are replaced with their real rows,
+        so the agents reason about that person rather than the sample profile.
+        """
+        try:
+            source = json.loads((BACKEND / "context.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            return self._json({"error": f"context unavailable: {exc}"}, status=500)
+
+        user = self._session_user()
+        if user:
+            try:
+                import auth
+                prefs = auth.preferences(user["id"])
+                source["customer"] = {
+                    **source.get("customer", {}),
+                    "name": user["name"],
+                    "homeCorner": user.get("homeCorner"),
+                    "plan": user.get("plan"),
+                    **prefs,
+                }
+                source["orderHistory"] = self._order_history(user["id"])
+            except Exception:
+                pass  # fall back to the sample profile rather than failing
+
+        self._json(source)
+
+    def _order_history(self, user_id):
+        """Past orders in the shape context.js expects."""
+        import db
+        rows = db.query(
+            """
+            SELECT o.id, o.placed_at, i.item_id, i.quantity
+            FROM orders o JOIN order_items i ON i.order_id = o.id
+            WHERE o.user_id = %s
+            ORDER BY o.placed_at DESC
+            """,
+            (user_id,),
+        )
+        orders = {}
+        for row in rows:
+            order = orders.setdefault(
+                row["id"], {"date": str(row["placed_at"])[:10], "items": []}
+            )
+            order["items"].append({"id": row["item_id"], "quantity": row["quantity"]})
+        return list(orders.values())
 
     def _me(self):
         """Profile payload: the signed-in customer's own data."""
