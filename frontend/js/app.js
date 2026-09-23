@@ -1,33 +1,35 @@
 /**
  * Frosted Corner storefront wiring.
  *
- * Rendering is plain template strings against the data modules; all agent
- * calls go through `ask()` so the UI already behaves like it's talking to a
- * service (loading states included) before any real one exists.
+ * Rendering is plain template strings against the data modules. The live
+ * surfaces (picks, offers, the calendar, the concierge) all read from the
+ * same engine and the same offer rules, so what the page shows, what the
+ * chat says and what checkout charges never disagree.
  */
 
 import {
-  fullMenu, eventMenus, upcomingSeasonalMenus, smartOffers,
-  plans, reviews, reviewSummary, agents, occasions, announcements, dataLoadError
+  fullMenu, eventMenus, plans, reviews, reviewSummary, occasions, announcements,
+  dataLoadError, findItem, isOnSale
 } from "./data.js";
 import { ask } from "./agents.js";
 import * as bag from "./bag.js";
 import { currentUser, homeFor } from "./auth.js";
 import { generateContext } from "./context.js";
-import { recommend, offersFor, liveSeasons } from "./agent-engine.js";
-import { respond as conciergeRespond, conversationMemory } from "./concierge.js";
+import { recommend, offersFor, receipt } from "./agent-engine.js";
+import { resetMemory } from "./concierge.js";
 import { initItemDetail, open as openItem } from "./item-detail.js";
+import { initCalendar } from "./calendar.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 /** Escape anything that originates from user input before it hits innerHTML. */
 const esc = (value) =>
-  String(value).replace(/[&<>"']/g, (ch) =>
+  String(value ?? "").replace(/[&<>"']/g, (ch) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])
   );
 
-const money = (value) => `$${value.toFixed(2)}`;
+const money = (value) => `$${Number(value).toFixed(2)}`;
 
 /**
  * Pages share this script, so a block whose section is not on this page must
@@ -39,15 +41,26 @@ function withEl(selector, run) {
   return el;
 }
 
+/* ── Who is here, and what the agents know ──────────────────── */
+let signedIn = false;
+const userReady = currentUser().then((user) => {
+  signedIn = Boolean(user);
+  return user;
+}).catch(() => null);
+
 let storefrontContext = null;
 let contextReady = generateContext().then((context) => {
   storefrontContext = context;
   return context;
 });
 
+const customer = () => ({ context: storefrontContext, signedIn });
+
 const withContext = async (input = {}) => ({
   ...input,
-  context: await contextReady
+  context: await contextReady,
+  signedIn,
+  appliedOffer: bag.appliedOffer()
 });
 
 /* ── Toast ─────────────────────────────────────────────────── */
@@ -75,40 +88,6 @@ function toast(message) {
   }, 4200);
 })();
 
-/* ── Countdown to the weekly flavor drop (Thursday 09:00) ──── */
-(function countdown() {
-  const nodes = {
-    days: $('[data-cd="days"]'), hours: $('[data-cd="hours"]'),
-    mins: $('[data-cd="mins"]'), secs: $('[data-cd="secs"]')
-  };
-  if (!nodes.days) return;          // no hero on this page
-
-  const nextDrop = () => {
-    const now = new Date();
-    const next = new Date(now);
-    next.setHours(9, 0, 0, 0);
-    // 4 = Thursday. Roll forward to the next one that hasn't happened yet.
-    const delta = (4 - next.getDay() + 7) % 7;
-    next.setDate(next.getDate() + delta);
-    if (next <= now) next.setDate(next.getDate() + 7);
-    return next;
-  };
-
-  const pad = (n) => String(n).padStart(2, "0");
-
-  const tick = () => {
-    const diff = Math.max(0, nextDrop() - Date.now());
-    const secs = Math.floor(diff / 1000);
-    nodes.days.textContent = Math.floor(secs / 86400);
-    nodes.hours.textContent = pad(Math.floor(secs / 3600) % 24);
-    nodes.mins.textContent = pad(Math.floor(secs / 60) % 60);
-    nodes.secs.textContent = pad(secs % 60);
-  };
-
-  tick();
-  setInterval(tick, 1000);
-})();
-
 /* ── Product grid ──────────────────────────────────────────── */
 const grid = $("[data-product-grid]");
 const gridEmpty = $("[data-grid-empty]");
@@ -117,44 +96,41 @@ if (dataLoadError) toast("Storefront data is temporarily unavailable");
 
 function productCard(item, index) {
   return `
-    <article class="product-card tint-${item.tint}" style="animation-delay:${index * 45}ms">
-      <div class="product-art">
-        <span class="product-badge">${esc(item.badge)}</span>
-        <button class="product-rating" type="button"
-                data-open-item="${item.id}" data-open-reviews
-                aria-label="Read the ${(item.reviews || []).length} reviews for ${esc(item.name)}">
-          ★ ${item.rating}
-        </button>
-           <img class="product-photo" data-art="${item.id}" data-open-item="${item.id}" data-open-reviews
-             src="${esc(item.image)}" alt="Read reviews for ${esc(item.name)}" loading="lazy" width="400" height="300" tabindex="0" role="button" />
+  <article class="product-card tint-${item.tint}" style="animation-delay:${index * 45}ms">
+    <div class="product-art">
+      <span class="product-badge">${esc(item.badge)}</span>
+      <button class="product-rating" type="button"
+              data-open-item="${item.id}" data-open-reviews
+              aria-label="Read the ${(item.reviews || []).length} reviews for ${esc(item.name)}">
+        ★ ${item.rating}
+      </button>
+      <img class="product-photo" data-art="${item.id}" data-open-item="${item.id}"
+           src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy" width="400" height="300" tabindex="0" role="button" />
+    </div>
+    <div class="product-info">
+      <h3><button class="product-name" type="button" data-open-item="${item.id}">${esc(item.name)}</button></h3>
+      <p>${esc(item.blurb)}</p>
+      ${item.nutrition ? `<p class="product-kcal">${item.nutrition.calories} cal · ${item.nutrition.servingGrams}g</p>` : ""}
+      <div class="product-foot">
+        <span class="product-price">${money(item.price)}</span>
+        <button class="add-button" type="button" data-add="${item.id}"
+                aria-label="Add ${esc(item.name)} to your box">+</button>
       </div>
-      <div class="product-info">
-        <h3><button class="product-name" type="button" data-open-item="${item.id}">${esc(item.name)}</button></h3>
-        <p>${esc(item.blurb)}</p>
-        ${item.nutrition ? `<p class="product-kcal">${item.nutrition.calories} cal · ${item.nutrition.servingGrams}g</p>` : ""}
-        <div class="product-foot">
-          <span class="product-price">${money(item.price)}</span>
-          <button class="add-button" type="button" data-add="${item.id}"
-                  aria-label="Add ${esc(item.name)} to your box">+</button>
-        </div>
-      </div>
-    </article>`;
+    </div>
+  </article>`;
 }
 
 function renderMenu(filter = "all") {
   if (!grid) return;
-  const source = fullMenu;
   const items = filter === "all"
-    ? source
+    ? fullMenu
     : filter === "seasonal"
-      ? source.filter((item) => item.season)
-      : source.filter((item) => item.tags.includes(filter));
-  if (items.length === 0) {
-    grid.innerHTML = '<p class="menu-error">Failed to load menu. Please try again later.</p>';
-  } else {
-    grid.innerHTML = items.map(productCard).join("");
-  }
-  if (gridEmpty) gridEmpty.hidden = items.length > 0;
+      ? fullMenu.filter((item) => item.season)
+      : fullMenu.filter((item) => item.tags.includes(filter));
+  grid.innerHTML = items.length
+    ? items.map(productCard).join("")
+    : (dataLoadError ? '<p class="menu-error">Failed to load menu. Please try again later.</p>' : "");
+  if (gridEmpty) gridEmpty.hidden = items.length > 0 || Boolean(dataLoadError);
 }
 
 $$("[data-filter]").forEach((chip) =>
@@ -165,68 +141,107 @@ $$("[data-filter]").forEach((chip) =>
   })
 );
 
+function addToBox(itemId, sourceEl) {
+  const item = findItem(itemId);
+  if (!item) return;
+  if (!isOnSale(itemId)) {
+    const when = item.releaseDate || item.seasonOpens;
+    toast(`${item.name} releases ${new Date(`${when}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`);
+    return;
+  }
+  bag.add(item);
+  bag.flyToBag(sourceEl || $(`[data-art="${item.id}"]`) || bagButton, bagButton, item.emoji);
+  toast(`${item.name} added to your box`);
+}
+
 /** One delegated handler covers every add button, including re-rendered ones. */
 document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-add]");
   if (!button) return;
-  const item = fullMenu.find((entry) => entry.id === button.dataset.add);
-  if (!item) return;
-
-  bag.add(item);
-  const art = $(`[data-art="${item.id}"]`) || button;
-  bag.flyToBag(art, bagButton, item.emoji);
-  toast(`${item.name} added to your box`);
+  addToBox(button.dataset.add, $(`[data-art="${button.dataset.add}"]`) || button);
 });
 
-/* ── Offers — re-priced by the Offers Agent on every box change ── */
+/* ── Offers — re-priced against the box on every change ─────── */
 const offerRail = $("[data-offer-rail]");
 
-function renderOffers(lines) {
-  if (!offerRail) return;
-  const offers = offersFor(lines, smartOffers).map((offer) =>
-    offerRail.dataset.offerMode === "generic"
-      ? {
-          ...offer,
-          label: "Frosted Corner offer",
-          title: {
-            "offer-reorder": "15% off a six-count box",
-            "offer-party": "Free flavor flight with a party box",
-            "offer-season": "Save on a seasonal favorite"
-          }[offer.id] || offer.title,
-          detail: {
-            "offer-reorder": "Build a six-count box and save on the treats everyone comes back for.",
-            "offer-party": "Choose a party box and add a complimentary flavor flight.",
-            "offer-season": "Try a seasonal dessert at a special introductory price."
-          }[offer.id] || offer.detail,
-          reason: "Available on qualifying orders while supplies last."
-        }
-      : offer
-  );
-  offerRail.innerHTML = offers.map((offer) => `
-    <article class="offer-card tint-${offer.tint}${offer.live ? " is-live" : ""}">
-      ${offer.live ? '<span class="offer-live">Live<span class="offer-live-dot"></span></span>' : ""}
+function offerCard(offer, appliedId) {
+  const applied = offer.id === appliedId;
+  const state = offer.auto
+    ? (offer.eligible ? "auto-on" : "auto")
+    : applied ? "applied" : offer.eligible ? "eligible" : "locked";
+  const status = {
+    "auto-on": "On at checkout", auto: "Automatic", applied: "Applied",
+    eligible: "Earned", locked: "Not yet"
+  }[state];
+  const showProgress = offer.progress != null && offer.progress < 100 && !offer.eligible;
+  const action = offer.auto
+    ? `<span class="offer-auto">Applies on its own with delivery</span>`
+    : offer.eligible
+      ? `<button class="chip${applied ? " is-active" : ""}" type="button" data-claim="${offer.id}"
+                 aria-pressed="${applied}">${applied ? "Applied ✓ · remove" : "Apply"}</button>`
+      : `<button class="chip" type="button" disabled aria-disabled="true" title="${esc(offer.why)}">Apply</button>`;
+  return `
+    <article class="offer-card tint-${offer.tint} state-${state}${offer.eligible ? " is-live" : ""}">
+      <span class="offer-status status-${state}">${status}${offer.eligible && !offer.auto ? '<span class="offer-live-dot"></span>' : ""}</span>
       <span class="offer-emoji" aria-hidden="true">${offer.emoji}</span>
       <span class="offer-label">${esc(offer.label)}</span>
       <h3>${esc(offer.title)}</h3>
       <p class="offer-detail">${esc(offer.detail)}</p>
-      ${offer.progress != null ? `
-        <div class="offer-progress"><i style="width:${Math.min(offer.progress, 100)}%"></i></div>` : ""}
-      <p class="offer-reason"><strong>Why this offer:</strong> ${esc(offer.reason)}</p>
+      ${showProgress ? `<div class="offer-progress" aria-hidden="true"><i style="width:${Math.min(offer.progress, 100)}%"></i></div>` : ""}
+      <p class="offer-reason"><strong>${offer.eligible ? "Why this box earned it:" : "To unlock it:"}</strong> ${esc(offer.why)}</p>
       <div class="offer-foot">
-        <span class="offer-value">${esc(offer.value)}</span>
-        <button class="chip" type="button" data-claim="${offer.id}">Apply</button>
+        <span class="offer-value">${offer.eligible && offer.discount > 0 ? `Saves ${money(offer.discount)}` : esc(offer.value)}</span>
+        ${action}
       </div>
-    </article>`).join("");
+    </article>`;
 }
 
-/* ── Picked for you — the Recommendation Agent, live ──────────── */
+function renderOffers(snapshot) {
+  if (!offerRail) return;
+  const evaluated = offersFor(snapshot, customer());
+  const applied = snapshot.appliedOffer;
+
+  // An applied offer the box no longer qualifies for comes off, and says so.
+  if (applied) {
+    const still = evaluated.find((offer) => offer.id === applied);
+    if (!still || !still.eligible) {
+      bag.removeOffer();
+      toast(`${still?.title || "That offer"} no longer applies — the box changed`);
+      return;
+    }
+  }
+  offerRail.innerHTML = evaluated.map((offer) => offerCard(offer, applied)).join("");
+}
+
+document.addEventListener("click", (event) => {
+  const claim = event.target.closest("[data-claim]");
+  if (!claim || claim.disabled) return;
+  const id = claim.dataset.claim;
+  if (bag.appliedOffer() === id) {
+    bag.removeOffer();
+    toast("Offer removed");
+    return;
+  }
+  const offer = offersFor(bag.snapshot(), customer()).find((entry) => entry.id === id);
+  if (!offer?.eligible) {
+    toast(offer?.why || "That offer doesn't apply to this box yet");
+    return;
+  }
+  const swapped = bag.appliedOffer();
+  bag.applyOffer(id);
+  toast(swapped
+    ? `Switched to ${offer.title.toLowerCase()} — one discount at a time`
+    : `${offer.title} applied · comes off at checkout`);
+});
+
+/* ── Picked for you — the Recommendation Agent, live ────────── */
 const picksPanel = $("[data-picks]");
 const picksRow = $("[data-picks-row]");
 const picksTrace = $("[data-picks-trace]");
 
-function renderPicks(lines) {
+function renderPicks(snapshot) {
   if (!picksPanel || !picksRow) return;
-  const { items, trace, headline } = recommend(lines, { limit: 3 });
+  const { items, trace, headline } = recommend(snapshot.lines, { limit: 3, context: storefrontContext });
   if (!items.length) { picksPanel.hidden = true; return; }
 
   picksPanel.hidden = false;
@@ -236,7 +251,7 @@ function renderPicks(lines) {
   picksRow.innerHTML = items.map((pick, index) => `
     <article class="pick-card tint-${pick.item.tint}" style="animation-delay:${index * 70}ms">
       <img class="pick-photo" data-art="${pick.item.id}" src="${esc(pick.item.image)}"
-           alt="${esc(pick.item.name)}" loading="lazy" width="400" height="300" />
+           alt="${esc(pick.item.name)}" loading="lazy" width="400" height="300" data-open-item="${pick.item.id}" role="button" tabindex="0" />
       <div class="pick-body">
         <div class="pick-top">
           <strong>${esc(pick.item.name)}</strong>
@@ -259,14 +274,12 @@ function refreshAgents(snapshot) {
   picksPanel?.classList.add("is-thinking");
   offerRail?.classList.add("is-thinking");
   agentTimer = setTimeout(() => {
-    if (picksPanel) renderPicks(snapshot.lines);
-    renderOffers(snapshot.lines);
+    if (picksPanel) renderPicks(snapshot);
+    renderOffers(snapshot);
     picksPanel?.classList.remove("is-thinking");
     offerRail?.classList.remove("is-thinking");
-  }, 420);
+  }, 380);
 }
-
-bag.onChange(refreshAgents);
 
 $("[data-picks-trace-toggle]")?.addEventListener("click", (event) => {
   const open = picksTrace.hidden;
@@ -275,81 +288,9 @@ $("[data-picks-trace-toggle]")?.addEventListener("click", (event) => {
   event.currentTarget.textContent = open ? "Hide reasoning" : "How it decided";
 });
 
-document.addEventListener("click", (event) => {
-  const claim = event.target.closest("[data-claim]");
-  if (!claim) return;
-  claim.textContent = "Applied ✓";
-  claim.classList.add("is-active");
-  toast("Offer applied to your next box");
-});
-
-/* ── Seasonal menus — each one opens to its line-up and dates ── */
-const SEASON_LABEL = {
-  live: "On sale now",
-  preorder: "Pre-order open",
-  planned: "Planned",
-  closed: "Closed"
-};
-
-const longDate = (iso) => {
-  if (!iso) return "";
-  const date = new Date(`${iso}T00:00:00`);
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-};
-
-function availability(menu) {
-  if (menu.state === "live") return `Available now through ${longDate(menu.closes)}`;
-  if (menu.state === "closed") return `Ran until ${longDate(menu.closes)}`;
-  if (menu.daysUntil != null && menu.daysUntil > 0) {
-    return `Opens ${longDate(menu.opens)} — ${menu.daysUntil} day${menu.daysUntil === 1 ? "" : "s"} away`;
-  }
-  return `Opens ${longDate(menu.opens)}`;
-}
-
-withEl("[data-event-grid]", (el) => { el.innerHTML = upcomingSeasonalMenus.map((menu) => {
-  const seasonal = liveSeasons().find((entry) => entry.id === menu.id) || menu;
-  return `
-  <article class="event-card tint-${seasonal.tint} state-${seasonal.state}" data-season="${seasonal.id}">
-    <span class="event-status status-${seasonal.state}">${SEASON_LABEL[seasonal.state] || seasonal.state}</span>
-    <span class="event-emoji" aria-hidden="true">${seasonal.emoji}</span>
-    <h3>${esc(seasonal.name)}</h3>
-    <span class="event-window">${esc(seasonal.window)}</span>
-    <p class="event-availability">${esc(availability(seasonal))}</p>
-    <p>${esc(seasonal.blurb)}</p>
-    <button class="chip event-toggle" type="button" data-season-toggle="${menu.id}" aria-expanded="false">
-      View the ${seasonal.items?.length || seasonal.highlights.length} desserts
-    </button>
-    <div class="season-items" data-season-items="${menu.id}" hidden>
-      ${(seasonal.items || []).map((item) => `
-        <div class="season-item">
-          <img src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy" width="400" height="300" />
-          <div class="season-item-body">
-            <strong>${esc(item.name)}</strong>
-            <small>${esc(item.blurb)}</small>
-            <div class="season-item-foot">
-              <span>${money(item.price)}</span>
-              ${seasonal.state === "live"
-                ? `<button class="chip chip-solid" type="button" data-add="${item.id}">Add</button>`
-                : `<span class="season-soon">${seasonal.state === "preorder" ? "Pre-order" : longDate(seasonal.opens)}</span>`}
-            </div>
-          </div>
-        </div>`).join("")}
-      ${(seasonal.items || []).length === 0
-        ? `<ul class="event-highlights">${seasonal.highlights.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>`
-        : ""}
-    </div>
-  </article>`;
-}).join(""); });
-
-document.addEventListener("click", (event) => {
-  const toggle = event.target.closest("[data-season-toggle]");
-  if (!toggle) return;
-  const panel = $(`[data-season-items="${toggle.dataset.seasonToggle}"]`);
-  if (!panel) return;
-  const open = panel.hidden;
-  panel.hidden = !open;
-  toggle.setAttribute("aria-expanded", String(open));
-  toggle.textContent = open ? "Hide the line-up" : `View the ${panel.querySelectorAll(".season-item").length} desserts`;
+/* ── Seasonal calendar ─────────────────────────────────────── */
+withEl("[data-calendar]", (el) => {
+  initCalendar(el, { menus: eventMenus, onOpenItem: (id) => openItem(id) });
 });
 
 /* ── Plans ─────────────────────────────────────────────────── */
@@ -399,54 +340,18 @@ withEl("[data-review-grid]", (el) => { el.innerHTML = reviews.map((review) => `
     </footer>
   </article>`).join(""); });
 
-/* ── AI crew ───────────────────────────────────────────────── */
-const crewGrid = $("[data-crew-grid]");
-function renderCrew(audience = "all") {
-  if (!crewGrid) return;            // AI crew section is homepage-only
-  const list = agents.filter((agent) =>
-    audience === "all" ? true :
-      audience === "franchise" ? agent.audience === "franchise" : !agent.audience
-  );
-  crewGrid.innerHTML = list.map((agent, i) => `
-    <article class="crew-card tint-${agent.tint}" style="position:relative;animation-delay:${i * 45}ms">
-      ${agent.audience ? '<span class="crew-audience">Franchise</span>' : ""}
-      <div class="crew-top">
-        <span class="crew-glyph" aria-hidden="true">${agent.emoji}</span>
-        <span><h3>${esc(agent.name)}</h3><span class="crew-role">${esc(agent.role)}</span></span>
-      </div>
-      <p>${esc(agent.blurb)}</p>
-      <div class="crew-meta">
-        <div class="crew-meta-row">
-          <span>Appears in</span>
-          <div class="crew-pills">${agent.surfaces.map((s) => `<i>${esc(s)}</i>`).join("")}</div>
-        </div>
-        <div class="crew-meta-row">
-          <span>Reads</span>
-          <div class="crew-pills">${agent.signals.map((s) => `<i>${esc(s)}</i>`).join("")}</div>
-        </div>
-      </div>
-    </article>`).join("");
-}
-renderCrew();
-
-$$("[data-crew]").forEach((chip) =>
-  chip.addEventListener("click", () => {
-    $$("[data-crew]").forEach((c) => c.classList.remove("is-active"));
-    chip.classList.add("is-active");
-    renderCrew(chip.dataset.crew);
-  })
-);
-
 /* ── Shared chat pieces (used by the concierge panel) ──────── */
 
 function recStrip(items) {
   return `<div class="rec-strip">${items.map((item) => `
     <div class="rec-item tint-${item.tint}">
       ${item.image
-        ? `<img class="rec-photo" src="${esc(item.image)}" alt="" loading="lazy" width="400" height="300" />`
+        ? `<img class="rec-photo" src="${esc(item.image)}" alt="" loading="lazy" width="400" height="300" data-open-item="${item.id}" role="button" tabindex="0" />`
         : `<span class="rec-emoji" aria-hidden="true">${item.emoji}</span>`}
       <span class="rec-body"><strong>${esc(item.name)}</strong><small>${esc(item.blurb)}</small></span>
-      <button class="rec-add" type="button" data-add="${item.id}">Add</button>
+      ${isOnSale(item.id)
+        ? `<button class="rec-add" type="button" data-add="${item.id}">Add</button>`
+        : `<button class="rec-add rec-add-soon" type="button" data-open-item="${item.id}">Preview</button>`}
     </div>`).join("")}</div>`;
 }
 
@@ -461,13 +366,14 @@ function replyChips(chips, attribute) {
 let lastBag = { lines: [] };
 bag.onChange((snapshot) => { lastBag = snapshot; });
 
+/** What each occasion button says on the customer's behalf. */
 const OCCASION_TEXT = {
-  party: "I'm planning a party",
+  "just-because": "Just because — something for me",
+  birthday: "It's a birthday",
+  "dinner-party": "I'm hosting a dinner party",
+  "thank-you": "It's a thank-you gift",
   office: "Something for the office",
-  gift: "It's a gift",
-  solo: "Just for me",
-  wedding: "For a wedding",
-  holiday: "For a holiday table"
+  kids: "For a kids' party"
 };
 
 withEl("[data-occasion-grid]", (el) => { el.innerHTML = occasions.map((occ) => `
@@ -475,16 +381,7 @@ withEl("[data-occasion-grid]", (el) => { el.innerHTML = occasions.map((occ) => `
     <span aria-hidden="true">${occ.emoji}</span>${esc(occ.label)}
   </button>`).join(""); });
 
-initItemDetail({
-  onAdd: (itemId) => {
-    const item = fullMenu.find((entry) => entry.id === itemId)
-      || eventMenus.flatMap((menu) => menu.items || []).find((entry) => entry.id === itemId);
-    if (!item) return;
-    bag.add(item);
-    bag.flyToBag($(`[data-art="${item.id}"]`) || bagButton, bagButton, item.emoji);
-    toast(`${item.name} added to your box`);
-  }
-});
+initItemDetail({ onAdd: (itemId) => addToBox(itemId) });
 
 /* ── Party planner (catering page only) ─────────────────────── */
 // Scoped: the planner lives on catering.html, so skip it elsewhere.
@@ -528,31 +425,36 @@ if (document.querySelector("[data-guests]")) {
     const reply = await ask("planner", await withContext({
       guests: Number(guestInput.value), vibe, dietary
     }));
+    const stats = reply.stats || {
+      guests: Number(guestInput.value),
+      servings: Math.ceil(Number(guestInput.value) * 1.5),
+      boxes: Math.ceil(Math.ceil(Number(guestInput.value) * 1.5) / 6),
+      variety: (reply.items || []).length
+    };
 
     plannerResult.innerHTML = `
       <p class="eyebrow"><span class="agent-dot tint-plum"></span>Planner result</p>
       <h3 style="margin-top:10px">${esc(reply.message)}</h3>
       <div class="planner-stats">
-        <div><strong>${reply.stats.guests}</strong><small>guests</small></div>
-        <div><strong>${reply.stats.servings}</strong><small>servings</small></div>
-        <div><strong>${reply.stats.boxes}</strong><small>boxes</small></div>
-        <div><strong>${reply.stats.variety}</strong><small>flavors</small></div>
+        <div><strong>${stats.guests}</strong><small>guests</small></div>
+        <div><strong>${stats.servings}</strong><small>servings</small></div>
+        <div><strong>${stats.boxes}</strong><small>boxes</small></div>
+        <div><strong>${stats.variety}</strong><small>flavors</small></div>
       </div>
-      ${recStrip(reply.items)}
-      <p class="planner-note">${esc(reply.note)}</p>`;
+      ${recStrip(reply.items || [])}
+      ${reply.note ? `<p class="planner-note">${esc(reply.note)}</p>` : ""}`;
 
     button.disabled = false;
     button.innerHTML = 'Plan my spread <span aria-hidden="true">→</span>';
   });
 }
 
-/* ── Corner Concierge — the one chatbot ────────────────────── */
-/* The floating panel is now the only conversational surface. It runs the
-   same engine the in-page chat used, so it answers flavor and party
-   questions as well as the support ones it used to handle. */
+/* ── Corner Concierge — the one chatbot ─────────────────────── */
 const supportPanel = $("[data-support-panel]");
 const supportLog = $("[data-support-log]");
 const supportFab = $("[data-support-open]");
+let lastReplyItems = [];
+let replying = false;
 
 function supportBubble(html, from = "agent") {
   const el = document.createElement("div");
@@ -563,45 +465,41 @@ function supportBubble(html, from = "agent") {
   return el;
 }
 
-/** The same staged working state the in-page chat had. */
-function supportWorking(steps) {
+function typingBubble() {
   const el = document.createElement("div");
   el.className = "bubble from-agent working";
-  el.innerHTML = `<div class="working-step" data-step></div>
-    <div class="typing"><span></span><span></span><span></span></div>`;
+  el.innerHTML = `<div class="typing" aria-label="Thinking"><span></span><span></span><span></span></div>`;
   supportLog.appendChild(el);
   supportLog.scrollTop = supportLog.scrollHeight;
-
-  const target = el.querySelector("[data-step]");
-  let index = 0;
-  const show = () => {
-    if (index >= steps.length) return;
-    target.textContent = steps[index];
-    target.classList.remove("is-in");
-    void target.offsetWidth;
-    target.classList.add("is-in");
-    index += 1;
-  };
-  show();
-  const timer = setInterval(show, 480);
-  return { el, stop: () => clearInterval(timer) };
+  return el;
 }
 
+const greeting = () =>
+  "Hi — I'm the Corner Concierge. Tell me the occasion, who's eating, or just a craving. "
+  + "I'll remember anything you tell me: guests, allergies, budget."
+  + replyChips(["Plan a party for 20", "Something chocolatey", "Nut-free options", "What's seasonal?"], "data-support-chip");
+
 async function supportReply(text) {
-  const cart = lastBag.lines;
-  const reply = conciergeRespond(text, cart);
+  if (replying) return;
+  replying = true;
+  const typing = typingBubble();
+  const input = $("[data-support-input]");
+  if (input) input.disabled = true;
 
-  const working = supportWorking(reply.trace?.length ? reply.trace : ["Thinking"]);
-  const think = 420 + Math.min(reply.trace?.length || 1, 4) * 340;
-  await new Promise((resolve) => setTimeout(resolve, think));
-  working.stop();
-  working.el.remove();
+  let reply;
+  try {
+    reply = await ask("concierge", await withContext({ text, cart: lastBag.lines }));
+  } catch (error) {
+    console.error(error);
+    reply = { message: "Something went wrong on my side. Try that again in a moment.", trace: [] };
+  } finally {
+    typing.remove();
+    replying = false;
+    if (input) { input.disabled = false; input.focus(); }
+  }
 
-  const query = (text || "").toLowerCase();
-  const mentioned = query
-    ? fullMenu.filter((item) => query.includes(item.name.split(" ")[0].toLowerCase()))
-    : [];
-  const items = reply.items?.length ? reply.items : mentioned;
+  const items = (reply.items || []).map((item) => findItem(item.id) || item).filter(Boolean);
+  lastReplyItems = items;
 
   supportBubble([
     `<div>${esc(reply.message)}</div>`,
@@ -611,7 +509,8 @@ async function supportReply(text) {
       ? `<details class="reply-trace"><summary>How it got there</summary><ol>${
           reply.trace.map((step) => `<li>${esc(step)}</li>`).join("")}</ol></details>`
       : "",
-    reply.chips ? replyChips(reply.chips, "data-support-chip") : ""
+    reply.chips ? replyChips(reply.chips, "data-support-chip") : "",
+    `<small class="bubble-source">${reply.source === "model" ? "Answered by the model" : "Answered by the menu rules"}</small>`
   ].join(""));
 }
 
@@ -619,22 +518,24 @@ function openSupport(open) {
   if (!supportPanel || !supportFab) return;
   supportPanel.hidden = !open;
   supportFab.setAttribute("aria-expanded", String(open));
-  if (open && !supportLog.childElementCount) {
-    supportBubble("Hi — I'm the Corner Concierge. Tell me the occasion, who's eating, "
-      + "or just a craving. I'll remember anything you tell me: guests, allergies, budget."
-      + replyChips(["Plan a party for 20", "Something chocolatey", "Nut-free options",
-                    "What's seasonal?"], "data-support-chip"));
-  }
+  if (open && !supportLog.childElementCount) supportBubble(greeting());
   if (open) $("[data-support-input]")?.focus();
 }
 
 supportFab?.addEventListener("click", () => openSupport(supportPanel.hidden));
 
-/* Anything can open the concierge — the hero CTA, a chip, a card. */
+/* Anything can open the concierge — a chip, a card, a link. */
 document.addEventListener("click", (event) => {
   if (event.target.closest("[data-open-concierge]")) openSupport(true);
 });
 document.querySelector("[data-support-close]")?.addEventListener("click", () => openSupport(false));
+document.querySelector("[data-support-reset]")?.addEventListener("click", () => {
+  resetMemory();
+  lastReplyItems = [];
+  supportLog.innerHTML = "";
+  supportBubble(greeting());
+  toast("Started a fresh conversation");
+});
 
 document.querySelector("[data-support-form]")?.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -646,37 +547,63 @@ document.querySelector("[data-support-form]")?.addEventListener("submit", (event
   supportReply(text);
 });
 
-/* Occasion buttons now live in the panel and feed the same engine. */
+/* Occasion buttons live in the panel and feed the same engine. */
 withEl("[data-occasion-grid]", (el) => {
   el.addEventListener("click", (event) => {
     const button = event.target.closest("[data-occasion]");
     if (!button) return;
     el.querySelectorAll("[data-occasion]").forEach((b) => b.classList.remove("is-active"));
     button.classList.add("is-active");
-    const label = button.textContent.trim();
-    supportBubble(esc(label), "user");
-    supportReply(OCCASION_TEXT[button.dataset.occasion] || label);
+    const text = OCCASION_TEXT[button.dataset.occasion] || button.textContent.trim();
+    supportBubble(esc(text), "user");
+    supportReply(text);
   });
 });
+
+/** Chips that act on the last answer do so directly instead of chatting. */
+function handleChip(label) {
+  const lower = label.toLowerCase();
+  if (lower === "talk to a person") {
+    supportBubble("Connecting you to your local corner — someone will pick this up shortly.");
+    return true;
+  }
+  if (lower === "take me to checkout") { openSupport(false); openBag(true); return true; }
+  if (lower === "show the calendar") {
+    openSupport(false);
+    $("[data-calendar]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return true;
+  }
+  if (/^add (the first one|this spread to my box|both|the top one|a seasonal (box|treat))$/.test(lower)) {
+    const picks = lower.startsWith("add the first one") || lower.startsWith("add the top one")
+      ? lastReplyItems.slice(0, 1) : lastReplyItems;
+    const added = picks.filter((item) => isOnSale(item.id));
+    added.forEach((item) => bag.add(item));
+    supportBubble(added.length
+      ? `Added ${added.map((item) => item.name).join(", ")} to your box.`
+      : "Nothing from that answer is on the counter yet.");
+    if (added.length) bag.flyToBag(supportFab, bagButton, added[0].emoji);
+    return true;
+  }
+  const named = lower.match(/^add (.+)$/);
+  if (named) {
+    const item = lastReplyItems.find((entry) => entry.name.toLowerCase() === named[1])
+      || fullMenu.find((entry) => entry.name.toLowerCase() === named[1]);
+    if (item && isOnSale(item.id)) {
+      bag.add(item);
+      supportBubble(`Added ${item.name} to your box.`);
+      bag.flyToBag(supportFab, bagButton, item.emoji);
+      return true;
+    }
+  }
+  return false;
+}
 
 document.addEventListener("click", (event) => {
   const chip = event.target.closest("[data-support-chip]");
   if (!chip) return;
   const label = chip.dataset.supportChip;
   supportBubble(esc(label), "user");
-  if (label === "Talk to a person") {
-    supportBubble("Connecting you to your local corner — someone will pick this up shortly.");
-    return;
-  }
-  supportReply(label);
-});
-
-/* ── Voice ordering demo ───────────────────────────────────── */
-document.querySelector('[data-action="voice"]')?.addEventListener("click", async () => {
-  toast("Voice demo ready — tell the Orders Agent what you want");
-  const reply = await ask("orders", await withContext({ text: "" }));
-  openSupport(true);
-  supportBubble(`${esc(reply.message)}${reply.items?.length ? recStrip(reply.items) : ""}`);
+  if (!handleChip(label)) supportReply(label);
 });
 
 /* ── The box ───────────────────────────────────────────────── */
@@ -688,16 +615,49 @@ const slotWrap = $("[data-box-slots]");
 const linesWrap = $("[data-drawer-lines]");
 const checkoutDialog = $(`[data-checkout-dialog]`);
 const checkoutSummary = $(`[data-checkout-summary]`);
+const checkoutReceipt = $(`[data-checkout-receipt]`);
 const addressField = $(`[data-address-field]`);
-let latestBox = { count: 0, subtotal: 0 };
+let latestBox = { count: 0, subtotal: 0, lines: [], appliedOffer: null };
+
+function fulfillment() {
+  return $("input[name=fulfillment]:checked", checkoutDialog)?.value || "pickup";
+}
+
+function receiptRows(bill) {
+  const rows = [`<div class="receipt-row"><span>Subtotal</span><span>${money(bill.subtotal)}</span></div>`];
+  if (bill.applied) {
+    rows.push(`<div class="receipt-row receipt-off"><span>${esc(bill.applied.title)}</span><span>−${money(bill.discount)}</span></div>`);
+  }
+  if (bill.addon) {
+    rows.push(`<div class="receipt-row receipt-off"><span>${esc(bill.addon.name)} (worth ${money(bill.addon.value)})</span><span>Free</span></div>`);
+  }
+  if (bill.fulfillment === "delivery") {
+    rows.push(`<div class="receipt-row${bill.deliveryFree ? " receipt-off" : ""}"><span>Delivery</span><span>${bill.deliveryFree ? "Free" : money(bill.deliveryFee)}</span></div>`);
+  }
+  rows.push(`<div class="receipt-row receipt-total"><span>Total</span><strong>${money(bill.total)}</strong></div>`);
+  return rows.join("");
+}
+
+function renderCheckout() {
+  if (!checkoutDialog) return;
+  const bill = receipt(latestBox, { appliedId: latestBox.appliedOffer, fulfillment: fulfillment(), customer: customer() });
+  if (checkoutSummary) {
+    checkoutSummary.textContent = `${latestBox.count} treat${latestBox.count === 1 ? "" : "s"} · ${money(bill.subtotal)}`;
+  }
+  if (checkoutReceipt) checkoutReceipt.innerHTML = receiptRows(bill);
+  return bill;
+}
 
 function syncFulfillmentOptions() {
-  const selected = $("input[name=fulfillment]:checked", checkoutDialog)?.value;
+  const selected = fulfillment();
   $$('input[name="fulfillment"]', checkoutDialog).forEach((input) =>
     input.closest(".fulfillment-option").classList.toggle("is-selected", input.checked)
   );
-  addressField.hidden = selected !== "delivery";
-  addressField.querySelector("input").required = selected === "delivery";
+  if (addressField) {
+    addressField.hidden = selected !== "delivery";
+    addressField.querySelector("input").required = selected === "delivery";
+  }
+  renderCheckout();
 }
 
 checkoutDialog?.querySelectorAll('input[name="fulfillment"]').forEach((input) =>
@@ -705,11 +665,11 @@ checkoutDialog?.querySelectorAll('input[name="fulfillment"]').forEach((input) =>
 );
 
 function renderBox(snapshot) {
-  if (!drawer) return;
   latestBox = snapshot;
+  $$("[data-bag-count]").forEach((el) => { el.textContent = snapshot.count; });
+  if (!drawer) return;
   const { lines, count, subtotal, capacity } = snapshot;
 
-  $("[data-bag-count]").textContent = count;
   $("[data-subtotal]").textContent = money(subtotal);
   $("[data-drawer-title]").textContent =
     count === 0 ? "Empty box" : `${count} treat${count === 1 ? "" : "s"}`;
@@ -736,25 +696,39 @@ function renderBox(snapshot) {
 
   $("[data-box-hint]").textContent =
     count === 0 ? "A Frosted Corner box holds six."
-      : count < capacity ? `${capacity - count} slot${capacity - count === 1 ? "" : "s"} left in this box.`
-        : count === capacity ? "Box is full — nicely done."
-          : `${Math.ceil(count / capacity)} boxes for this order.`;
+    : count < capacity ? `${capacity - count} slot${capacity - count === 1 ? "" : "s"} left in this box.`
+    : count === capacity ? "Box is full — nicely done."
+    : `${Math.ceil(count / capacity)} boxes for this order.`;
 
   linesWrap.innerHTML = lines.length
     ? lines.map((line) => `
-        <div class="line-item tint-${line.item.tint}">
-          <span class="line-emoji" aria-hidden="true">${line.item.emoji}</span>
-          <span class="line-body">
-            <strong>${esc(line.item.name)}</strong>
-            <small>${money(line.item.price)} each</small>
-          </span>
-          <span class="line-controls">
-            <button class="qty-button" type="button" data-dec="${line.item.id}" aria-label="Remove one ${esc(line.item.name)}">−</button>
-            <span class="qty-value">${line.qty}</span>
-            <button class="qty-button" type="button" data-add="${line.item.id}" aria-label="Add another ${esc(line.item.name)}">+</button>
-          </span>
-        </div>`).join("")
+      <div class="line-item tint-${line.item.tint}">
+        <span class="line-emoji" aria-hidden="true">${line.item.emoji}</span>
+        <span class="line-body">
+          <strong>${esc(line.item.name)}</strong>
+          <small>${money(line.item.price)} each</small>
+        </span>
+        <span class="line-controls">
+          <button class="qty-button" type="button" data-dec="${line.item.id}" aria-label="Remove one ${esc(line.item.name)}">−</button>
+          <span class="qty-value">${line.qty}</span>
+          <button class="qty-button" type="button" data-add="${line.item.id}" aria-label="Add another ${esc(line.item.name)}">+</button>
+        </span>
+      </div>`).join("")
     : `<div class="drawer-empty"><span aria-hidden="true">🧁</span><p>Your box is waiting for something sweet.</p></div>`;
+
+  // The drawer shows the discount as soon as an offer is applied.
+  const bill = receipt(snapshot, { appliedId: snapshot.appliedOffer, fulfillment: "pickup", customer: customer() });
+  const offerLine = $("[data-drawer-offer]");
+  if (offerLine) {
+    offerLine.hidden = !bill.applied;
+    offerLine.innerHTML = bill.applied
+      ? `<span>${esc(bill.applied.title)}</span><strong>−${money(bill.discount)}</strong>
+         <button class="text-button" type="button" data-claim="${bill.applied.id}">Remove</button>`
+      : "";
+  }
+  const totalEl = $("[data-drawer-total]");
+  if (totalEl) totalEl.textContent = money(bill.total);
+  if (checkoutDialog?.open) renderCheckout();
 }
 
 bag.onChange((snapshot) => {
@@ -766,21 +740,25 @@ bag.onChange((snapshot) => {
 });
 
 function openBag(open) {
+  if (!drawer) {
+    if (open) location.assign("index.html#menu");
+    return;
+  }
   drawer.hidden = !open;
   scrim.hidden = !open;
-  bagButton.setAttribute("aria-expanded", String(open));
+  bagButton?.setAttribute("aria-expanded", String(open));
   document.body.style.overflow = open ? "hidden" : "";
   if (open) $("[data-close-bag]").focus();
 }
 
-bagButton?.addEventListener("click", () => openBag(drawer.hidden));
+bagButton?.addEventListener("click", () => openBag(drawer ? drawer.hidden : true));
 document.querySelector("[data-close-bag]")?.addEventListener("click", () => openBag(false));
 scrim?.addEventListener("click", () => openBag(false));
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
   if (drawer && !drawer.hidden) openBag(false);
-  else if (!supportPanel.hidden) openSupport(false);
+  else if (supportPanel && !supportPanel.hidden) openSupport(false);
 });
 
 document.addEventListener("click", (event) => {
@@ -795,7 +773,6 @@ document.querySelector("[data-clear-bag]")?.addEventListener("click", () => {
 
 document.querySelector("[data-checkout]")?.addEventListener("click", () => {
   if (bag.getCount() === 0) return toast("Add something sweet first");
-  checkoutSummary.textContent = `${latestBox.count} treat${latestBox.count === 1 ? "" : "s"} · ${money(latestBox.subtotal)}`;
   syncFulfillmentOptions();
   checkoutDialog.showModal();
 });
@@ -804,24 +781,30 @@ document.querySelector("[data-checkout-close]")?.addEventListener("click", () =>
 
 document.querySelector("[data-checkout-form]")?.addEventListener("submit", (event) => {
   event.preventDefault();
-  const method = $("input[name=fulfillment]:checked", checkoutDialog).value;
+  const method = fulfillment();
   const windowLabel = $("select[name=window]", checkoutDialog).value;
+  const bill = renderCheckout();
   checkoutDialog.close();
   bag.clear();
   openBag(false);
-  toast(`Demo order placed for ${method}, ${windowLabel.toLowerCase()}`);
+  toast(`Demo order placed for ${method}, ${windowLabel.toLowerCase()} · ${money(bill.total)}`
+    + (bill.applied ? ` after ${bill.applied.title.toLowerCase()}` : ""));
 });
 
 /* ── Boot ──────────────────────────────────────────────────── */
 renderMenu();
-renderOffers(bag.snapshot().lines);
+// Restore the box from the last visit, dropping anything no longer on sale.
+bag.hydrate((id) => (isOnSale(id) ? findItem(id) : null));
+bag.onChange(refreshAgents);
+// Offers depend on who is signed in; re-price once that is known.
+userReady.then(() => refreshAgents(bag.snapshot()));
 
 /* ── Header account state ──────────────────────────────────── */
 (async function showAccount() {
   const link = $("[data-account-link]");
   if (!link) return;
   // The session lives in an HttpOnly cookie, so only the server can read it.
-  const user = await currentUser();
+  const user = await userReady;
   if (!user) return;
 
   link.href = homeFor(user);

@@ -71,7 +71,7 @@
         <div>
           <p class="eyebrow"><span class="agent-dot tint-gold"></span>Personalized for you</p>
           <h2 id="home-offers-title">Personalized <em>deals</em></h2>
-          <p class="section-lede">Offers update as you build your box, so the savings stay relevant.</p>
+          <p class="section-lede">Offers update as you build your box. Apply one you've earned and it comes off at checkout.</p>
         </div>
       </div>
       <div class="offer-rail" data-offer-rail></div>
@@ -109,15 +109,15 @@
       <p class="grid-empty" data-grid-empty hidden>Nothing matches that filter this week — try another.</p>
     </section>
 
-    <section class="section" aria-labelledby="upcoming-seasonal-title">
+    <section class="section" id="seasonal" aria-labelledby="seasonal-calendar-title">
       <div class="section-head">
         <div>
-          <p class="eyebrow"><span class="agent-dot tint-caramel"></span>Coming later</p>
-          <h2 id="upcoming-seasonal-title">Holiday menus on the <em>horizon</em></h2>
-          <p class="section-lede">Plan ahead for the seasonal desserts arriving after the current menu.</p>
+          <p class="eyebrow"><span class="agent-dot tint-caramel"></span>Seasonal calendar</p>
+          <h2 id="seasonal-calendar-title">When each seasonal treat <em>lands</em></h2>
+          <p class="section-lede">Every seasonal dessert pinned to the day it releases. Live menus show what's on the counter now; tap a day or a season to see the line-up.</p>
         </div>
       </div>
-      <div class="event-grid" data-event-grid></div>
+      <div class="calendar-wrap" data-calendar aria-live="polite"></div>
     </section>
 
   </main>
@@ -159,7 +159,9 @@
     <div class="drawer-lines" data-drawer-lines></div>
 
     <footer class="drawer-foot">
-      <div class="drawer-total"><span>Subtotal</span><strong data-subtotal>$0.00</strong></div>
+      <div class="drawer-total drawer-sub"><span>Subtotal</span><strong data-subtotal>$0.00</strong></div>
+      <div class="drawer-offer" data-drawer-offer hidden></div>
+      <div class="drawer-total"><span>Total before delivery</span><strong data-drawer-total>$0.00</strong></div>
       <button class="button button-primary full" type="button" data-checkout>Checkout</button>
       <button class="text-button" type="button" data-clear-bag>Empty the box</button>
     </footer>
@@ -172,7 +174,8 @@
   <section class="support-panel" id="support-panel" data-support-panel hidden aria-label="Corner Concierge">
     <header class="support-head">
       <span class="agent-dot tint-pink" aria-hidden="true"></span>
-      <span><strong>Corner Concierge</strong><small>Flavors, parties, allergens, orders</small></span>
+      <span><strong>Corner Concierge</strong><small>Flavors, parties, allergens, offers, seasonal dates</small></span>
+      <button class="icon-button support-reset" type="button" data-support-reset aria-label="Start a new conversation" title="Start over">↺</button>
       <button class="icon-button" type="button" data-support-close aria-label="Close concierge">✕</button>
     </header>
     <div class="support-log" data-support-log aria-live="polite"></div>
@@ -196,6 +199,7 @@
       <p class="eyebrow">Almost there</p>
       <h2 id="checkout-title">Choose how to get it</h2>
       <p class="checkout-summary" data-checkout-summary></p>
+      <div class="checkout-receipt" data-checkout-receipt aria-live="polite"></div>
       <div class="fulfillment-options" role="group" aria-label="Fulfillment method">
         <label class="fulfillment-option is-selected"><input type="radio" name="fulfillment" value="pickup" checked />
           <strong>Pickup</strong><small>Ready in about 20 minutes</small></label>

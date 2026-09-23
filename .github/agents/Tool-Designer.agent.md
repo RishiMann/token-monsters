@@ -12,7 +12,7 @@ Turn agent workflow gaps into small, testable tool contracts and implementations
 
 ## Responsibilities
 - Inspect existing tools, context generators, data files, call sites, and agent definitions before proposing new work.
-- Reuse and extend `frontend/js/recommendation-tools.js` when the needed input is already available in generated context.
+- Reuse and extend `frontend/js/recommendation-engine.js` (pure ranking over catalog profiles) and `frontend/js/offers.js` (offer rules) when the needed input is already available in generated context; their Python mirrors are `backend/agent_tools.py` and `backend/offers.py`.
 - Design tools for missing evidence such as item pairings, confidence scoring, candidate ranking, freshness checks, or constraint filtering.
 - Keep information tools read-only and return predictable structured JSON.
 - Keep action tools explicit about validation, side effects, logging, and success status.
@@ -20,16 +20,10 @@ Turn agent workflow gaps into small, testable tool contracts and implementations
 - Add focused validation or tests for new tool behavior when the repository supports them.
 
 ## Available Tools
-- `assessCart(context)` returns cart count, capacity, remaining space, subtotal, variety facts, lines, and item IDs.
-- `analyzePurchaseHistory(context)` returns order count, total treats, repeat pattern, last order, favorites, available favorites, and a repeat pattern key.
-- `findRecommendationDeals(context, { cart, history })` returns regular and seasonal opportunities plus `hasDeal`.
-- `runRecommendationTools(context)` composes the current read-only tools into `{ cart, history, deals }`.
-
-## Existing Recommendation Tool Contracts
-- `assessCart(context)` returns cart count, capacity, remaining space, subtotal, variety facts, lines, and item IDs.
-- `analyzePurchaseHistory(context)` returns order count, total treats, repeat pattern, last order, favorites, available favorites, and a repeat pattern key.
-- `findRecommendationDeals(context, { cart, history })` returns regular and seasonal opportunities plus `hasDeal`.
-- `runRecommendationTools(context)` composes the current read-only tools into `{ cart, history, deals }`.
+- `recommend(catalog, lines, options)` in `recommendation-engine.js` returns `{ headline, trace, items: [{ item, reason, confidence, score, signals }] }`; every signal comes from an item's `profile` in `storefront.json`.
+- `evaluateOffers(offers, basket, context)` and `priceBox(...)` in `offers.js` evaluate the `rule` on each offer and return eligibility, the amount off, and the plain reason.
+- `seasons.js` computes live / pre-order / planned state and per-item release dates from today's date.
+- The server exposes the same reasoning to the model as `suggest_pairings`, `find_offers`, `price_box` and `get_event_menus` in `backend/agent_tools.py`.
 
 ## Candidate Tool Contracts
 Only add a candidate tool when the existing contracts cannot supply the required evidence.

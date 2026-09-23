@@ -18,7 +18,7 @@
         "dairy",
         "egg"
       ],
-      "image": "assets/desserts/pink-velvet.svg",
+      "image": "assets/desserts/pink-velvet.jpg",
       "nutrition": {
         "servingGrams": 92,
         "calories": 385,
@@ -90,7 +90,28 @@
           "body": "Great flavor, though a touch sweeter than I'd like. Pairs well with the lemon one if you're building a box."
         }
       ],
-      "reviewCount": 3
+      "reviewCount": 3,
+      "profile": {
+        "family": "cream",
+        "rich": 2,
+        "bright": 1,
+        "texture": "soft",
+        "occasions": [
+          "birthday",
+          "kids",
+          "thank-you"
+        ],
+        "pairsWith": [
+          {
+            "id": "brown-butter",
+            "why": "cream cheese against browned butter"
+          },
+          {
+            "id": "lemon-cloud",
+            "why": "keeps a sweet box from cloying"
+          }
+        ]
+      }
     },
     {
       "id": "brown-butter",
@@ -110,7 +131,7 @@
         "egg",
         "soy"
       ],
-      "image": "assets/desserts/brown-butter.svg",
+      "image": "assets/desserts/brown-butter.jpg",
       "nutrition": {
         "servingGrams": 78,
         "calories": 340,
@@ -182,7 +203,29 @@
           "body": "Solid and reliable. I wish the chocolate pools were a bit bigger but no real complaints."
         }
       ],
-      "reviewCount": 3
+      "reviewCount": 3,
+      "profile": {
+        "family": "cocoa",
+        "rich": 3,
+        "bright": 0,
+        "texture": "chewy",
+        "occasions": [
+          "just-because",
+          "office",
+          "thank-you",
+          "kids"
+        ],
+        "pairsWith": [
+          {
+            "id": "midnight-fudge",
+            "why": "the classic cocoa pairing"
+          },
+          {
+            "id": "lemon-cloud",
+            "why": "keeps a butter-forward box from flattening"
+          }
+        ]
+      }
     },
     {
       "id": "lemon-cloud",
@@ -201,7 +244,7 @@
         "wheat",
         "egg"
       ],
-      "image": "assets/desserts/lemon-cloud.svg",
+      "image": "assets/desserts/lemon-cloud.jpg",
       "nutrition": {
         "servingGrams": 88,
         "calories": 295,
@@ -275,7 +318,28 @@
           "body": "Bought a box for the office and this was the first to go. Even the people who 'don't like sweet things' had one."
         }
       ],
-      "reviewCount": 3
+      "reviewCount": 3,
+      "profile": {
+        "family": "citrus",
+        "rich": 0,
+        "bright": 3,
+        "texture": "light",
+        "occasions": [
+          "just-because",
+          "dinner-party",
+          "office"
+        ],
+        "pairsWith": [
+          {
+            "id": "strawberry-stack",
+            "why": "two bright flavors, different textures"
+          },
+          {
+            "id": "pink-velvet",
+            "why": "adds body under the citrus"
+          }
+        ]
+      }
     },
     {
       "id": "biscoff",
@@ -295,7 +359,7 @@
         "dairy",
         "soy"
       ],
-      "image": "assets/desserts/biscoff.svg",
+      "image": "assets/desserts/biscoff.jpg",
       "nutrition": {
         "servingGrams": 96,
         "calories": 430,
@@ -367,7 +431,27 @@
           "body": "My husband asks for this one specifically. The butterscotch actually tastes like butterscotch and not just brown sugar."
         }
       ],
-      "reviewCount": 3
+      "reviewCount": 3,
+      "profile": {
+        "family": "caramel",
+        "rich": 3,
+        "bright": 0,
+        "texture": "dense",
+        "occasions": [
+          "thank-you",
+          "office"
+        ],
+        "pairsWith": [
+          {
+            "id": "coconut-matcha",
+            "why": "green tea cuts the caramel"
+          },
+          {
+            "id": "brown-butter",
+            "why": "caramel and browned butter run together"
+          }
+        ]
+      }
     },
     {
       "id": "strawberry-stack",
@@ -387,7 +471,7 @@
         "dairy",
         "egg"
       ],
-      "image": "assets/desserts/strawberry-stack.svg",
+      "image": "assets/desserts/strawberry-stack.jpg",
       "nutrition": {
         "servingGrams": 110,
         "calories": 365,
@@ -459,7 +543,28 @@
           "body": "Beautiful and it photographs well. Slightly messy to eat standing up at a party, so plan for plates."
         }
       ],
-      "reviewCount": 3
+      "reviewCount": 3,
+      "profile": {
+        "family": "berry",
+        "rich": 1,
+        "bright": 3,
+        "texture": "light",
+        "occasions": [
+          "birthday",
+          "kids",
+          "dinner-party"
+        ],
+        "pairsWith": [
+          {
+            "id": "pink-velvet",
+            "why": "the crowd-pleasing pink pair"
+          },
+          {
+            "id": "midnight-fudge",
+            "why": "berry and dark cocoa"
+          }
+        ]
+      }
     },
     {
       "id": "midnight-fudge",
@@ -479,7 +584,7 @@
         "egg",
         "soy"
       ],
-      "image": "assets/desserts/midnight-fudge.svg",
+      "image": "assets/desserts/midnight-fudge.jpg",
       "nutrition": {
         "servingGrams": 95,
         "calories": 455,
@@ -551,10 +656,29 @@
           "body": "Very rich — I split one. Cocoa nibs on top add a nice bitter crunch."
         }
       ],
-      "reviewCount": 3
+      "reviewCount": 3,
+      "profile": {
+        "family": "cocoa",
+        "rich": 4,
+        "bright": 0,
+        "texture": "dense",
+        "occasions": [
+          "dinner-party",
+          "kids"
+        ],
+        "pairsWith": [
+          {
+            "id": "lemon-cloud",
+            "why": "cuts the fudge with something sharp"
+          },
+          {
+            "id": "strawberry-stack",
+            "why": "berry lifts a heavy cocoa box"
+          }
+        ]
+      }
     },
     {
-      "id": "salted-honey",
       "id": "salted-honey",
       "name": "Salted Honey Cake",
       "blurb": "Whipped honey cream · flaky sea salt",
@@ -562,16 +686,100 @@
       "emoji": "🍯",
       "tint": "gold",
       "badge": "New this week",
-      "tags": ["new", "rich"],
+      "tags": [
+        "new",
+        "rich"
+      ],
       "rating": 4.8,
-      "allergens": ["wheat", "dairy", "egg"],
-      "image": "assets/desserts/salted-honey.svg",
+      "allergens": [
+        "wheat",
+        "dairy",
+        "egg"
+      ],
+      "image": "assets/desserts/salted-honey.jpg",
       "dietary": [],
       "reviews": [
-        {"id": "salted-honey-r1", "name": "Maya L.", "initials": "ML", "stars": 5, "date": "2026-09-20", "verified": "Verified purchase", "body": "The honey flavor is warm and clear, and the salt keeps the cream from becoming too sweet."},
-        {"id": "salted-honey-r2", "name": "Jon P.", "initials": "JP", "stars": 5, "date": "2026-09-17", "verified": "Verified purchase", "body": "Soft cake, light frosting, exactly the kind of dessert I want with coffee."}
+        {
+          "id": "salted-honey-r1",
+          "name": "Maya L.",
+          "initials": "ML",
+          "stars": 5,
+          "date": "2026-09-20",
+          "verified": "Verified purchase",
+          "body": "The honey flavor is warm and clear, and the salt keeps the cream from becoming too sweet."
+        },
+        {
+          "id": "salted-honey-r2",
+          "name": "Jon P.",
+          "initials": "JP",
+          "stars": 5,
+          "date": "2026-09-17",
+          "verified": "Verified purchase",
+          "body": "Soft cake, light frosting, exactly the kind of dessert I want with coffee."
+        }
       ],
-      "reviewCount": 2
+      "reviewCount": 2,
+      "nutrition": {
+        "servingGrams": 96,
+        "calories": 370,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "16g",
+            "dv": 21
+          },
+          {
+            "label": "Saturated fat",
+            "value": "9g",
+            "dv": 45
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "52g",
+            "dv": 19
+          },
+          {
+            "label": "Total sugars",
+            "value": "36g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "1g",
+            "dv": 4
+          },
+          {
+            "label": "Protein",
+            "value": "5g",
+            "dv": 10
+          },
+          {
+            "label": "Sodium",
+            "value": "260mg",
+            "dv": 11
+          }
+        ]
+      },
+      "profile": {
+        "family": "caramel",
+        "rich": 2,
+        "bright": 1,
+        "texture": "soft",
+        "occasions": [
+          "thank-you",
+          "dinner-party"
+        ],
+        "pairsWith": [
+          {
+            "id": "lemon-cloud",
+            "why": "honey and lemon, the obvious pair"
+          },
+          {
+            "id": "brown-butter",
+            "why": "two toasty flavors with salt in common"
+          }
+        ]
+      }
     },
     {
       "id": "raspberry-oat",
@@ -581,16 +789,927 @@
       "emoji": "🍓",
       "tint": "berry",
       "badge": "New this week",
-      "tags": ["new", "fruity", "shareable"],
-      "rating": 4.9,
-      "allergens": ["wheat", "dairy"],
-      "image": "assets/desserts/raspberry-oat.svg",
-      "dietary": ["Vegetarian"],
-      "reviews": [
-        {"id": "raspberry-oat-r1", "name": "Leah S.", "initials": "LS", "stars": 5, "date": "2026-09-21", "verified": "Verified purchase", "body": "Bright raspberry and a genuinely crisp oat topping. It is not overly sweet."},
-        {"id": "raspberry-oat-r2", "name": "Noah K.", "initials": "NK", "stars": 5, "date": "2026-09-15", "verified": "Verified purchase", "body": "This disappeared first from our shared box. The tart filling makes it very easy to keep eating."}
+      "tags": [
+        "new",
+        "fruity",
+        "shareable"
       ],
-      "reviewCount": 2
+      "rating": 4.9,
+      "allergens": [
+        "wheat",
+        "dairy"
+      ],
+      "image": "assets/desserts/raspberry-oat.jpg",
+      "dietary": [
+        "Vegetarian"
+      ],
+      "reviews": [
+        {
+          "id": "raspberry-oat-r1",
+          "name": "Leah S.",
+          "initials": "LS",
+          "stars": 5,
+          "date": "2026-09-21",
+          "verified": "Verified purchase",
+          "body": "Bright raspberry and a genuinely crisp oat topping. It is not overly sweet."
+        },
+        {
+          "id": "raspberry-oat-r2",
+          "name": "Noah K.",
+          "initials": "NK",
+          "stars": 5,
+          "date": "2026-09-15",
+          "verified": "Verified purchase",
+          "body": "This disappeared first from our shared box. The tart filling makes it very easy to keep eating."
+        }
+      ],
+      "reviewCount": 2,
+      "nutrition": {
+        "servingGrams": 90,
+        "calories": 335,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "13g",
+            "dv": 17
+          },
+          {
+            "label": "Saturated fat",
+            "value": "6g",
+            "dv": 30
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "50g",
+            "dv": 18
+          },
+          {
+            "label": "Total sugars",
+            "value": "24g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "3g",
+            "dv": 11
+          },
+          {
+            "label": "Protein",
+            "value": "4g",
+            "dv": 8
+          },
+          {
+            "label": "Sodium",
+            "value": "190mg",
+            "dv": 8
+          }
+        ]
+      },
+      "profile": {
+        "family": "berry",
+        "rich": 1,
+        "bright": 2,
+        "texture": "crisp",
+        "occasions": [
+          "just-because",
+          "office",
+          "kids"
+        ],
+        "pairsWith": [
+          {
+            "id": "midnight-fudge",
+            "why": "tart raspberry against dark cocoa"
+          },
+          {
+            "id": "salted-honey",
+            "why": "oat crumble and honey belong together"
+          }
+        ]
+      }
+    },
+    {
+      "id": "carrot-crown",
+      "name": "Carrot Cake Crown",
+      "blurb": "Cream cheese swirl · toasted walnut",
+      "price": 5.75,
+      "emoji": "🥕",
+      "tint": "gold",
+      "badge": "New",
+      "tags": [
+        "new",
+        "rich"
+      ],
+      "rating": 4.6,
+      "allergens": [
+        "wheat",
+        "dairy",
+        "egg",
+        "tree nut"
+      ],
+      "image": "assets/desserts/carrot-crown.jpg",
+      "nutrition": {
+        "servingGrams": 98,
+        "calories": 405,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "21g",
+            "dv": 27
+          },
+          {
+            "label": "Saturated fat",
+            "value": "8g",
+            "dv": 40
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "50g",
+            "dv": 18
+          },
+          {
+            "label": "Total sugars",
+            "value": "34g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "5g",
+            "dv": 10
+          },
+          {
+            "label": "Sodium",
+            "value": "280mg",
+            "dv": 12
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "carrot-crown-r1",
+          "name": "Hana W.",
+          "initials": "HW",
+          "stars": 5,
+          "date": "2026-09-16",
+          "verified": "Verified purchase",
+          "body": "Proper carrot cake, not a muffin pretending. The walnut on top is toasted, which is the detail most places skip."
+        },
+        {
+          "id": "carrot-crown-r2",
+          "name": "Ben O.",
+          "initials": "BO",
+          "stars": 4,
+          "date": "2026-09-09",
+          "verified": "Verified purchase",
+          "body": "Moist, well spiced, generous on the frosting. I'd take it slightly less sweet."
+        }
+      ],
+      "profile": {
+        "family": "spice",
+        "rich": 2,
+        "bright": 1,
+        "texture": "soft",
+        "occasions": [
+          "thank-you",
+          "office",
+          "dinner-party"
+        ],
+        "pairsWith": [
+          {
+            "id": "lemon-cloud",
+            "why": "citrus after the spice"
+          },
+          {
+            "id": "coconut-matcha",
+            "why": "green tea cools warm spice"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tiramisu-cup",
+      "name": "Tiramisu Cup",
+      "blurb": "Espresso-soaked sponge · mascarpone",
+      "price": 6.25,
+      "emoji": "☕",
+      "tint": "cocoa",
+      "badge": "Fan favorite",
+      "tags": [
+        "rich",
+        "signature"
+      ],
+      "rating": 4.8,
+      "allergens": [
+        "wheat",
+        "dairy",
+        "egg"
+      ],
+      "image": "assets/desserts/tiramisu-cup.jpg",
+      "nutrition": {
+        "servingGrams": 105,
+        "calories": 420,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "24g",
+            "dv": 31
+          },
+          {
+            "label": "Saturated fat",
+            "value": "14g",
+            "dv": 70
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "42g",
+            "dv": 15
+          },
+          {
+            "label": "Total sugars",
+            "value": "28g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "1g",
+            "dv": 4
+          },
+          {
+            "label": "Protein",
+            "value": "7g",
+            "dv": 14
+          },
+          {
+            "label": "Sodium",
+            "value": "160mg",
+            "dv": 7
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "tiramisu-cup-r1",
+          "name": "Lucia F.",
+          "initials": "LF",
+          "stars": 5,
+          "date": "2026-09-18",
+          "verified": "Verified purchase",
+          "body": "Real espresso, real mascarpone. Served cold and it holds its layers all the way down the cup."
+        },
+        {
+          "id": "tiramisu-cup-r2",
+          "name": "Omar H.",
+          "initials": "OH",
+          "stars": 5,
+          "date": "2026-09-05",
+          "verified": "Verified purchase",
+          "body": "Ordered two for a dinner and ended up hiding one for myself. No regrets."
+        }
+      ],
+      "profile": {
+        "family": "coffee",
+        "rich": 3,
+        "bright": 0,
+        "texture": "soft",
+        "occasions": [
+          "dinner-party",
+          "thank-you"
+        ],
+        "pairsWith": [
+          {
+            "id": "lemon-cloud",
+            "why": "a clean finish after espresso"
+          },
+          {
+            "id": "biscoff",
+            "why": "coffee and speculoos, the café pair"
+          }
+        ]
+      }
+    },
+    {
+      "id": "key-lime-tart",
+      "name": "Key Lime Tart",
+      "blurb": "Lime curd · graham crust",
+      "price": 5.75,
+      "emoji": "🍋",
+      "tint": "mint",
+      "badge": "New",
+      "tags": [
+        "new",
+        "fruity"
+      ],
+      "rating": 4.7,
+      "allergens": [
+        "wheat",
+        "dairy",
+        "egg"
+      ],
+      "image": "assets/desserts/key-lime-tart.jpg",
+      "nutrition": {
+        "servingGrams": 96,
+        "calories": 345,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "15g",
+            "dv": 19
+          },
+          {
+            "label": "Saturated fat",
+            "value": "9g",
+            "dv": 45
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "48g",
+            "dv": 17
+          },
+          {
+            "label": "Total sugars",
+            "value": "33g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "1g",
+            "dv": 4
+          },
+          {
+            "label": "Protein",
+            "value": "5g",
+            "dv": 10
+          },
+          {
+            "label": "Sodium",
+            "value": "210mg",
+            "dv": 9
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "key-lime-tart-r1",
+          "name": "Renee C.",
+          "initials": "RC",
+          "stars": 5,
+          "date": "2026-09-14",
+          "verified": "Verified purchase",
+          "body": "Sharp enough to make you blink, which is how key lime should be. Crust stays crisp."
+        },
+        {
+          "id": "key-lime-tart-r2",
+          "name": "Theo K.",
+          "initials": "TK",
+          "stars": 4,
+          "date": "2026-09-07",
+          "verified": "Verified purchase",
+          "body": "Bright and clean. Would love a little more whipped cream on top."
+        }
+      ],
+      "profile": {
+        "family": "citrus",
+        "rich": 1,
+        "bright": 4,
+        "texture": "crisp",
+        "occasions": [
+          "dinner-party",
+          "just-because",
+          "office"
+        ],
+        "pairsWith": [
+          {
+            "id": "midnight-fudge",
+            "why": "sharp lime against dark cocoa"
+          },
+          {
+            "id": "coconut-matcha",
+            "why": "lime and coconut"
+          }
+        ]
+      }
+    },
+    {
+      "id": "banana-pudding",
+      "name": "Banana Pudding Jar",
+      "blurb": "Vanilla wafers · whipped cream",
+      "price": 5.5,
+      "emoji": "🍌",
+      "tint": "butter",
+      "badge": "Comfort",
+      "tags": [
+        "shareable"
+      ],
+      "rating": 4.5,
+      "allergens": [
+        "wheat",
+        "dairy",
+        "egg"
+      ],
+      "image": "assets/desserts/banana-pudding.jpg",
+      "nutrition": {
+        "servingGrams": 120,
+        "calories": 380,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "14g",
+            "dv": 18
+          },
+          {
+            "label": "Saturated fat",
+            "value": "8g",
+            "dv": 40
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "58g",
+            "dv": 21
+          },
+          {
+            "label": "Total sugars",
+            "value": "40g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "5g",
+            "dv": 10
+          },
+          {
+            "label": "Sodium",
+            "value": "230mg",
+            "dv": 10
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "banana-pudding-r1",
+          "name": "Grace L.",
+          "initials": "GL",
+          "stars": 5,
+          "date": "2026-09-12",
+          "verified": "Verified purchase",
+          "body": "Tastes like the one my grandmother made, wafers gone soft in the right way."
+        },
+        {
+          "id": "banana-pudding-r2",
+          "name": "Dev P.",
+          "initials": "DP",
+          "stars": 4,
+          "date": "2026-09-03",
+          "verified": "Verified purchase",
+          "body": "Big portion, very comforting. Best eaten the same day."
+        }
+      ],
+      "profile": {
+        "family": "cream",
+        "rich": 2,
+        "bright": 1,
+        "texture": "soft",
+        "occasions": [
+          "kids",
+          "office",
+          "just-because"
+        ],
+        "pairsWith": [
+          {
+            "id": "brown-butter",
+            "why": "wafers and browned butter cookies"
+          },
+          {
+            "id": "raspberry-oat",
+            "why": "adds a tart edge to the cream"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pistachio-croissant",
+      "name": "Pistachio Cream Croissant",
+      "blurb": "Laminated butter · pistachio cream",
+      "price": 6.5,
+      "emoji": "🥐",
+      "tint": "mint",
+      "badge": "Signature",
+      "tags": [
+        "signature",
+        "rich"
+      ],
+      "rating": 4.8,
+      "allergens": [
+        "wheat",
+        "dairy",
+        "egg",
+        "tree nut"
+      ],
+      "image": "assets/desserts/pistachio-croissant.jpg",
+      "nutrition": {
+        "servingGrams": 110,
+        "calories": 465,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "28g",
+            "dv": 36
+          },
+          {
+            "label": "Saturated fat",
+            "value": "15g",
+            "dv": 75
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "44g",
+            "dv": 16
+          },
+          {
+            "label": "Total sugars",
+            "value": "20g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "8g",
+            "dv": 16
+          },
+          {
+            "label": "Sodium",
+            "value": "320mg",
+            "dv": 14
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "pistachio-croissant-r1",
+          "name": "Mina S.",
+          "initials": "MS",
+          "stars": 5,
+          "date": "2026-09-17",
+          "verified": "Verified purchase",
+          "body": "Shatters when you bite it and the pistachio cream is the real green kind, not dyed."
+        },
+        {
+          "id": "pistachio-croissant-r2",
+          "name": "Carlos R.",
+          "initials": "CR",
+          "stars": 5,
+          "date": "2026-09-08",
+          "verified": "Verified purchase",
+          "body": "The best thing on the menu, full stop. Get here before eleven or it's gone."
+        }
+      ],
+      "profile": {
+        "family": "nut",
+        "rich": 3,
+        "bright": 0,
+        "texture": "flaky",
+        "occasions": [
+          "thank-you",
+          "dinner-party"
+        ],
+        "pairsWith": [
+          {
+            "id": "lemon-cloud",
+            "why": "citrus lifts the pistachio"
+          },
+          {
+            "id": "strawberry-stack",
+            "why": "pistachio and strawberry"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cinnamon-roll",
+      "name": "Cinnamon Swirl Roll",
+      "blurb": "Brown sugar swirl · vanilla glaze",
+      "price": 5.25,
+      "emoji": "🌀",
+      "tint": "caramel",
+      "badge": "Warm",
+      "tags": [
+        "shareable",
+        "rich"
+      ],
+      "rating": 4.6,
+      "allergens": [
+        "wheat",
+        "dairy",
+        "egg"
+      ],
+      "image": "assets/desserts/cinnamon-roll.jpg",
+      "nutrition": {
+        "servingGrams": 115,
+        "calories": 440,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "17g",
+            "dv": 22
+          },
+          {
+            "label": "Saturated fat",
+            "value": "9g",
+            "dv": 45
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "66g",
+            "dv": 24
+          },
+          {
+            "label": "Total sugars",
+            "value": "36g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "7g",
+            "dv": 14
+          },
+          {
+            "label": "Sodium",
+            "value": "340mg",
+            "dv": 15
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "cinnamon-roll-r1",
+          "name": "Jamal T.",
+          "initials": "JT",
+          "stars": 5,
+          "date": "2026-09-15",
+          "verified": "Verified purchase",
+          "body": "Soft all the way to the center, glaze still a little warm when I picked it up."
+        },
+        {
+          "id": "cinnamon-roll-r2",
+          "name": "Elise N.",
+          "initials": "EN",
+          "stars": 4,
+          "date": "2026-09-06",
+          "verified": "Verified purchase",
+          "body": "Great roll. Sweet, so pair it with something sharp."
+        }
+      ],
+      "profile": {
+        "family": "spice",
+        "rich": 3,
+        "bright": 0,
+        "texture": "soft",
+        "occasions": [
+          "office",
+          "kids",
+          "just-because"
+        ],
+        "pairsWith": [
+          {
+            "id": "lemon-cloud",
+            "why": "something bright after the swirl"
+          },
+          {
+            "id": "raspberry-oat",
+            "why": "fruit cuts the brown sugar"
+          }
+        ]
+      }
+    },
+    {
+      "id": "salted-caramel-brownie",
+      "name": "Salted Caramel Brownie",
+      "blurb": "Fudge brownie · flaky salt",
+      "price": 5.5,
+      "emoji": "🍫",
+      "tint": "cocoa",
+      "badge": "Fan favorite",
+      "tags": [
+        "rich",
+        "shareable"
+      ],
+      "rating": 4.8,
+      "allergens": [
+        "wheat",
+        "dairy",
+        "egg",
+        "soy"
+      ],
+      "image": "assets/desserts/salted-caramel-brownie.jpg",
+      "nutrition": {
+        "servingGrams": 92,
+        "calories": 445,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "23g",
+            "dv": 29
+          },
+          {
+            "label": "Saturated fat",
+            "value": "13g",
+            "dv": 65
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "56g",
+            "dv": 20
+          },
+          {
+            "label": "Total sugars",
+            "value": "42g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "3g",
+            "dv": 11
+          },
+          {
+            "label": "Protein",
+            "value": "5g",
+            "dv": 10
+          },
+          {
+            "label": "Sodium",
+            "value": "290mg",
+            "dv": 13
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "salted-caramel-brownie-r1",
+          "name": "Kai M.",
+          "initials": "KM",
+          "stars": 5,
+          "date": "2026-09-19",
+          "verified": "Verified purchase",
+          "body": "Fudgy, not cakey. The caramel is ribboned through rather than a puddle on top."
+        },
+        {
+          "id": "salted-caramel-brownie-r2",
+          "name": "Sofia A.",
+          "initials": "SA",
+          "stars": 5,
+          "date": "2026-09-10",
+          "verified": "Verified purchase",
+          "body": "Took a box to the office and had to send a photo of the empty tray by noon."
+        }
+      ],
+      "profile": {
+        "family": "cocoa",
+        "rich": 4,
+        "bright": 0,
+        "texture": "dense",
+        "occasions": [
+          "dinner-party",
+          "kids",
+          "thank-you"
+        ],
+        "pairsWith": [
+          {
+            "id": "key-lime-tart",
+            "why": "lime cuts a dense brownie"
+          },
+          {
+            "id": "strawberry-stack",
+            "why": "berry lifts the cocoa"
+          }
+        ]
+      }
+    },
+    {
+      "id": "vanilla-macaron",
+      "name": "Vanilla Bean Macarons",
+      "blurb": "Almond shells · vanilla bean ganache · set of 3",
+      "price": 6.0,
+      "emoji": "🍬",
+      "tint": "pink",
+      "badge": "Signature",
+      "tags": [
+        "signature",
+        "shareable"
+      ],
+      "rating": 4.7,
+      "allergens": [
+        "egg",
+        "dairy",
+        "tree nut"
+      ],
+      "image": "assets/desserts/vanilla-macaron.jpg",
+      "nutrition": {
+        "servingGrams": 54,
+        "calories": 250,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "11g",
+            "dv": 14
+          },
+          {
+            "label": "Saturated fat",
+            "value": "6g",
+            "dv": 30
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "34g",
+            "dv": 12
+          },
+          {
+            "label": "Total sugars",
+            "value": "30g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "1g",
+            "dv": 4
+          },
+          {
+            "label": "Protein",
+            "value": "4g",
+            "dv": 8
+          },
+          {
+            "label": "Sodium",
+            "value": "60mg",
+            "dv": 3
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "vanilla-macaron-r1",
+          "name": "Noor B.",
+          "initials": "NB",
+          "stars": 5,
+          "date": "2026-09-13",
+          "verified": "Verified purchase",
+          "body": "Feet on the shells, chewy inside, and you can see the vanilla seeds in the ganache."
+        },
+        {
+          "id": "vanilla-macaron-r2",
+          "name": "Wes D.",
+          "initials": "WD",
+          "stars": 4,
+          "date": "2026-09-04",
+          "verified": "Verified purchase",
+          "body": "Delicate and pretty. Three is a tease, I wanted six."
+        }
+      ],
+      "profile": {
+        "family": "cream",
+        "rich": 2,
+        "bright": 1,
+        "texture": "crisp",
+        "occasions": [
+          "thank-you",
+          "birthday",
+          "dinner-party"
+        ],
+        "pairsWith": [
+          {
+            "id": "tiramisu-cup",
+            "why": "vanilla next to espresso"
+          },
+          {
+            "id": "raspberry-oat",
+            "why": "adds fruit to a vanilla box"
+          }
+        ]
+      }
     }
   ],
   "plantBased": [
@@ -611,7 +1730,7 @@
         "wheat",
         "tree nut"
       ],
-      "image": "assets/desserts/coconut-matcha.svg",
+      "image": "assets/desserts/coconut-matcha.jpg",
       "nutrition": {
         "servingGrams": 84,
         "calories": 310,
@@ -686,7 +1805,27 @@
           "body": "Dairy-free and it doesn't taste like a compromise. My daughter can't have dairy and she picks this every time."
         }
       ],
-      "reviewCount": 3
+      "reviewCount": 3,
+      "profile": {
+        "family": "green",
+        "rich": 1,
+        "bright": 2,
+        "texture": "light",
+        "occasions": [
+          "office",
+          "just-because"
+        ],
+        "pairsWith": [
+          {
+            "id": "almond-fig",
+            "why": "both plant-based, different textures"
+          },
+          {
+            "id": "lemon-cloud",
+            "why": "clean and bright together"
+          }
+        ]
+      }
     },
     {
       "id": "almond-fig",
@@ -705,7 +1844,7 @@
         "wheat",
         "tree nut"
       ],
-      "image": "assets/desserts/almond-fig.svg",
+      "image": "assets/desserts/almond-fig.jpg",
       "nutrition": {
         "servingGrams": 102,
         "calories": 395,
@@ -779,7 +1918,658 @@
           "body": "Lovely but it does contain almonds, obviously, so not one for a mixed group with nut allergies."
         }
       ],
-      "reviewCount": 3
+      "reviewCount": 3,
+      "profile": {
+        "family": "nut",
+        "rich": 2,
+        "bright": 2,
+        "texture": "soft",
+        "occasions": [
+          "dinner-party",
+          "thank-you"
+        ],
+        "pairsWith": [
+          {
+            "id": "coconut-matcha",
+            "why": "rounds out the plant-based half"
+          },
+          {
+            "id": "biscoff",
+            "why": "fig and caramel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "oat-choc-chip",
+      "name": "Oat Milk Chocolate Chip",
+      "blurb": "Dark chips · oat milk dough",
+      "price": 4.95,
+      "emoji": "🍪",
+      "tint": "cocoa",
+      "badge": "Plant-based",
+      "tags": [
+        "vegan",
+        "shareable"
+      ],
+      "rating": 4.6,
+      "allergens": [
+        "wheat",
+        "soy"
+      ],
+      "image": "assets/desserts/oat-choc-chip.jpg",
+      "nutrition": {
+        "servingGrams": 70,
+        "calories": 320,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "14g",
+            "dv": 18
+          },
+          {
+            "label": "Saturated fat",
+            "value": "6g",
+            "dv": 30
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "46g",
+            "dv": 17
+          },
+          {
+            "label": "Total sugars",
+            "value": "24g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "3g",
+            "dv": 6
+          },
+          {
+            "label": "Sodium",
+            "value": "210mg",
+            "dv": 9
+          }
+        ]
+      },
+      "dietary": [
+        "Plant-based",
+        "No dairy",
+        "No egg"
+      ],
+      "reviews": [
+        {
+          "id": "oat-choc-chip-r1",
+          "name": "Priya V.",
+          "initials": "PV",
+          "stars": 5,
+          "date": "2026-09-16",
+          "verified": "Verified purchase",
+          "body": "Crisp edge, soft middle, and nobody at the table guessed it was plant-based."
+        },
+        {
+          "id": "oat-choc-chip-r2",
+          "name": "Milo J.",
+          "initials": "MJ",
+          "stars": 4,
+          "date": "2026-09-08",
+          "verified": "Verified purchase",
+          "body": "Good cookie. A little more salt would push it to five."
+        }
+      ],
+      "profile": {
+        "family": "cocoa",
+        "rich": 3,
+        "bright": 0,
+        "texture": "chewy",
+        "occasions": [
+          "office",
+          "kids",
+          "just-because"
+        ],
+        "pairsWith": [
+          {
+            "id": "lemon-poppy-loaf",
+            "why": "citrus against the chocolate, both plant-based"
+          },
+          {
+            "id": "mango-coconut",
+            "why": "tropical fruit lifts the cocoa"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mango-coconut",
+      "name": "Mango Coconut Panna Cotta",
+      "blurb": "Coconut cream · mango coulis",
+      "price": 5.75,
+      "emoji": "🥭",
+      "tint": "gold",
+      "badge": "Plant-based",
+      "tags": [
+        "vegan",
+        "fruity",
+        "new"
+      ],
+      "rating": 4.7,
+      "allergens": [
+        "tree nut"
+      ],
+      "image": "assets/desserts/mango-coconut.jpg",
+      "nutrition": {
+        "servingGrams": 110,
+        "calories": 280,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "13g",
+            "dv": 17
+          },
+          {
+            "label": "Saturated fat",
+            "value": "11g",
+            "dv": 55
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "40g",
+            "dv": 15
+          },
+          {
+            "label": "Total sugars",
+            "value": "32g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "2g",
+            "dv": 4
+          },
+          {
+            "label": "Sodium",
+            "value": "40mg",
+            "dv": 2
+          }
+        ]
+      },
+      "dietary": [
+        "Plant-based",
+        "No dairy",
+        "No gluten"
+      ],
+      "reviews": [
+        {
+          "id": "mango-coconut-r1",
+          "name": "Anika R.",
+          "initials": "AR",
+          "stars": 5,
+          "date": "2026-09-17",
+          "verified": "Verified purchase",
+          "body": "Silky and light. The mango on top is actual fruit, not syrup."
+        },
+        {
+          "id": "mango-coconut-r2",
+          "name": "Leo G.",
+          "initials": "LG",
+          "stars": 4,
+          "date": "2026-09-09",
+          "verified": "Verified purchase",
+          "body": "Refreshing after a heavy meal. Wish the cup were bigger."
+        }
+      ],
+      "profile": {
+        "family": "tropical",
+        "rich": 1,
+        "bright": 3,
+        "texture": "soft",
+        "occasions": [
+          "dinner-party",
+          "just-because"
+        ],
+        "pairsWith": [
+          {
+            "id": "oat-choc-chip",
+            "why": "cocoa under bright mango"
+          },
+          {
+            "id": "coconut-matcha",
+            "why": "two coconut bases, one grassy, one fruity"
+          }
+        ]
+      }
+    },
+    {
+      "id": "avocado-mousse",
+      "name": "Dark Chocolate Avocado Mousse",
+      "blurb": "70% cocoa · whipped avocado",
+      "price": 5.95,
+      "emoji": "🥑",
+      "tint": "cocoa",
+      "badge": "Plant-based",
+      "tags": [
+        "vegan",
+        "rich"
+      ],
+      "rating": 4.5,
+      "allergens": [
+        "soy"
+      ],
+      "image": "assets/desserts/avocado-mousse.jpg",
+      "nutrition": {
+        "servingGrams": 100,
+        "calories": 330,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "22g",
+            "dv": 28
+          },
+          {
+            "label": "Saturated fat",
+            "value": "8g",
+            "dv": 40
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "34g",
+            "dv": 12
+          },
+          {
+            "label": "Total sugars",
+            "value": "22g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "6g",
+            "dv": 21
+          },
+          {
+            "label": "Protein",
+            "value": "4g",
+            "dv": 8
+          },
+          {
+            "label": "Sodium",
+            "value": "60mg",
+            "dv": 3
+          }
+        ]
+      },
+      "dietary": [
+        "Plant-based",
+        "No dairy",
+        "No gluten"
+      ],
+      "reviews": [
+        {
+          "id": "avocado-mousse-r1",
+          "name": "Tess H.",
+          "initials": "TH",
+          "stars": 5,
+          "date": "2026-09-14",
+          "verified": "Verified purchase",
+          "body": "Deep, dark and dense. You cannot taste the avocado, only the texture it gives."
+        },
+        {
+          "id": "avocado-mousse-r2",
+          "name": "Rafael M.",
+          "initials": "RM",
+          "stars": 4,
+          "date": "2026-09-05",
+          "verified": "Verified purchase",
+          "body": "Very rich, one is plenty. Great for someone avoiding dairy."
+        }
+      ],
+      "profile": {
+        "family": "cocoa",
+        "rich": 4,
+        "bright": 0,
+        "texture": "soft",
+        "occasions": [
+          "dinner-party",
+          "thank-you"
+        ],
+        "pairsWith": [
+          {
+            "id": "mango-coconut",
+            "why": "mango cuts a dense mousse"
+          },
+          {
+            "id": "lemon-poppy-loaf",
+            "why": "lemon against dark chocolate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "lemon-poppy-loaf",
+      "name": "Lemon Poppyseed Loaf",
+      "blurb": "Olive oil crumb · lemon glaze",
+      "price": 5.25,
+      "emoji": "🍋",
+      "tint": "butter",
+      "badge": "Plant-based",
+      "tags": [
+        "vegan",
+        "fruity"
+      ],
+      "rating": 4.6,
+      "allergens": [
+        "wheat"
+      ],
+      "image": "assets/desserts/lemon-poppy-loaf.jpg",
+      "nutrition": {
+        "servingGrams": 95,
+        "calories": 340,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "14g",
+            "dv": 18
+          },
+          {
+            "label": "Saturated fat",
+            "value": "2g",
+            "dv": 10
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "50g",
+            "dv": 18
+          },
+          {
+            "label": "Total sugars",
+            "value": "30g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "4g",
+            "dv": 8
+          },
+          {
+            "label": "Sodium",
+            "value": "220mg",
+            "dv": 10
+          }
+        ]
+      },
+      "dietary": [
+        "Plant-based",
+        "No dairy",
+        "No egg"
+      ],
+      "reviews": [
+        {
+          "id": "lemon-poppy-loaf-r1",
+          "name": "Ivy C.",
+          "initials": "IC",
+          "stars": 5,
+          "date": "2026-09-15",
+          "verified": "Verified purchase",
+          "body": "Tender crumb from the olive oil and a glaze with real lemon bite."
+        },
+        {
+          "id": "lemon-poppy-loaf-r2",
+          "name": "Sam O.",
+          "initials": "SO",
+          "stars": 4,
+          "date": "2026-09-06",
+          "verified": "Verified purchase",
+          "body": "Solid morning slice. Goes with coffee better than most things here."
+        }
+      ],
+      "profile": {
+        "family": "citrus",
+        "rich": 1,
+        "bright": 3,
+        "texture": "soft",
+        "occasions": [
+          "office",
+          "just-because"
+        ],
+        "pairsWith": [
+          {
+            "id": "oat-choc-chip",
+            "why": "lemon and chocolate, both plant-based"
+          },
+          {
+            "id": "avocado-mousse",
+            "why": "adds richness to a light loaf"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pb-blondie",
+      "name": "Peanut Butter Blondie",
+      "blurb": "Roasted peanut butter · brown sugar",
+      "price": 5.25,
+      "emoji": "🥜",
+      "tint": "caramel",
+      "badge": "Plant-based",
+      "tags": [
+        "vegan",
+        "rich",
+        "shareable"
+      ],
+      "rating": 4.6,
+      "allergens": [
+        "wheat",
+        "peanut",
+        "soy"
+      ],
+      "image": "assets/desserts/pb-blondie.jpg",
+      "nutrition": {
+        "servingGrams": 88,
+        "calories": 400,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "20g",
+            "dv": 26
+          },
+          {
+            "label": "Saturated fat",
+            "value": "5g",
+            "dv": 25
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "48g",
+            "dv": 17
+          },
+          {
+            "label": "Total sugars",
+            "value": "30g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "8g",
+            "dv": 16
+          },
+          {
+            "label": "Sodium",
+            "value": "260mg",
+            "dv": 11
+          }
+        ]
+      },
+      "dietary": [
+        "Plant-based",
+        "No dairy",
+        "No egg"
+      ],
+      "reviews": [
+        {
+          "id": "pb-blondie-r1",
+          "name": "Dana K.",
+          "initials": "DK",
+          "stars": 5,
+          "date": "2026-09-18",
+          "verified": "Verified purchase",
+          "body": "Chewy, salty-sweet, and the peanut flavor is roasted rather than raw."
+        },
+        {
+          "id": "pb-blondie-r2",
+          "name": "Aaron F.",
+          "initials": "AF",
+          "stars": 4,
+          "date": "2026-09-10",
+          "verified": "Verified purchase",
+          "body": "My kids demolished these. Dense, so one goes a long way."
+        }
+      ],
+      "profile": {
+        "family": "nut",
+        "rich": 3,
+        "bright": 0,
+        "texture": "dense",
+        "occasions": [
+          "kids",
+          "office"
+        ],
+        "pairsWith": [
+          {
+            "id": "mango-coconut",
+            "why": "fruit lightens peanut butter"
+          },
+          {
+            "id": "lemon-poppy-loaf",
+            "why": "bright citrus after the blondie"
+          }
+        ]
+      }
+    },
+    {
+      "id": "apple-hand-pie",
+      "name": "Cinnamon Apple Hand Pie",
+      "blurb": "Flaky crust · cinnamon apples",
+      "price": 5.5,
+      "emoji": "🥧",
+      "tint": "caramel",
+      "badge": "Plant-based",
+      "tags": [
+        "vegan",
+        "shareable"
+      ],
+      "rating": 4.7,
+      "allergens": [
+        "wheat"
+      ],
+      "image": "assets/desserts/apple-hand-pie.jpg",
+      "nutrition": {
+        "servingGrams": 105,
+        "calories": 360,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "17g",
+            "dv": 22
+          },
+          {
+            "label": "Saturated fat",
+            "value": "6g",
+            "dv": 30
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "50g",
+            "dv": 18
+          },
+          {
+            "label": "Total sugars",
+            "value": "22g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "3g",
+            "dv": 6
+          },
+          {
+            "label": "Sodium",
+            "value": "240mg",
+            "dv": 10
+          }
+        ]
+      },
+      "dietary": [
+        "Plant-based",
+        "No dairy",
+        "No egg"
+      ],
+      "reviews": [
+        {
+          "id": "apple-hand-pie-r1",
+          "name": "Ruth E.",
+          "initials": "RE",
+          "stars": 5,
+          "date": "2026-09-16",
+          "verified": "Verified purchase",
+          "body": "Crust flakes like it was made with butter. Apples still have some bite."
+        },
+        {
+          "id": "apple-hand-pie-r2",
+          "name": "Nate S.",
+          "initials": "NS",
+          "stars": 5,
+          "date": "2026-09-07",
+          "verified": "Verified purchase",
+          "body": "Perfect car snack, no fork required. Ordered again the next week."
+        }
+      ],
+      "profile": {
+        "family": "orchard",
+        "rich": 1,
+        "bright": 2,
+        "texture": "flaky",
+        "occasions": [
+          "kids",
+          "office",
+          "thank-you"
+        ],
+        "pairsWith": [
+          {
+            "id": "oat-choc-chip",
+            "why": "apple pie and a chocolate chip cookie"
+          },
+          {
+            "id": "coconut-matcha",
+            "why": "matcha next to cinnamon apple"
+          }
+        ]
+      }
     }
   ],
   "eventMenus": [
@@ -816,7 +2606,7 @@
           ],
           "emoji": "🍂",
           "tint": "caramel",
-          "image": "assets/desserts/maple-pecan.svg",
+          "image": "assets/desserts/maple-pecan.jpg",
           "season": "harvest",
           "badge": "Seasonal",
           "nutrition": {
@@ -881,7 +2671,28 @@
               "body": "Sweet but the pecan bitterness balances it. Very autumn."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2026-09-20",
+          "profile": {
+            "family": "nut",
+            "rich": 3,
+            "bright": 0,
+            "texture": "soft",
+            "occasions": [
+              "thank-you",
+              "dinner-party"
+            ],
+            "pairsWith": [
+              {
+                "id": "spiced-pear",
+                "why": "pecan and pear, the harvest pair"
+              },
+              {
+                "id": "lemon-cloud",
+                "why": "citrus keeps maple from cloying"
+              }
+            ]
+          }
         },
         {
           "id": "spiced-pear",
@@ -889,7 +2700,7 @@
           "price": 6.25,
           "blurb": "Spiced pear · flaky butter crust",
           "tags": [
-            "fruit"
+            "fruity"
           ],
           "rating": 5.0,
           "allergens": [
@@ -898,7 +2709,7 @@
           ],
           "emoji": "🍂",
           "tint": "caramel",
-          "image": "assets/desserts/spiced-pear.svg",
+          "image": "assets/desserts/spiced-pear.jpg",
           "season": "harvest",
           "badge": "Seasonal",
           "nutrition": {
@@ -963,7 +2774,28 @@
               "body": "Spicing is restrained — you can still taste the fruit."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2026-09-20",
+          "profile": {
+            "family": "orchard",
+            "rich": 1,
+            "bright": 2,
+            "texture": "flaky",
+            "occasions": [
+              "dinner-party",
+              "thank-you"
+            ],
+            "pairsWith": [
+              {
+                "id": "maple-pecan",
+                "why": "pear and maple pecan"
+              },
+              {
+                "id": "salted-honey",
+                "why": "honey and orchard fruit"
+              }
+            ]
+          }
         },
         {
           "id": "cider-donut",
@@ -981,7 +2813,7 @@
           ],
           "emoji": "🍂",
           "tint": "gold",
-          "image": "assets/desserts/cider-donut.svg",
+          "image": "assets/desserts/cider-donut.jpg",
           "season": "harvest",
           "badge": "Seasonal",
           "nutrition": {
@@ -1046,22 +2878,253 @@
               "body": "Best eaten same day. Still good the next morning but not the same."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2026-09-27",
+          "profile": {
+            "family": "spice",
+            "rich": 2,
+            "bright": 1,
+            "texture": "soft",
+            "occasions": [
+              "kids",
+              "office",
+              "just-because"
+            ],
+            "pairsWith": [
+              {
+                "id": "maple-pecan",
+                "why": "cider donut with maple"
+              },
+              {
+                "id": "brown-butter",
+                "why": "two warm, toasty flavors"
+              }
+            ]
+          }
+        },
+        {
+          "id": "pumpkin-cheesecake",
+          "name": "Pumpkin Spice Cheesecake Bar",
+          "blurb": "Spiced pumpkin · gingersnap crust",
+          "price": 6.25,
+          "emoji": "🎃",
+          "tint": "caramel",
+          "badge": "Seasonal",
+          "tags": [
+            "rich",
+            "shareable"
+          ],
+          "rating": 4.7,
+          "allergens": [
+            "wheat",
+            "dairy",
+            "egg"
+          ],
+          "image": "assets/desserts/pumpkin-cheesecake.jpg",
+          "nutrition": {
+            "servingGrams": 105,
+            "calories": 410,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "24g",
+                "dv": 31
+              },
+              {
+                "label": "Saturated fat",
+                "value": "14g",
+                "dv": 70
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "42g",
+                "dv": 15
+              },
+              {
+                "label": "Total sugars",
+                "value": "30g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "1g",
+                "dv": 4
+              },
+              {
+                "label": "Protein",
+                "value": "6g",
+                "dv": 12
+              },
+              {
+                "label": "Sodium",
+                "value": "300mg",
+                "dv": 13
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "pumpkin-cheesecake-r1",
+              "name": "Molly B.",
+              "initials": "MB",
+              "stars": 5,
+              "date": "2025-10-12",
+              "verified": "Verified purchase",
+              "body": "The gingersnap crust is the trick. Not too sweet, properly spiced."
+            },
+            {
+              "id": "pumpkin-cheesecake-r2",
+              "name": "Chris D.",
+              "initials": "CD",
+              "stars": 4,
+              "date": "2025-10-05",
+              "verified": "Verified purchase",
+              "body": "Creamy and autumnal. I'd like it back every year."
+            }
+          ],
+          "season": "harvest",
+          "releaseDate": "2026-10-04",
+          "profile": {
+            "family": "spice",
+            "rich": 3,
+            "bright": 0,
+            "texture": "soft",
+            "occasions": [
+              "dinner-party",
+              "thank-you",
+              "office"
+            ],
+            "pairsWith": [
+              {
+                "id": "lemon-cloud",
+                "why": "citrus after pumpkin spice"
+              },
+              {
+                "id": "cider-donut",
+                "why": "the full autumn table"
+              }
+            ]
+          }
+        },
+        {
+          "id": "caramel-apple-tart",
+          "name": "Caramel Apple Tartlet",
+          "blurb": "Sliced apple · salted caramel drizzle",
+          "price": 6.0,
+          "emoji": "🍎",
+          "tint": "gold",
+          "badge": "Seasonal",
+          "tags": [
+            "fruity",
+            "shareable"
+          ],
+          "rating": 4.6,
+          "allergens": [
+            "wheat",
+            "dairy",
+            "egg"
+          ],
+          "image": "assets/desserts/caramel-apple-tart.jpg",
+          "nutrition": {
+            "servingGrams": 100,
+            "calories": 370,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "16g",
+                "dv": 21
+              },
+              {
+                "label": "Saturated fat",
+                "value": "8g",
+                "dv": 40
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "54g",
+                "dv": 20
+              },
+              {
+                "label": "Total sugars",
+                "value": "34g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "3g",
+                "dv": 11
+              },
+              {
+                "label": "Protein",
+                "value": "4g",
+                "dv": 8
+              },
+              {
+                "label": "Sodium",
+                "value": "220mg",
+                "dv": 10
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "caramel-apple-tart-r1",
+              "name": "Farah N.",
+              "initials": "FN",
+              "stars": 5,
+              "date": "2025-10-19",
+              "verified": "Verified purchase",
+              "body": "Thin apple slices fanned out like a bakery window. The caramel has salt, thank goodness."
+            },
+            {
+              "id": "caramel-apple-tart-r2",
+              "name": "Owen P.",
+              "initials": "OP",
+              "stars": 4,
+              "date": "2025-10-11",
+              "verified": "Verified purchase",
+              "body": "Good tart. Apples could be a touch softer."
+            }
+          ],
+          "season": "harvest",
+          "releaseDate": "2026-10-11",
+          "profile": {
+            "family": "orchard",
+            "rich": 2,
+            "bright": 2,
+            "texture": "flaky",
+            "occasions": [
+              "kids",
+              "dinner-party"
+            ],
+            "pairsWith": [
+              {
+                "id": "maple-pecan",
+                "why": "apple and pecan"
+              },
+              {
+                "id": "brown-butter",
+                "why": "caramel apple next to browned butter"
+              }
+            ]
+          }
         }
       ]
     },
     {
       "id": "holiday",
       "name": "Holiday Table",
-      "window": "Nov 24 – Dec 31",
+      "window": "Nov 15 – Dec 31",
       "status": "preorder",
       "tint": "berry",
       "emoji": "❄️",
       "blurb": "Gift towers and dessert tables sized for a full house.",
       "highlights": [
         "Peppermint Bark Slab",
-        "Gingerbread Corner",
-        "Cocoa Tasting Flight"
+        "Chocolate Yule Log",
+        "Gingerbread Spice Cake"
       ],
       "opens": "2026-11-15",
       "closes": "2026-12-31",
@@ -1081,7 +3144,7 @@
           ],
           "emoji": "❄️",
           "tint": "mint",
-          "image": "assets/desserts/peppermint-bark.svg",
+          "image": "assets/desserts/peppermint-bark.jpg",
           "season": "holiday",
           "badge": "Seasonal",
           "nutrition": {
@@ -1146,7 +3209,29 @@
               "body": "Very sweet. Good in small pieces with coffee."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2026-11-15",
+          "profile": {
+            "family": "mint",
+            "rich": 2,
+            "bright": 1,
+            "texture": "crisp",
+            "occasions": [
+              "office",
+              "thank-you",
+              "kids"
+            ],
+            "pairsWith": [
+              {
+                "id": "midnight-fudge",
+                "why": "mint and dark cocoa"
+              },
+              {
+                "id": "yule-log",
+                "why": "peppermint on the chocolate log"
+              }
+            ]
+          }
         },
         {
           "id": "yule-log",
@@ -1164,7 +3249,7 @@
           ],
           "emoji": "❄️",
           "tint": "cocoa",
-          "image": "assets/desserts/yule-log.svg",
+          "image": "assets/desserts/yule-log.jpg",
           "season": "holiday",
           "badge": "Seasonal",
           "nutrition": {
@@ -1229,7 +3314,28 @@
               "body": "Ordered for twelve people and it sliced beautifully."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2026-11-22",
+          "profile": {
+            "family": "cocoa",
+            "rich": 4,
+            "bright": 0,
+            "texture": "soft",
+            "occasions": [
+              "dinner-party",
+              "birthday"
+            ],
+            "pairsWith": [
+              {
+                "id": "peppermint-bark",
+                "why": "the holiday chocolate pair"
+              },
+              {
+                "id": "lemon-cloud",
+                "why": "something sharp after the log"
+              }
+            ]
+          }
         },
         {
           "id": "gingerbread",
@@ -1247,7 +3353,7 @@
           ],
           "emoji": "❄️",
           "tint": "caramel",
-          "image": "assets/desserts/gingerbread.svg",
+          "image": "assets/desserts/gingerbread.jpg",
           "season": "holiday",
           "badge": "Seasonal",
           "nutrition": {
@@ -1312,22 +3418,251 @@
               "body": "Warming and not too sweet. I'd like a touch more spice."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2026-11-15",
+          "profile": {
+            "family": "spice",
+            "rich": 2,
+            "bright": 1,
+            "texture": "soft",
+            "occasions": [
+              "office",
+              "thank-you"
+            ],
+            "pairsWith": [
+              {
+                "id": "lemon-cloud",
+                "why": "lemon and ginger"
+              },
+              {
+                "id": "yule-log",
+                "why": "spice next to chocolate"
+              }
+            ]
+          }
+        },
+        {
+          "id": "eggnog-puff",
+          "name": "Eggnog Cream Puff",
+          "blurb": "Choux · nutmeg custard",
+          "price": 5.75,
+          "emoji": "🥛",
+          "tint": "butter",
+          "badge": "Seasonal",
+          "tags": [
+            "signature"
+          ],
+          "rating": 4.6,
+          "allergens": [
+            "wheat",
+            "dairy",
+            "egg"
+          ],
+          "image": "assets/desserts/eggnog-puff.jpg",
+          "nutrition": {
+            "servingGrams": 90,
+            "calories": 350,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "22g",
+                "dv": 28
+              },
+              {
+                "label": "Saturated fat",
+                "value": "13g",
+                "dv": 65
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "32g",
+                "dv": 12
+              },
+              {
+                "label": "Total sugars",
+                "value": "20g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "0g",
+                "dv": 0
+              },
+              {
+                "label": "Protein",
+                "value": "6g",
+                "dv": 12
+              },
+              {
+                "label": "Sodium",
+                "value": "180mg",
+                "dv": 8
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "eggnog-puff-r1",
+              "name": "Holly R.",
+              "initials": "HR",
+              "stars": 5,
+              "date": "2025-12-14",
+              "verified": "Verified purchase",
+              "body": "Nutmeg custard piped generously, choux still crisp. Tastes like the season."
+            },
+            {
+              "id": "eggnog-puff-r2",
+              "name": "Sanjay M.",
+              "initials": "SM",
+              "stars": 4,
+              "date": "2025-12-06",
+              "verified": "Verified purchase",
+              "body": "Lovely, if you like eggnog. I do."
+            }
+          ],
+          "season": "holiday",
+          "releaseDate": "2026-11-29",
+          "profile": {
+            "family": "cream",
+            "rich": 3,
+            "bright": 0,
+            "texture": "soft",
+            "occasions": [
+              "dinner-party",
+              "office"
+            ],
+            "pairsWith": [
+              {
+                "id": "gingerbread",
+                "why": "nutmeg custard with gingerbread"
+              },
+              {
+                "id": "peppermint-bark",
+                "why": "cream puff and peppermint"
+              }
+            ]
+          }
+        },
+        {
+          "id": "cranberry-scone",
+          "name": "Cranberry Orange Scone",
+          "blurb": "Dried cranberry · orange zest glaze",
+          "price": 5.25,
+          "emoji": "🍊",
+          "tint": "berry",
+          "badge": "Seasonal",
+          "tags": [
+            "fruity",
+            "shareable"
+          ],
+          "rating": 4.5,
+          "allergens": [
+            "wheat",
+            "dairy",
+            "egg"
+          ],
+          "image": "assets/desserts/cranberry-scone.jpg",
+          "nutrition": {
+            "servingGrams": 98,
+            "calories": 380,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "16g",
+                "dv": 21
+              },
+              {
+                "label": "Saturated fat",
+                "value": "9g",
+                "dv": 45
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "54g",
+                "dv": 20
+              },
+              {
+                "label": "Total sugars",
+                "value": "26g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "2g",
+                "dv": 7
+              },
+              {
+                "label": "Protein",
+                "value": "6g",
+                "dv": 12
+              },
+              {
+                "label": "Sodium",
+                "value": "330mg",
+                "dv": 14
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "cranberry-scone-r1",
+              "name": "Beth A.",
+              "initials": "BA",
+              "stars": 5,
+              "date": "2025-12-11",
+              "verified": "Verified purchase",
+              "body": "Crumbly in the right way and the orange glaze keeps it from being dry."
+            },
+            {
+              "id": "cranberry-scone-r2",
+              "name": "Victor L.",
+              "initials": "VL",
+              "stars": 4,
+              "date": "2025-12-02",
+              "verified": "Verified purchase",
+              "body": "A morning scone that works at dessert too. Tart cranberries."
+            }
+          ],
+          "season": "holiday",
+          "releaseDate": "2026-12-06",
+          "profile": {
+            "family": "citrus",
+            "rich": 1,
+            "bright": 3,
+            "texture": "crisp",
+            "occasions": [
+              "office",
+              "just-because",
+              "thank-you"
+            ],
+            "pairsWith": [
+              {
+                "id": "yule-log",
+                "why": "tart cranberry against chocolate"
+              },
+              {
+                "id": "gingerbread",
+                "why": "orange zest with ginger"
+              }
+            ]
+          }
         }
       ]
     },
     {
       "id": "lunar",
       "name": "Lunar New Year",
-      "window": "Feb 6 – Feb 20",
+      "window": "Jan 25 – Feb 20",
       "status": "planned",
       "tint": "gold",
       "emoji": "🧧",
       "blurb": "Red bean, sesame and citrus in a share-first gift format.",
       "highlights": [
-        "Black Sesame Swirl",
-        "Red Bean Pillow",
-        "Mandarin Cloud"
+        "Lotus Mooncake",
+        "Sesame Rice Ball",
+        "Lunar Almond Cookie"
       ],
       "opens": "2027-01-25",
       "closes": "2027-02-20",
@@ -1347,7 +3682,7 @@
           ],
           "emoji": "🧧",
           "tint": "gold",
-          "image": "assets/desserts/mooncake.svg",
+          "image": "assets/desserts/mooncake.jpg",
           "season": "lunar",
           "badge": "Seasonal",
           "nutrition": {
@@ -1412,7 +3747,28 @@
               "body": "Gave these as gifts and they were very well received."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2027-01-25",
+          "profile": {
+            "family": "bean",
+            "rich": 2,
+            "bright": 1,
+            "texture": "dense",
+            "occasions": [
+              "thank-you",
+              "dinner-party"
+            ],
+            "pairsWith": [
+              {
+                "id": "sesame-ball",
+                "why": "lotus and sesame"
+              },
+              {
+                "id": "mandarin-cloud",
+                "why": "citrus lightens the lotus paste"
+              }
+            ]
+          }
         },
         {
           "id": "sesame-ball",
@@ -1420,7 +3776,7 @@
           "price": 5.5,
           "blurb": "Glutinous rice · black sesame",
           "tags": [
-            "plant-based"
+            "vegan"
           ],
           "rating": 4.5,
           "allergens": [
@@ -1428,7 +3784,7 @@
           ],
           "emoji": "🧧",
           "tint": "caramel",
-          "image": "assets/desserts/sesame-ball.svg",
+          "image": "assets/desserts/sesame-ball.jpg",
           "season": "lunar",
           "badge": "Seasonal",
           "nutrition": {
@@ -1496,7 +3852,28 @@
               "body": "Lovely texture. Best eaten fresh rather than saved."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2027-01-25",
+          "profile": {
+            "family": "sesame",
+            "rich": 1,
+            "bright": 1,
+            "texture": "chewy",
+            "occasions": [
+              "kids",
+              "just-because"
+            ],
+            "pairsWith": [
+              {
+                "id": "mooncake",
+                "why": "sesame and lotus"
+              },
+              {
+                "id": "coconut-matcha",
+                "why": "sesame and matcha"
+              }
+            ]
+          }
         },
         {
           "id": "almond-cookie",
@@ -1513,7 +3890,7 @@
           ],
           "emoji": "🧧",
           "tint": "gold",
-          "image": "assets/desserts/almond-cookie.svg",
+          "image": "assets/desserts/almond-cookie.jpg",
           "season": "lunar",
           "badge": "Seasonal",
           "nutrition": {
@@ -1578,22 +3955,248 @@
               "body": "Simple and good. Not flashy, just well made."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2027-02-01",
+          "profile": {
+            "family": "nut",
+            "rich": 2,
+            "bright": 0,
+            "texture": "crisp",
+            "occasions": [
+              "office",
+              "thank-you"
+            ],
+            "pairsWith": [
+              {
+                "id": "mandarin-cloud",
+                "why": "almond and mandarin"
+              },
+              {
+                "id": "sesame-ball",
+                "why": "two Lunar New Year classics"
+              }
+            ]
+          }
+        },
+        {
+          "id": "red-bean-bun",
+          "name": "Red Bean Pillow Bun",
+          "blurb": "Steamed milk bun · sweet red bean",
+          "price": 5.25,
+          "emoji": "🥟",
+          "tint": "pink",
+          "badge": "Seasonal",
+          "tags": [
+            "shareable"
+          ],
+          "rating": 4.6,
+          "allergens": [
+            "wheat",
+            "dairy"
+          ],
+          "image": "assets/desserts/red-bean-bun.jpg",
+          "nutrition": {
+            "servingGrams": 85,
+            "calories": 260,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "6g",
+                "dv": 8
+              },
+              {
+                "label": "Saturated fat",
+                "value": "3g",
+                "dv": 15
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "46g",
+                "dv": 17
+              },
+              {
+                "label": "Total sugars",
+                "value": "16g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "3g",
+                "dv": 11
+              },
+              {
+                "label": "Protein",
+                "value": "6g",
+                "dv": 12
+              },
+              {
+                "label": "Sodium",
+                "value": "120mg",
+                "dv": 5
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "red-bean-bun-r1",
+              "name": "Wei Z.",
+              "initials": "WZ",
+              "stars": 5,
+              "date": "2026-02-10",
+              "verified": "Verified purchase",
+              "body": "Pillowy, warm, red bean not too sweet. My grandmother approved, which is rare."
+            },
+            {
+              "id": "red-bean-bun-r2",
+              "name": "Amy T.",
+              "initials": "AT",
+              "stars": 4,
+              "date": "2026-02-03",
+              "verified": "Verified purchase",
+              "body": "Soft and comforting. Best warm."
+            }
+          ],
+          "season": "lunar",
+          "releaseDate": "2027-02-01",
+          "profile": {
+            "family": "bean",
+            "rich": 1,
+            "bright": 1,
+            "texture": "soft",
+            "occasions": [
+              "kids",
+              "just-because"
+            ],
+            "pairsWith": [
+              {
+                "id": "sesame-ball",
+                "why": "red bean and sesame"
+              },
+              {
+                "id": "mandarin-cloud",
+                "why": "citrus against the bean"
+              }
+            ]
+          }
+        },
+        {
+          "id": "mandarin-cloud",
+          "name": "Mandarin Cloud Cake",
+          "blurb": "Chiffon · mandarin curd",
+          "price": 6.25,
+          "emoji": "🍊",
+          "tint": "gold",
+          "badge": "Seasonal",
+          "tags": [
+            "fruity",
+            "signature"
+          ],
+          "rating": 4.7,
+          "allergens": [
+            "wheat",
+            "egg"
+          ],
+          "image": "assets/desserts/mandarin-cloud.jpg",
+          "nutrition": {
+            "servingGrams": 100,
+            "calories": 320,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "12g",
+                "dv": 15
+              },
+              {
+                "label": "Saturated fat",
+                "value": "4g",
+                "dv": 20
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "48g",
+                "dv": 17
+              },
+              {
+                "label": "Total sugars",
+                "value": "30g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "1g",
+                "dv": 4
+              },
+              {
+                "label": "Protein",
+                "value": "5g",
+                "dv": 10
+              },
+              {
+                "label": "Sodium",
+                "value": "170mg",
+                "dv": 7
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "mandarin-cloud-r1",
+              "name": "Jin K.",
+              "initials": "JK",
+              "stars": 5,
+              "date": "2026-02-14",
+              "verified": "Verified purchase",
+              "body": "Light as the name says. The mandarin curd is fragrant rather than sour."
+            },
+            {
+              "id": "mandarin-cloud-r2",
+              "name": "Elena V.",
+              "initials": "EV",
+              "stars": 5,
+              "date": "2026-02-07",
+              "verified": "Verified purchase",
+              "body": "Beautiful, and no dairy so my sister could have it too."
+            }
+          ],
+          "season": "lunar",
+          "releaseDate": "2027-02-08",
+          "profile": {
+            "family": "citrus",
+            "rich": 0,
+            "bright": 3,
+            "texture": "light",
+            "occasions": [
+              "dinner-party",
+              "thank-you"
+            ],
+            "pairsWith": [
+              {
+                "id": "mooncake",
+                "why": "lightens a dense mooncake"
+              },
+              {
+                "id": "almond-cookie",
+                "why": "mandarin and almond"
+              }
+            ]
+          }
         }
       ]
     },
     {
       "id": "graduation",
       "name": "Graduation Season",
-      "window": "May 1 – Jun 15",
+      "window": "Apr 20 – Jun 15",
       "status": "planned",
       "tint": "mint",
       "emoji": "🎓",
       "blurb": "Colorway-matched boxes for school colors and big group orders.",
       "highlights": [
-        "Custom Color Frosting",
-        "Sheet Box of 24",
-        "Name-piped Toppers"
+        "Confetti Celebration Cake",
+        "Grad Cap Cookie",
+        "Sunshine Lemon Bar"
       ],
       "opens": "2027-04-20",
       "closes": "2027-06-15",
@@ -1615,7 +4218,7 @@
           ],
           "emoji": "🎓",
           "tint": "berry",
-          "image": "assets/desserts/confetti-cake.svg",
+          "image": "assets/desserts/confetti-cake.jpg",
           "season": "graduation",
           "badge": "Seasonal",
           "nutrition": {
@@ -1680,7 +4283,28 @@
               "body": "Ordered for a graduation and it did the job — fun without being childish."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2027-04-20",
+          "profile": {
+            "family": "cream",
+            "rich": 2,
+            "bright": 1,
+            "texture": "soft",
+            "occasions": [
+              "birthday",
+              "kids"
+            ],
+            "pairsWith": [
+              {
+                "id": "strawberry-stack",
+                "why": "two celebration cakes"
+              },
+              {
+                "id": "lemon-bar",
+                "why": "lemon cuts the buttercream"
+              }
+            ]
+          }
         },
         {
           "id": "grad-cap",
@@ -1697,7 +4321,7 @@
           ],
           "emoji": "🎓",
           "tint": "cocoa",
-          "image": "assets/desserts/grad-cap.svg",
+          "image": "assets/desserts/grad-cap.jpg",
           "season": "graduation",
           "badge": "Seasonal",
           "nutrition": {
@@ -1762,7 +4386,29 @@
               "body": "Cute. The gold dust does transfer onto fingers a bit."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2027-04-20",
+          "profile": {
+            "family": "cocoa",
+            "rich": 2,
+            "bright": 0,
+            "texture": "crisp",
+            "occasions": [
+              "birthday",
+              "kids",
+              "office"
+            ],
+            "pairsWith": [
+              {
+                "id": "confetti-cake",
+                "why": "cookie and cake for the table"
+              },
+              {
+                "id": "lemon-bar",
+                "why": "chocolate and lemon"
+              }
+            ]
+          }
         },
         {
           "id": "lemon-bar",
@@ -1770,7 +4416,7 @@
           "price": 5.5,
           "blurb": "Lemon curd · shortbread base",
           "tags": [
-            "fruit"
+            "fruity"
           ],
           "rating": 5.0,
           "allergens": [
@@ -1780,7 +4426,7 @@
           ],
           "emoji": "🎓",
           "tint": "gold",
-          "image": "assets/desserts/lemon-bar.svg",
+          "image": "assets/desserts/lemon-bar.jpg",
           "season": "graduation",
           "badge": "Seasonal",
           "nutrition": {
@@ -1845,41 +4491,332 @@
               "body": "My favorite of the spring menu. I order two."
             }
           ],
-          "reviewCount": 2
+          "reviewCount": 2,
+          "releaseDate": "2027-04-27",
+          "profile": {
+            "family": "citrus",
+            "rich": 1,
+            "bright": 3,
+            "texture": "dense",
+            "occasions": [
+              "office",
+              "just-because"
+            ],
+            "pairsWith": [
+              {
+                "id": "confetti-cake",
+                "why": "sharp lemon after sweet cake"
+              },
+              {
+                "id": "grad-cap",
+                "why": "lemon bar and a chocolate cookie"
+              }
+            ]
+          }
+        },
+        {
+          "id": "celebration-pops",
+          "name": "Celebration Cake Pops",
+          "blurb": "Vanilla cake · candy shell · set of 3",
+          "price": 5.5,
+          "emoji": "🍭",
+          "tint": "pink",
+          "badge": "Seasonal",
+          "tags": [
+            "shareable"
+          ],
+          "rating": 4.5,
+          "allergens": [
+            "wheat",
+            "dairy",
+            "egg",
+            "soy"
+          ],
+          "image": "assets/desserts/celebration-pops.jpg",
+          "nutrition": {
+            "servingGrams": 60,
+            "calories": 270,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "12g",
+                "dv": 15
+              },
+              {
+                "label": "Saturated fat",
+                "value": "7g",
+                "dv": 35
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "38g",
+                "dv": 14
+              },
+              {
+                "label": "Total sugars",
+                "value": "28g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "0g",
+                "dv": 0
+              },
+              {
+                "label": "Protein",
+                "value": "3g",
+                "dv": 6
+              },
+              {
+                "label": "Sodium",
+                "value": "150mg",
+                "dv": 7
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "celebration-pops-r1",
+              "name": "Tara S.",
+              "initials": "TS",
+              "stars": 5,
+              "date": "2026-05-24",
+              "verified": "Verified purchase",
+              "body": "School colors on request and they held up in a warm car. Kids went feral."
+            },
+            {
+              "id": "celebration-pops-r2",
+              "name": "Miguel A.",
+              "initials": "MA",
+              "stars": 4,
+              "date": "2026-05-16",
+              "verified": "Verified purchase",
+              "body": "Cute and easy to hand out. Sweet, as expected."
+            }
+          ],
+          "season": "graduation",
+          "releaseDate": "2027-05-04",
+          "profile": {
+            "family": "cream",
+            "rich": 2,
+            "bright": 1,
+            "texture": "dense",
+            "occasions": [
+              "birthday",
+              "kids",
+              "office"
+            ],
+            "pairsWith": [
+              {
+                "id": "lemon-bar",
+                "why": "citrus after the candy shell"
+              },
+              {
+                "id": "grad-cap",
+                "why": "pops and cookies for a crowd"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sparkle-cupcake",
+          "name": "Vanilla Sparkle Cupcake",
+          "blurb": "Vanilla bean · shimmer buttercream",
+          "price": 5.75,
+          "emoji": "🧁",
+          "tint": "butter",
+          "badge": "Seasonal",
+          "tags": [
+            "signature",
+            "shareable"
+          ],
+          "rating": 4.7,
+          "allergens": [
+            "wheat",
+            "dairy",
+            "egg"
+          ],
+          "image": "assets/desserts/sparkle-cupcake.jpg",
+          "nutrition": {
+            "servingGrams": 98,
+            "calories": 400,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "19g",
+                "dv": 24
+              },
+              {
+                "label": "Saturated fat",
+                "value": "12g",
+                "dv": 60
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "54g",
+                "dv": 20
+              },
+              {
+                "label": "Total sugars",
+                "value": "40g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "1g",
+                "dv": 4
+              },
+              {
+                "label": "Protein",
+                "value": "4g",
+                "dv": 8
+              },
+              {
+                "label": "Sodium",
+                "value": "240mg",
+                "dv": 10
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "sparkle-cupcake-r1",
+              "name": "Zoe W.",
+              "initials": "ZW",
+              "stars": 5,
+              "date": "2026-05-30",
+              "verified": "Verified purchase",
+              "body": "The shimmer is edible glitter, not sugar crystals, so it photographs like a dream."
+            },
+            {
+              "id": "sparkle-cupcake-r2",
+              "name": "Paul H.",
+              "initials": "PH",
+              "stars": 4,
+              "date": "2026-05-21",
+              "verified": "Verified purchase",
+              "body": "Very good vanilla cupcake dressed up for the occasion."
+            }
+          ],
+          "season": "graduation",
+          "releaseDate": "2027-05-11",
+          "profile": {
+            "family": "cream",
+            "rich": 3,
+            "bright": 0,
+            "texture": "soft",
+            "occasions": [
+              "birthday",
+              "kids"
+            ],
+            "pairsWith": [
+              {
+                "id": "lemon-bar",
+                "why": "lemon against buttercream"
+              },
+              {
+                "id": "confetti-cake",
+                "why": "the full celebration spread"
+              }
+            ]
+          }
         }
       ]
     }
   ],
   "smartOffers": [
     {
-      "id": "offer-reorder",
-      "label": "Because you reorder on Fridays",
-      "title": "Your usual, 15% off",
-      "detail": "Brown Butter Chip × 4, ready for 5:30pm pickup at Frisco Corner.",
-      "reason": "You've ordered this pairing 6 of the last 8 Fridays.",
-      "value": "Save $2.85",
-      "tint": "gold",
-      "emoji": "🔁"
+      "id": "offer-bundle",
+      "label": "Because a full box costs less",
+      "title": "Complete the six-count, up to 15% off",
+      "detail": "Fill all six slots and the box drops to the bundle price. Three or more flavors gets the full 15%.",
+      "reason": "Six singles cost more than one box, so we would rather you fill it.",
+      "value": "Save up to 15%",
+      "tint": "pink",
+      "emoji": "🎁",
+      "rule": {
+        "type": "percent",
+        "tiers": [
+          {
+            "minItems": 6,
+            "minFlavors": 3,
+            "percent": 15
+          },
+          {
+            "minItems": 6,
+            "percent": 10
+          }
+        ]
+      }
     },
     {
       "id": "offer-party",
-      "label": "Because your party is Saturday",
-      "title": "Upgrade to the Party Box",
-      "detail": "Swap 6 singles for a 12-count spread and add a flavor flight free.",
-      "reason": "Your saved event has 14 guests — a 6-count runs short.",
+      "label": "Because this is a big box",
+      "title": "Party Box: free flavor flight",
+      "detail": "Twelve or more treats and we add a six-piece flavor flight to the order, free.",
+      "reason": "Past a dozen you are feeding a room, and the flight helps people choose.",
       "value": "Free flight ($9)",
       "tint": "berry",
-      "emoji": "🎉"
+      "emoji": "🎉",
+      "rule": {
+        "type": "free-addon",
+        "minItems": 12,
+        "addon": {
+          "name": "Flavor flight",
+          "value": 9
+        }
+      }
     },
     {
       "id": "offer-season",
-      "label": "Because you liked citrus last month",
-      "title": "First taste of Harvest",
-      "detail": "Add the Spiced Pear Galette to any box this week at launch price.",
-      "reason": "Citrus and orchard-fruit buyers convert 3× on this item.",
-      "value": "$1.50 off",
+      "label": "Because it's in season",
+      "title": "$1.50 off every seasonal treat",
+      "detail": "Any item from the live seasonal menu is $1.50 off while the menu runs.",
+      "reason": "Seasonal items run for weeks, not months. The launch price gets them tried.",
+      "value": "$1.50 off each",
       "tint": "caramel",
-      "emoji": "🍐"
+      "emoji": "🍂",
+      "rule": {
+        "type": "fixed-per-item",
+        "amount": 1.5,
+        "requires": "seasonal",
+        "maxUnits": 6
+      }
+    },
+    {
+      "id": "offer-reorder",
+      "label": "Because you reorder",
+      "title": "Your usual, 15% off",
+      "detail": "Four or more of a flavor you keep coming back for, and the whole box takes 15% off.",
+      "reason": "Regulars get the regular's price.",
+      "value": "Save 15%",
+      "tint": "gold",
+      "emoji": "🔁",
+      "rule": {
+        "type": "percent",
+        "percent": 15,
+        "requires": "favorite",
+        "minFavoriteUnits": 4,
+        "signedIn": true
+      }
+    },
+    {
+      "id": "offer-delivery",
+      "label": "Because you're close",
+      "title": "Free delivery over $45",
+      "detail": "Choose delivery at checkout and a box over $45 ships free. Otherwise delivery is $6.95.",
+      "reason": "Applied on its own at checkout. Nothing to enter.",
+      "value": "Save $6.95",
+      "tint": "mint",
+      "emoji": "🚚",
+      "auto": true,
+      "rule": {
+        "type": "free-delivery",
+        "minSubtotal": 45,
+        "fee": 6.95
+      }
     }
   ],
   "plans": [

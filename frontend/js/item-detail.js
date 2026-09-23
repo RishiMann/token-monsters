@@ -1,15 +1,15 @@
 /**
  * The product detail dialog: picture, nutrition panel and that item's reviews.
  *
- * Opened from any menu card. Clicking the star rating opens the same dialog
- * scrolled to the reviews, which is what people expect a rating to do.
+ * Opened from any menu card, and from the seasonal calendar for items that
+ * have not released yet — those show their release date in place of the
+ * add button. Clicking the star rating opens the same dialog scrolled to
+ * the reviews, which is what people expect a rating to do.
  */
 
-import { fullMenu } from "./data.js";
+import { findItem as lookup, isOnSale } from "./data.js";
 
-const catalog = fullMenu;
-
-export const findItem = (id) => catalog.find((item) => item.id === id);
+export const findItem = lookup;
 
 const esc = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (char) =>
@@ -62,6 +62,22 @@ function allergenRow(item) {
     <div class="item-tags">
       ${dietary.map((tag) => `<span class="tag tag-good">${esc(tag)}</span>`).join("")}
       ${allergens.map((tag) => `<span class="tag tag-warn">Contains ${esc(tag)}</span>`).join("")}
+    </div>`;
+}
+
+function pairingRow(item) {
+  const pairs = (item.profile?.pairsWith || [])
+    .map((pair) => ({ ...pair, item: lookup(pair.id) }))
+    .filter((pair) => pair.item && isOnSale(pair.id));
+  if (!pairs.length) return "";
+  return `
+    <div class="item-pairs">
+      <span class="item-pairs-label">Goes with</span>
+      ${pairs.map((pair) => `
+        <button class="item-pair" type="button" data-open-item="${esc(pair.id)}" title="${esc(pair.why)}">
+          <img src="${esc(pair.item.image)}" alt="" width="40" height="30" loading="lazy" />
+          <span>${esc(pair.item.name)}</span>
+        </button>`).join("")}
     </div>`;
 }
 
@@ -146,9 +162,11 @@ export function initItemDetail({ onAdd } = {}) {
 }
 
 export function open(itemId, { reviews = false } = {}) {
-  const item = findItem(itemId);
+  const item = lookup(itemId);
   if (!item || !dialog) return;
 
+  const onSale = isOnSale(item.id);
+  const releaseDate = item.releaseDate || item.seasonOpens;
   const reviewCount = (item.reviews || []).length;
   body.innerHTML = `
     <article class="item-detail tint-${item.tint}">
@@ -166,9 +184,12 @@ export function open(itemId, { reviews = false } = {}) {
         </button>
         <p class="item-detail-blurb">${esc(item.blurb)}</p>
         ${allergenRow(item)}
+        ${pairingRow(item)}
         <div class="item-detail-foot">
           <span class="item-detail-price">${money(item.price)}</span>
-          <button class="button" type="button" data-detail-add="${esc(item.id)}">Add to box</button>
+          ${onSale
+            ? `<button class="button" type="button" data-detail-add="${esc(item.id)}">Add to box</button>`
+            : `<span class="item-detail-soon">Releases ${esc(longDate(releaseDate))}</span>`}
         </div>
       </div>
     </article>

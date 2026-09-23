@@ -2,13 +2,17 @@
  * The box. Frosted Corner's bag is a physical pink dessert box: it opens on a
  * hinge, holds six slots, and items land in a slot when you add them.
  *
- * State lives here; the rest of the app subscribes through `onChange`.
+ * State lives here; the rest of the app subscribes through `onChange`. The
+ * box also remembers one applied offer, and it survives navigation between
+ * pages so an offer applied on the Offers page is still there at checkout.
  */
 
 const BOX_CAPACITY = 6;
+const STORAGE_KEY = "fc-box";
 
 const state = {
   lines: [], // { item, qty }
+  appliedOffer: null,
   open: false
 };
 
@@ -17,20 +21,56 @@ const listeners = new Set();
 const totalCount = () => state.lines.reduce((sum, line) => sum + line.qty, 0);
 const subtotal = () => state.lines.reduce((sum, line) => sum + line.qty * line.item.price, 0);
 
-function emit() {
-  const snapshot = {
+export function snapshot() {
+  return {
     lines: state.lines.map((line) => ({ ...line })),
     count: totalCount(),
     subtotal: subtotal(),
     capacity: BOX_CAPACITY,
+    appliedOffer: state.appliedOffer,
     open: state.open
   };
-  listeners.forEach((fn) => fn(snapshot));
+}
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      lines: state.lines.map((line) => ({ id: line.item.id, qty: line.qty })),
+      appliedOffer: state.appliedOffer
+    }));
+  } catch {
+    // Private mode or blocked storage: the box still works for this page.
+  }
+}
+
+function emit() {
+  persist();
+  const snap = snapshot();
+  listeners.forEach((fn) => fn(snap));
+}
+
+/**
+ * Restores the box from the last visit. `resolve(id)` returns the catalog
+ * item for an id or null; anything no longer on sale is dropped quietly.
+ */
+export function hydrate(resolve) {
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+  } catch {
+    saved = null;
+  }
+  if (!saved) return;
+  state.lines = (saved.lines || [])
+    .map(({ id, qty }) => ({ item: resolve(id), qty: Math.max(1, Number(qty) || 1) }))
+    .filter((line) => line.item);
+  state.appliedOffer = saved.appliedOffer || null;
+  emit();
 }
 
 export function onChange(fn) {
   listeners.add(fn);
-  emit();
+  fn(snapshot());
   return () => listeners.delete(fn);
 }
 
@@ -52,8 +92,24 @@ export function remove(itemId) {
 
 export function clear() {
   state.lines = [];
+  state.appliedOffer = null;
   emit();
 }
+
+/** One discount at a time; applying a second one replaces the first. */
+export function applyOffer(offerId) {
+  if (state.appliedOffer === offerId) return;
+  state.appliedOffer = offerId || null;
+  emit();
+}
+
+export function removeOffer() {
+  if (!state.appliedOffer) return;
+  state.appliedOffer = null;
+  emit();
+}
+
+export const appliedOffer = () => state.appliedOffer;
 
 export function setOpen(open) {
   state.open = open;
@@ -65,16 +121,6 @@ export function toggle() {
 }
 
 export const getCount = totalCount;
-
-export function snapshot() {
-  return {
-    lines: state.lines.map((line) => ({ ...line })),
-    count: totalCount(),
-    subtotal: subtotal(),
-    capacity: BOX_CAPACITY,
-    open: state.open
-  };
-}
 
 /**
  * Flattens line items into individual units so the box can show one tile per
