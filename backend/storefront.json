@@ -12,13 +12,85 @@
         "signature",
         "shareable"
       ],
-      "rating": 4.9,
+      "rating": 4.7,
       "allergens": [
         "wheat",
         "dairy",
         "egg"
       ],
-      "image": "assets/desserts/pink-velvet.svg"
+      "image": "assets/desserts/pink-velvet.svg",
+      "nutrition": {
+        "servingGrams": 92,
+        "calories": 385,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "18g",
+            "dv": 23
+          },
+          {
+            "label": "Saturated fat",
+            "value": "11g",
+            "dv": 55
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "52g",
+            "dv": 19
+          },
+          {
+            "label": "Total sugars",
+            "value": "36g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "1g",
+            "dv": 4
+          },
+          {
+            "label": "Protein",
+            "value": "4g",
+            "dv": 8
+          },
+          {
+            "label": "Sodium",
+            "value": "290mg",
+            "dv": 13
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "pink-velvet-r1",
+          "name": "Jules M.",
+          "initials": "JM",
+          "stars": 5,
+          "date": "2026-09-14",
+          "verified": "Verified purchase",
+          "body": "The frosting is cream cheese, not that sugary whipped stuff. Took these to my sister's garden party and they were gone before the drinks came out."
+        },
+        {
+          "id": "pink-velvet-r2",
+          "name": "Priya N.",
+          "initials": "PN",
+          "stars": 5,
+          "date": "2026-09-02",
+          "verified": "Verified purchase",
+          "body": "My go-to. The crumb is genuinely velvet — soft without being wet, which is where most red velvet falls apart."
+        },
+        {
+          "id": "pink-velvet-r3",
+          "name": "Dan R.",
+          "initials": "DR",
+          "stars": 4,
+          "date": "2026-08-21",
+          "verified": "Verified purchase",
+          "body": "Great flavor, though a touch sweeter than I'd like. Pairs well with the lemon one if you're building a box."
+        }
+      ],
+      "reviewCount": 3
     },
     {
       "id": "brown-butter",
@@ -31,14 +103,86 @@
       "tags": [
         "signature"
       ],
-      "rating": 4.8,
+      "rating": 4.7,
       "allergens": [
         "wheat",
         "dairy",
         "egg",
         "soy"
       ],
-      "image": "assets/desserts/brown-butter.svg"
+      "image": "assets/desserts/brown-butter.svg",
+      "nutrition": {
+        "servingGrams": 78,
+        "calories": 340,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "17g",
+            "dv": 22
+          },
+          {
+            "label": "Saturated fat",
+            "value": "10g",
+            "dv": 50
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "44g",
+            "dv": 16
+          },
+          {
+            "label": "Total sugars",
+            "value": "27g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "4g",
+            "dv": 8
+          },
+          {
+            "label": "Sodium",
+            "value": "250mg",
+            "dv": 11
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "brown-butter-r1",
+          "name": "Marcus T.",
+          "initials": "MT",
+          "stars": 5,
+          "date": "2026-09-18",
+          "verified": "Verified purchase",
+          "body": "You can actually taste the browned butter — nutty and a little savory underneath. Most chocolate chip cookies are just sugar with chips in."
+        },
+        {
+          "id": "brown-butter-r2",
+          "name": "Elena K.",
+          "initials": "EK",
+          "stars": 5,
+          "date": "2026-09-07",
+          "verified": "Verified purchase",
+          "body": "Still soft on day two, which almost never happens. The sea salt on top does a lot of work."
+        },
+        {
+          "id": "brown-butter-r3",
+          "name": "Chris B.",
+          "initials": "CB",
+          "stars": 4,
+          "date": "2026-08-29",
+          "verified": "Verified purchase",
+          "body": "Solid and reliable. I wish the chocolate pools were a bit bigger but no real complaints."
+        }
+      ],
+      "reviewCount": 3
     },
     {
       "id": "lemon-cloud",
@@ -52,12 +196,86 @@
         "new",
         "fruity"
       ],
-      "rating": 4.7,
+      "rating": 5.0,
       "allergens": [
         "wheat",
         "egg"
       ],
-      "image": "assets/desserts/lemon-cloud.svg"
+      "image": "assets/desserts/lemon-cloud.svg",
+      "nutrition": {
+        "servingGrams": 88,
+        "calories": 295,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "11g",
+            "dv": 14
+          },
+          {
+            "label": "Saturated fat",
+            "value": "6g",
+            "dv": 30
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "46g",
+            "dv": 17
+          },
+          {
+            "label": "Total sugars",
+            "value": "32g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "1g",
+            "dv": 4
+          },
+          {
+            "label": "Protein",
+            "value": "3g",
+            "dv": 6
+          },
+          {
+            "label": "Sodium",
+            "value": "180mg",
+            "dv": 8
+          }
+        ]
+      },
+      "dietary": [
+        "Vegetarian"
+      ],
+      "reviews": [
+        {
+          "id": "lemon-cloud-r1",
+          "name": "Amara O.",
+          "initials": "AO",
+          "stars": 5,
+          "date": "2026-09-16",
+          "verified": "Verified purchase",
+          "body": "Sharp, not artificial. It tastes like actual lemons rather than lemon flavoring, and the glaze cracks properly when you bite it."
+        },
+        {
+          "id": "lemon-cloud-r2",
+          "name": "Tom W.",
+          "initials": "TW",
+          "stars": 5,
+          "date": "2026-09-05",
+          "verified": "Verified purchase",
+          "body": "The one I order after a heavy meal. Light enough that it doesn't sit on you."
+        },
+        {
+          "id": "lemon-cloud-r3",
+          "name": "Sofia L.",
+          "initials": "SL",
+          "stars": 5,
+          "date": "2026-08-24",
+          "verified": "Verified purchase",
+          "body": "Bought a box for the office and this was the first to go. Even the people who 'don't like sweet things' had one."
+        }
+      ],
+      "reviewCount": 3
     },
     {
       "id": "biscoff",
@@ -71,13 +289,85 @@
         "new",
         "rich"
       ],
-      "rating": 4.9,
+      "rating": 4.7,
       "allergens": [
         "wheat",
         "dairy",
         "soy"
       ],
-      "image": "assets/desserts/biscoff.svg"
+      "image": "assets/desserts/biscoff.svg",
+      "nutrition": {
+        "servingGrams": 96,
+        "calories": 430,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "21g",
+            "dv": 27
+          },
+          {
+            "label": "Saturated fat",
+            "value": "12g",
+            "dv": 60
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "57g",
+            "dv": 21
+          },
+          {
+            "label": "Total sugars",
+            "value": "38g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "5g",
+            "dv": 10
+          },
+          {
+            "label": "Sodium",
+            "value": "310mg",
+            "dv": 13
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "biscoff-r1",
+          "name": "Nina P.",
+          "initials": "NP",
+          "stars": 5,
+          "date": "2026-09-12",
+          "verified": "Verified purchase",
+          "body": "Speculoos done properly — the caramel is burnt just enough to stop it being cloying. Dense in the good way."
+        },
+        {
+          "id": "biscoff-r2",
+          "name": "Owen H.",
+          "initials": "OH",
+          "stars": 4,
+          "date": "2026-09-01",
+          "verified": "Verified purchase",
+          "body": "Rich, so one is plenty. Very good with coffee, a bit much on its own."
+        },
+        {
+          "id": "biscoff-r3",
+          "name": "Grace M.",
+          "initials": "GM",
+          "stars": 5,
+          "date": "2026-08-19",
+          "verified": "Verified purchase",
+          "body": "My husband asks for this one specifically. The butterscotch actually tastes like butterscotch and not just brown sugar."
+        }
+      ],
+      "reviewCount": 3
     },
     {
       "id": "strawberry-stack",
@@ -91,13 +381,85 @@
         "shareable",
         "fruity"
       ],
-      "rating": 4.8,
+      "rating": 4.7,
       "allergens": [
         "wheat",
         "dairy",
         "egg"
       ],
-      "image": "assets/desserts/strawberry-stack.svg"
+      "image": "assets/desserts/strawberry-stack.svg",
+      "nutrition": {
+        "servingGrams": 110,
+        "calories": 365,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "16g",
+            "dv": 21
+          },
+          {
+            "label": "Saturated fat",
+            "value": "9g",
+            "dv": 45
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "51g",
+            "dv": 19
+          },
+          {
+            "label": "Total sugars",
+            "value": "34g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "2g",
+            "dv": 7
+          },
+          {
+            "label": "Protein",
+            "value": "5g",
+            "dv": 10
+          },
+          {
+            "label": "Sodium",
+            "value": "210mg",
+            "dv": 9
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "strawberry-stack-r1",
+          "name": "Jules M.",
+          "initials": "JM",
+          "stars": 5,
+          "date": "2026-09-16",
+          "verified": "Verified celebration",
+          "body": "Ordered this for a birthday and it was the centerpiece. Real strawberries, and the cream isn't over-sweetened."
+        },
+        {
+          "id": "strawberry-stack-r2",
+          "name": "Ben A.",
+          "initials": "BA",
+          "stars": 5,
+          "date": "2026-09-09",
+          "verified": "Verified purchase",
+          "body": "The shortcake layer holds up instead of going soggy, which is the whole problem with strawberry desserts."
+        },
+        {
+          "id": "strawberry-stack-r3",
+          "name": "Hana S.",
+          "initials": "HS",
+          "stars": 4,
+          "date": "2026-08-27",
+          "verified": "Verified purchase",
+          "body": "Beautiful and it photographs well. Slightly messy to eat standing up at a party, so plan for plates."
+        }
+      ],
+      "reviewCount": 3
     },
     {
       "id": "midnight-fudge",
@@ -110,14 +472,86 @@
       "tags": [
         "rich"
       ],
-      "rating": 4.9,
+      "rating": 4.7,
       "allergens": [
         "wheat",
         "dairy",
         "egg",
         "soy"
       ],
-      "image": "assets/desserts/midnight-fudge.svg"
+      "image": "assets/desserts/midnight-fudge.svg",
+      "nutrition": {
+        "servingGrams": 95,
+        "calories": 455,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "24g",
+            "dv": 31
+          },
+          {
+            "label": "Saturated fat",
+            "value": "14g",
+            "dv": 70
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "55g",
+            "dv": 20
+          },
+          {
+            "label": "Total sugars",
+            "value": "40g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "3g",
+            "dv": 11
+          },
+          {
+            "label": "Protein",
+            "value": "6g",
+            "dv": 12
+          },
+          {
+            "label": "Sodium",
+            "value": "270mg",
+            "dv": 12
+          }
+        ]
+      },
+      "dietary": [],
+      "reviews": [
+        {
+          "id": "midnight-fudge-r1",
+          "name": "Devon C.",
+          "initials": "DC",
+          "stars": 5,
+          "date": "2026-09-19",
+          "verified": "Verified purchase",
+          "body": "Properly dark. The ganache center is still molten in the middle and it is not sweet, which is rare and welcome."
+        },
+        {
+          "id": "midnight-fudge-r2",
+          "name": "Rita J.",
+          "initials": "RJ",
+          "stars": 5,
+          "date": "2026-09-08",
+          "verified": "Verified purchase",
+          "body": "If you like dark chocolate this is the one. I pair it with the lemon to cut through."
+        },
+        {
+          "id": "midnight-fudge-r3",
+          "name": "Alex F.",
+          "initials": "AF",
+          "stars": 4,
+          "date": "2026-08-30",
+          "verified": "Verified purchase",
+          "body": "Very rich — I split one. Cocoa nibs on top add a nice bitter crunch."
+        }
+      ],
+      "reviewCount": 3
     }
   ],
   "plantBased": [
@@ -133,12 +567,87 @@
         "vegan",
         "new"
       ],
-      "rating": 4.6,
+      "rating": 4.7,
       "allergens": [
         "wheat",
         "tree nut"
       ],
-      "image": "assets/desserts/coconut-matcha.svg"
+      "image": "assets/desserts/coconut-matcha.svg",
+      "nutrition": {
+        "servingGrams": 84,
+        "calories": 310,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "15g",
+            "dv": 19
+          },
+          {
+            "label": "Saturated fat",
+            "value": "9g",
+            "dv": 45
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "40g",
+            "dv": 15
+          },
+          {
+            "label": "Total sugars",
+            "value": "24g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "3g",
+            "dv": 11
+          },
+          {
+            "label": "Protein",
+            "value": "4g",
+            "dv": 8
+          },
+          {
+            "label": "Sodium",
+            "value": "150mg",
+            "dv": 7
+          }
+        ]
+      },
+      "dietary": [
+        "Plant-based",
+        "No dairy"
+      ],
+      "reviews": [
+        {
+          "id": "coconut-matcha-r1",
+          "name": "Yuki T.",
+          "initials": "YT",
+          "stars": 5,
+          "date": "2026-09-15",
+          "verified": "Verified purchase",
+          "body": "Actual ceremonial-grade matcha flavor, grassy rather than sweet. Plant-based and you genuinely cannot tell."
+        },
+        {
+          "id": "coconut-matcha-r2",
+          "name": "Marco D.",
+          "initials": "MD",
+          "stars": 4,
+          "date": "2026-09-03",
+          "verified": "Verified purchase",
+          "body": "Coconut is subtle, which I liked. If you want a strong coconut hit this isn't it, but the balance is good."
+        },
+        {
+          "id": "coconut-matcha-r3",
+          "name": "Leah B.",
+          "initials": "LB",
+          "stars": 5,
+          "date": "2026-08-22",
+          "verified": "Verified purchase",
+          "body": "Dairy-free and it doesn't taste like a compromise. My daughter can't have dairy and she picks this every time."
+        }
+      ],
+      "reviewCount": 3
     },
     {
       "id": "almond-fig",
@@ -157,7 +666,81 @@
         "wheat",
         "tree nut"
       ],
-      "image": "assets/desserts/almond-fig.svg"
+      "image": "assets/desserts/almond-fig.svg",
+      "nutrition": {
+        "servingGrams": 102,
+        "calories": 395,
+        "perServing": [
+          {
+            "label": "Total fat",
+            "value": "22g",
+            "dv": 28
+          },
+          {
+            "label": "Saturated fat",
+            "value": "7g",
+            "dv": 35
+          },
+          {
+            "label": "Total carbohydrate",
+            "value": "44g",
+            "dv": 16
+          },
+          {
+            "label": "Total sugars",
+            "value": "26g",
+            "dv": null
+          },
+          {
+            "label": "Dietary fiber",
+            "value": "4g",
+            "dv": 14
+          },
+          {
+            "label": "Protein",
+            "value": "7g",
+            "dv": 14
+          },
+          {
+            "label": "Sodium",
+            "value": "190mg",
+            "dv": 8
+          }
+        ]
+      },
+      "dietary": [
+        "Plant-based"
+      ],
+      "reviews": [
+        {
+          "id": "almond-fig-r1",
+          "name": "Isabel R.",
+          "initials": "IR",
+          "stars": 5,
+          "date": "2026-09-13",
+          "verified": "Verified purchase",
+          "body": "Fig and almond is an underrated pairing and this nails it. Barely sweet, more like something you'd get after dinner."
+        },
+        {
+          "id": "almond-fig-r2",
+          "name": "Paul G.",
+          "initials": "PG",
+          "stars": 5,
+          "date": "2026-09-04",
+          "verified": "Verified purchase",
+          "body": "The frangipane is proper — dense, nutty, not the gluey kind. Worth the extra dollar."
+        },
+        {
+          "id": "almond-fig-r3",
+          "name": "Mira K.",
+          "initials": "MK",
+          "stars": 4,
+          "date": "2026-08-25",
+          "verified": "Verified purchase",
+          "body": "Lovely but it does contain almonds, obviously, so not one for a mixed group with nut allergies."
+        }
+      ],
+      "reviewCount": 3
     }
   ],
   "eventMenus": [
@@ -186,7 +769,7 @@
             "signature",
             "shareable"
           ],
-          "rating": 4.8,
+          "rating": 4.5,
           "allergens": [
             "wheat",
             "dairy",
@@ -196,7 +779,70 @@
           "tint": "caramel",
           "image": "assets/desserts/maple-pecan.svg",
           "season": "harvest",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 108,
+            "calories": 440,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "23g",
+                "dv": 29
+              },
+              {
+                "label": "Saturated fat",
+                "value": "9g",
+                "dv": 45
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "54g",
+                "dv": 20
+              },
+              {
+                "label": "Total sugars",
+                "value": "37g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "3g",
+                "dv": 11
+              },
+              {
+                "label": "Protein",
+                "value": "6g",
+                "dv": 12
+              },
+              {
+                "label": "Sodium",
+                "value": "240mg",
+                "dv": 10
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "maple-pecan-r1",
+              "name": "Kara W.",
+              "initials": "KW",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Real maple, not syrup flavoring, and the pecans stay crisp."
+            },
+            {
+              "id": "maple-pecan-r2",
+              "name": "Joel M.",
+              "initials": "JM",
+              "stars": 4,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Sweet but the pecan bitterness balances it. Very autumn."
+            }
+          ],
+          "reviewCount": 2
         },
         {
           "id": "spiced-pear",
@@ -206,7 +852,7 @@
           "tags": [
             "fruit"
           ],
-          "rating": 4.7,
+          "rating": 5.0,
           "allergens": [
             "wheat",
             "dairy"
@@ -215,7 +861,70 @@
           "tint": "caramel",
           "image": "assets/desserts/spiced-pear.svg",
           "season": "harvest",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 105,
+            "calories": 350,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "16g",
+                "dv": 21
+              },
+              {
+                "label": "Saturated fat",
+                "value": "8g",
+                "dv": 40
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "48g",
+                "dv": 17
+              },
+              {
+                "label": "Total sugars",
+                "value": "28g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "3g",
+                "dv": 11
+              },
+              {
+                "label": "Protein",
+                "value": "4g",
+                "dv": 8
+              },
+              {
+                "label": "Sodium",
+                "value": "200mg",
+                "dv": 9
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "spiced-pear-r1",
+              "name": "Tess H.",
+              "initials": "TH",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "The pastry shatters properly and the pear isn't mushy."
+            },
+            {
+              "id": "spiced-pear-r2",
+              "name": "Raj P.",
+              "initials": "RP",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Spicing is restrained — you can still taste the fruit."
+            }
+          ],
+          "reviewCount": 2
         },
         {
           "id": "cider-donut",
@@ -225,7 +934,7 @@
           "tags": [
             "shareable"
           ],
-          "rating": 4.9,
+          "rating": 4.5,
           "allergens": [
             "wheat",
             "dairy",
@@ -235,7 +944,70 @@
           "tint": "gold",
           "image": "assets/desserts/cider-donut.svg",
           "season": "harvest",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 86,
+            "calories": 375,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "19g",
+                "dv": 24
+              },
+              {
+                "label": "Saturated fat",
+                "value": "8g",
+                "dv": 40
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "47g",
+                "dv": 17
+              },
+              {
+                "label": "Total sugars",
+                "value": "29g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "1g",
+                "dv": 4
+              },
+              {
+                "label": "Protein",
+                "value": "4g",
+                "dv": 8
+              },
+              {
+                "label": "Sodium",
+                "value": "320mg",
+                "dv": 14
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "cider-donut-r1",
+              "name": "Molly F.",
+              "initials": "MF",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Tastes like the ones from an orchard. The cinnamon sugar is generous."
+            },
+            {
+              "id": "cider-donut-r2",
+              "name": "Evan S.",
+              "initials": "ES",
+              "stars": 4,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Best eaten same day. Still good the next morning but not the same."
+            }
+          ],
+          "reviewCount": 2
         }
       ]
     },
@@ -263,7 +1035,7 @@
           "tags": [
             "shareable"
           ],
-          "rating": 4.8,
+          "rating": 4.5,
           "allergens": [
             "dairy",
             "soy"
@@ -272,7 +1044,70 @@
           "tint": "mint",
           "image": "assets/desserts/peppermint-bark.svg",
           "season": "holiday",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 74,
+            "calories": 330,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "19g",
+                "dv": 24
+              },
+              {
+                "label": "Saturated fat",
+                "value": "12g",
+                "dv": 60
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "37g",
+                "dv": 13
+              },
+              {
+                "label": "Total sugars",
+                "value": "33g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "1g",
+                "dv": 4
+              },
+              {
+                "label": "Protein",
+                "value": "3g",
+                "dv": 6
+              },
+              {
+                "label": "Sodium",
+                "value": "95mg",
+                "dv": 4
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "peppermint-bark-r1",
+              "name": "Dana L.",
+              "initials": "DL",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Snaps cleanly and the peppermint is cooling rather than toothpasty."
+            },
+            {
+              "id": "peppermint-bark-r2",
+              "name": "Nate K.",
+              "initials": "NK",
+              "stars": 4,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Very sweet. Good in small pieces with coffee."
+            }
+          ],
+          "reviewCount": 2
         },
         {
           "id": "yule-log",
@@ -282,7 +1117,7 @@
           "tags": [
             "signature"
           ],
-          "rating": 4.9,
+          "rating": 5.0,
           "allergens": [
             "wheat",
             "dairy",
@@ -292,7 +1127,70 @@
           "tint": "cocoa",
           "image": "assets/desserts/yule-log.svg",
           "season": "holiday",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 118,
+            "calories": 470,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "25g",
+                "dv": 32
+              },
+              {
+                "label": "Saturated fat",
+                "value": "15g",
+                "dv": 75
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "56g",
+                "dv": 20
+              },
+              {
+                "label": "Total sugars",
+                "value": "41g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "3g",
+                "dv": 11
+              },
+              {
+                "label": "Protein",
+                "value": "7g",
+                "dv": 14
+              },
+              {
+                "label": "Sodium",
+                "value": "230mg",
+                "dv": 10
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "yule-log-r1",
+              "name": "Clara V.",
+              "initials": "CV",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Showstopper for the table. The ganache is dark enough to offset the sponge."
+            },
+            {
+              "id": "yule-log-r2",
+              "name": "Sam O.",
+              "initials": "SO",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Ordered for twelve people and it sliced beautifully."
+            }
+          ],
+          "reviewCount": 2
         },
         {
           "id": "gingerbread",
@@ -302,7 +1200,7 @@
           "tags": [
             "signature"
           ],
-          "rating": 4.6,
+          "rating": 4.5,
           "allergens": [
             "wheat",
             "dairy",
@@ -312,7 +1210,70 @@
           "tint": "caramel",
           "image": "assets/desserts/gingerbread.svg",
           "season": "holiday",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 100,
+            "calories": 400,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "17g",
+                "dv": 22
+              },
+              {
+                "label": "Saturated fat",
+                "value": "9g",
+                "dv": 45
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "58g",
+                "dv": 21
+              },
+              {
+                "label": "Total sugars",
+                "value": "38g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "2g",
+                "dv": 7
+              },
+              {
+                "label": "Protein",
+                "value": "5g",
+                "dv": 10
+              },
+              {
+                "label": "Sodium",
+                "value": "350mg",
+                "dv": 15
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "gingerbread-r1",
+              "name": "Hugo B.",
+              "initials": "HB",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Proper molasses depth and a real ginger burn at the end."
+            },
+            {
+              "id": "gingerbread-r2",
+              "name": "Anita D.",
+              "initials": "AD",
+              "stars": 4,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Warming and not too sweet. I'd like a touch more spice."
+            }
+          ],
+          "reviewCount": 2
         }
       ]
     },
@@ -340,7 +1301,7 @@
           "tags": [
             "signature"
           ],
-          "rating": 4.7,
+          "rating": 5.0,
           "allergens": [
             "wheat",
             "egg"
@@ -349,7 +1310,70 @@
           "tint": "gold",
           "image": "assets/desserts/mooncake.svg",
           "season": "lunar",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 90,
+            "calories": 420,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "14g",
+                "dv": 18
+              },
+              {
+                "label": "Saturated fat",
+                "value": "6g",
+                "dv": 30
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "68g",
+                "dv": 25
+              },
+              {
+                "label": "Total sugars",
+                "value": "42g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "2g",
+                "dv": 7
+              },
+              {
+                "label": "Protein",
+                "value": "6g",
+                "dv": 12
+              },
+              {
+                "label": "Sodium",
+                "value": "180mg",
+                "dv": 8
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "mooncake-r1",
+              "name": "Wei L.",
+              "initials": "WL",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "The lotus paste is smooth and not grainy, which is the giveaway for a good one."
+            },
+            {
+              "id": "mooncake-r2",
+              "name": "Fiona C.",
+              "initials": "FC",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Gave these as gifts and they were very well received."
+            }
+          ],
+          "reviewCount": 2
         },
         {
           "id": "sesame-ball",
@@ -359,7 +1383,7 @@
           "tags": [
             "plant-based"
           ],
-          "rating": 4.6,
+          "rating": 4.5,
           "allergens": [
             "sesame"
           ],
@@ -367,7 +1391,73 @@
           "tint": "caramel",
           "image": "assets/desserts/sesame-ball.svg",
           "season": "lunar",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 70,
+            "calories": 265,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "10g",
+                "dv": 13
+              },
+              {
+                "label": "Saturated fat",
+                "value": "3g",
+                "dv": 15
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "41g",
+                "dv": 15
+              },
+              {
+                "label": "Total sugars",
+                "value": "18g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "2g",
+                "dv": 7
+              },
+              {
+                "label": "Protein",
+                "value": "4g",
+                "dv": 8
+              },
+              {
+                "label": "Sodium",
+                "value": "60mg",
+                "dv": 3
+              }
+            ]
+          },
+          "dietary": [
+            "Plant-based",
+            "No wheat"
+          ],
+          "reviews": [
+            {
+              "id": "sesame-ball-r1",
+              "name": "Jin H.",
+              "initials": "JH",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Chewy outside, warm sesame inside. Exactly right."
+            },
+            {
+              "id": "sesame-ball-r2",
+              "name": "Nora A.",
+              "initials": "NA",
+              "stars": 4,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Lovely texture. Best eaten fresh rather than saved."
+            }
+          ],
+          "reviewCount": 2
         },
         {
           "id": "almond-cookie",
@@ -386,7 +1476,70 @@
           "tint": "gold",
           "image": "assets/desserts/almond-cookie.svg",
           "season": "lunar",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 62,
+            "calories": 290,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "16g",
+                "dv": 21
+              },
+              {
+                "label": "Saturated fat",
+                "value": "7g",
+                "dv": 35
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "33g",
+                "dv": 12
+              },
+              {
+                "label": "Total sugars",
+                "value": "17g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "2g",
+                "dv": 7
+              },
+              {
+                "label": "Protein",
+                "value": "4g",
+                "dv": 8
+              },
+              {
+                "label": "Sodium",
+                "value": "140mg",
+                "dv": 6
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "almond-cookie-r1",
+              "name": "Ravi S.",
+              "initials": "RS",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Short, crumbly and toasty. Reminds me of the bakery ones growing up."
+            },
+            {
+              "id": "almond-cookie-r2",
+              "name": "Gina T.",
+              "initials": "GT",
+              "stars": 4,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Simple and good. Not flashy, just well made."
+            }
+          ],
+          "reviewCount": 2
         }
       ]
     },
@@ -415,7 +1568,7 @@
             "signature",
             "shareable"
           ],
-          "rating": 4.8,
+          "rating": 5.0,
           "allergens": [
             "wheat",
             "dairy",
@@ -425,7 +1578,70 @@
           "tint": "berry",
           "image": "assets/desserts/confetti-cake.svg",
           "season": "graduation",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 112,
+            "calories": 425,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "19g",
+                "dv": 24
+              },
+              {
+                "label": "Saturated fat",
+                "value": "11g",
+                "dv": 55
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "60g",
+                "dv": 22
+              },
+              {
+                "label": "Total sugars",
+                "value": "44g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "1g",
+                "dv": 4
+              },
+              {
+                "label": "Protein",
+                "value": "5g",
+                "dv": 10
+              },
+              {
+                "label": "Sodium",
+                "value": "260mg",
+                "dv": 11
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "confetti-cake-r1",
+              "name": "Beth N.",
+              "initials": "BN",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "The confetti doesn't bleed into the crumb, so it still looks sharp when sliced."
+            },
+            {
+              "id": "confetti-cake-r2",
+              "name": "Omar Y.",
+              "initials": "OY",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Ordered for a graduation and it did the job — fun without being childish."
+            }
+          ],
+          "reviewCount": 2
         },
         {
           "id": "grad-cap",
@@ -435,7 +1651,7 @@
           "tags": [
             "shareable"
           ],
-          "rating": 4.6,
+          "rating": 4.5,
           "allergens": [
             "wheat",
             "dairy"
@@ -444,7 +1660,70 @@
           "tint": "cocoa",
           "image": "assets/desserts/grad-cap.svg",
           "season": "graduation",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 80,
+            "calories": 360,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "18g",
+                "dv": 23
+              },
+              {
+                "label": "Saturated fat",
+                "value": "10g",
+                "dv": 50
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "46g",
+                "dv": 17
+              },
+              {
+                "label": "Total sugars",
+                "value": "30g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "2g",
+                "dv": 7
+              },
+              {
+                "label": "Protein",
+                "value": "4g",
+                "dv": 8
+              },
+              {
+                "label": "Sodium",
+                "value": "220mg",
+                "dv": 10
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "grad-cap-r1",
+              "name": "Lucy P.",
+              "initials": "LP",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Adorable and the cocoa is actually dark, so adults ate them too."
+            },
+            {
+              "id": "grad-cap-r2",
+              "name": "Theo R.",
+              "initials": "TR",
+              "stars": 4,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Cute. The gold dust does transfer onto fingers a bit."
+            }
+          ],
+          "reviewCount": 2
         },
         {
           "id": "lemon-bar",
@@ -454,7 +1733,7 @@
           "tags": [
             "fruit"
           ],
-          "rating": 4.7,
+          "rating": 5.0,
           "allergens": [
             "wheat",
             "dairy",
@@ -464,7 +1743,70 @@
           "tint": "gold",
           "image": "assets/desserts/lemon-bar.svg",
           "season": "graduation",
-          "badge": "Seasonal"
+          "badge": "Seasonal",
+          "nutrition": {
+            "servingGrams": 94,
+            "calories": 340,
+            "perServing": [
+              {
+                "label": "Total fat",
+                "value": "15g",
+                "dv": 19
+              },
+              {
+                "label": "Saturated fat",
+                "value": "8g",
+                "dv": 40
+              },
+              {
+                "label": "Total carbohydrate",
+                "value": "49g",
+                "dv": 18
+              },
+              {
+                "label": "Total sugars",
+                "value": "35g",
+                "dv": null
+              },
+              {
+                "label": "Dietary fiber",
+                "value": "1g",
+                "dv": 4
+              },
+              {
+                "label": "Protein",
+                "value": "4g",
+                "dv": 8
+              },
+              {
+                "label": "Sodium",
+                "value": "160mg",
+                "dv": 7
+              }
+            ]
+          },
+          "dietary": [],
+          "reviews": [
+            {
+              "id": "lemon-bar-r1",
+              "name": "Ada M.",
+              "initials": "AM",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "Proper curd, properly sharp. The shortbread base doesn't go soft."
+            },
+            {
+              "id": "lemon-bar-r2",
+              "name": "Kyle J.",
+              "initials": "KJ",
+              "stars": 5,
+              "date": "2026-09-10",
+              "verified": "Verified purchase",
+              "body": "My favorite of the spring menu. I order two."
+            }
+          ],
+          "reviewCount": 2
         }
       ]
     }

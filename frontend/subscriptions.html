@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Frosted Corner subscriptions — weekly dessert boxes you can skip, swap or pause, filled by the concierge if you'd rather not choose." />
+  <meta name="theme-color" content="#D95286" />
+  <title>Subscriptions | Frosted Corner</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="announcement" id="announcement">
+    <span data-announce>Free delivery over $45</span>
+  </div>
+
+  <header class="site-header" id="top">
+    <a class="brand" href="index.html" aria-label="Frosted Corner, home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64" focusable="false">
+          <defs>
+            <linearGradient id="hdrBadge" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#F58BB4" />
+              <stop offset="55%" stop-color="#D95286" />
+              <stop offset="100%" stop-color="#A62F5D" />
+            </linearGradient>
+          </defs>
+          <path d="M18 2 H46 A16 16 0 0 1 62 18 V46 A16 16 0 0 1 46 62 H2 V18 A16 16 0 0 1 18 2 Z"
+            fill="url(#hdrBadge)" />
+          <g fill="#fff">
+            <rect x="16.5" y="39.5" width="31" height="14" rx="7" />
+            <rect x="20" y="28.5" width="24" height="13" rx="6.5" />
+            <rect x="24" y="18.5" width="16" height="12" rx="6" />
+          </g>
+          <circle cx="32" cy="14" r="3.4" fill="#F5C451" />
+        </svg>
+      </span>
+      <span class="brand-word"><strong>Frosted</strong><small>Corner</small></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Main">
+      <a href="index.html#menu">This week</a>
+      <a href="index.html#events">Seasonal</a>
+      <a href="catering.html">Catering</a>
+      <a href="subscriptions.html">Subscribe</a>
+      <a href="index.html#crew">AI crew</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-button" type="button" data-action="voice" aria-label="Order by voice">
+        <span aria-hidden="true">🎙</span>
+      </button>
+      <a class="account-button" href="login.html" data-account-link>
+        <span class="account-avatar" data-account-avatar aria-hidden="true">◍</span>
+        <span data-account-label>Sign in</span>
+      </a>
+      <button class="bag-button" type="button" data-action="bag" aria-expanded="false" aria-controls="bag-drawer">
+        <span class="bag-glyph" aria-hidden="true">🧁</span>
+        <span>Box</span>
+        <span class="bag-count" data-bag-count>0</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-hero">
+      <p class="eyebrow">Subscriptions</p>
+      <h1>Dessert, <em>handled</em></h1>
+      <p class="page-lede">Skip, swap or pause any week. The concierge fills the box if you'd rather not think about it, and every plan includes the seasonal menus.</p>
+      <a class="back-link" href="index.html">← Back to this week's menu</a>
+    </section>
+
+    <section class="section" id="plans">
+      <div class="plan-grid" data-plan-grid></div>
+    </section>
+</main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="assets/logo.svg" alt="" width="40" height="40" />
+        <p><strong>Frosted Corner</strong><br />Desserts, figured out.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="index.html#menu">This week</a><a href="index.html#events">Seasonal</a>
+        <a href="catering.html">Catering</a><a href="subscriptions.html">Subscribe</a><a href="index.html#crew">AI crew</a>
+      </nav>
+    </div>
+    <p class="footer-note">© 2026 Frosted Corner · Prototype built for Cap-A-Thon</p>
+  </footer>
+
+  <!-- ── The box (bag drawer) ───────────────────────────────── -->
+  <div class="drawer-scrim" data-scrim hidden></div>
+  <aside class="bag-drawer" id="bag-drawer" data-drawer aria-label="Your box" hidden>
+    <header class="drawer-head">
+      <div>
+        <p class="eyebrow">Your box</p>
+        <h2 data-drawer-title>Empty box</h2>
+      </div>
+      <button class="icon-button" type="button" data-close-bag aria-label="Close box">✕</button>
+    </header>
+
+    <div class="box-stage">
+      <div class="box" data-box>
+        <div class="box-lid"><span class="lid-logo">Frosted Corner</span></div>
+        <div class="box-inner" data-box-slots></div>
+      </div>
+    </div>
+
+    <p class="box-hint" data-box-hint>A Frosted Corner box holds six.</p>
+
+    <div class="drawer-lines" data-drawer-lines></div>
+
+    <footer class="drawer-foot">
+      <div class="drawer-total"><span>Subtotal</span><strong data-subtotal>$0.00</strong></div>
+      <button class="button button-primary full" type="button" data-checkout>Checkout</button>
+      <button class="text-button" type="button" data-clear-bag>Empty the box</button>
+    </footer>
+  </aside>
+
+  <!-- ── Support agent ──────────────────────────────────────── -->
+  <button class="support-fab" type="button" data-support-open aria-expanded="false" aria-controls="support-panel">
+    <span aria-hidden="true">◍</span><span class="visually-hidden">Open the concierge</span>
+  </button>
+  <section class="support-panel" id="support-panel" data-support-panel hidden aria-label="Corner Concierge">
+    <header class="support-head">
+      <span class="agent-dot tint-pink" aria-hidden="true"></span>
+      <span><strong>Corner Concierge</strong><small>Flavors, parties, allergens, orders</small></span>
+      <button class="icon-button" type="button" data-support-close aria-label="Close concierge">✕</button>
+    </header>
+    <div class="support-log" data-support-log aria-live="polite"></div>
+    <div class="occasion-grid" data-occasion-grid></div>
+    <form class="chat-form" data-support-form>
+      <label class="visually-hidden" for="support-input">Ask the concierge</label>
+      <input id="support-input" type="text" autocomplete="off" placeholder="Nut-free, for 20 people, Saturday…" data-support-input />
+      <button class="send-button" type="submit" aria-label="Send">→</button>
+    </form>
+  </section>
+
+  <dialog class="item-dialog" data-item-dialog aria-labelledby="item-dialog-title">
+    <button class="dialog-close" type="button" data-item-close aria-label="Close">×</button>
+    <div class="item-dialog-body" data-item-dialog-body></div>
+  </dialog>
+
+  <dialog class="checkout-dialog" data-checkout-dialog aria-labelledby="checkout-title">
+    <form method="dialog" class="checkout-form" data-checkout-form>
+      <button class="icon-button checkout-close" type="button" data-checkout-close
+        aria-label="Close checkout">✕</button>
+      <p class="eyebrow">Almost there</p>
+      <h2 id="checkout-title">Choose how to get it</h2>
+      <p class="checkout-summary" data-checkout-summary></p>
+      <div class="fulfillment-options" role="group" aria-label="Fulfillment method">
+        <label class="fulfillment-option is-selected"><input type="radio" name="fulfillment" value="pickup" checked />
+          <strong>Pickup</strong><small>Ready in about 20 minutes</small></label>
+        <label class="fulfillment-option"><input type="radio" name="fulfillment" value="delivery" />
+          <strong>Delivery</strong><small>Free over $45 · 30–45 minutes</small></label>
+      </div>
+      <label class="checkout-field" data-address-field hidden>Delivery address<input name="address" type="text"
+          placeholder="123 Corner Street" autocomplete="street-address" /></label>
+      <label class="checkout-field">Preferred window<select name="window">
+          <option>As soon as possible</option>
+          <option>Today, 5:00–5:30 PM</option>
+          <option>Today, 6:00–6:30 PM</option>
+        </select></label>
+      <button class="button button-primary full" type="submit">Place demo order</button>
+    </form>
+  </dialog>
+
+  <div class="toast" data-toast role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

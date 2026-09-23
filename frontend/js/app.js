@@ -16,6 +16,7 @@ import { currentUser, homeFor } from "./auth.js";
 import { generateContext } from "./context.js";
 import { recommend, offersFor, liveSeasons } from "./agent-engine.js";
 import { respond as conciergeRespond, conversationMemory } from "./concierge.js";
+import { initItemDetail, open as openItem } from "./item-detail.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -27,6 +28,17 @@ const esc = (value) =>
   );
 
 const money = (value) => `$${value.toFixed(2)}`;
+
+/**
+ * Pages share this script, so a block whose section is not on this page must
+ * no-op rather than throw. Everything page-specific runs through here.
+ */
+function withEl(selector, run) {
+  const el = document.querySelector(selector);
+  if (el) run(el);
+  return el;
+}
+
 let storefrontContext = null;
 let contextReady = generateContext().then((context) => {
   storefrontContext = context;
@@ -42,6 +54,7 @@ const withContext = async (input = {}) => ({
 const toastEl = $("[data-toast]");
 let toastTimer;
 function toast(message) {
+  if (!toastEl) return;
   toastEl.textContent = message;
   toastEl.classList.add("is-visible");
   clearTimeout(toastTimer);
@@ -51,7 +64,7 @@ function toast(message) {
 /* ── Announcement rotator ──────────────────────────────────── */
 (function rotateAnnouncements() {
   const slot = $("[data-announce]");
-  if (!announcements.length) return;
+  if (!slot || !announcements.length) return;
   let i = 0;
   setInterval(() => {
     i = (i + 1) % announcements.length;
@@ -68,6 +81,7 @@ function toast(message) {
     days: $('[data-cd="days"]'), hours: $('[data-cd="hours"]'),
     mins: $('[data-cd="mins"]'), secs: $('[data-cd="secs"]')
   };
+  if (!nodes.days) return;          // no hero on this page
 
   const nextDrop = () => {
     const now = new Date();
@@ -106,13 +120,18 @@ function productCard(item, index) {
     <article class="product-card tint-${item.tint}" style="animation-delay:${index * 45}ms">
       <div class="product-art">
         <span class="product-badge">${esc(item.badge)}</span>
-        <span class="product-rating">★ ${item.rating}</span>
+        <button class="product-rating" type="button"
+                data-open-item="${item.id}" data-open-reviews
+                aria-label="Read the ${(item.reviews || []).length} reviews for ${esc(item.name)}">
+          ★ ${item.rating}
+        </button>
         <img class="product-photo" data-art="${item.id}" src="${esc(item.image)}"
              alt="${esc(item.name)}" loading="lazy" width="400" height="300" />
       </div>
       <div class="product-info">
-        <h3>${esc(item.name)}</h3>
+        <h3><button class="product-name" type="button" data-open-item="${item.id}">${esc(item.name)}</button></h3>
         <p>${esc(item.blurb)}</p>
+        ${item.nutrition ? `<p class="product-kcal">${item.nutrition.calories} cal · ${item.nutrition.servingGrams}g</p>` : ""}
         <div class="product-foot">
           <span class="product-price">${money(item.price)}</span>
           <button class="add-button" type="button" data-add="${item.id}"
@@ -123,6 +142,7 @@ function productCard(item, index) {
 }
 
 function renderMenu(filter = "all") {
+  if (!grid) return;
   const source = filter === "all" ? weeklyMenu : fullMenu;
   const items = filter === "all" ? source : source.filter((item) => item.tags.includes(filter));
   if (items.length === 0) {
@@ -130,7 +150,7 @@ function renderMenu(filter = "all") {
   } else {
     grid.innerHTML = items.map(productCard).join("");
   }
-  gridEmpty.hidden = items.length > 0;
+  if (gridEmpty) gridEmpty.hidden = items.length > 0;
 }
 
 $$("[data-filter]").forEach((chip) =>
@@ -265,7 +285,7 @@ function availability(menu) {
   return `Opens ${longDate(menu.opens)}`;
 }
 
-$("[data-event-grid]").innerHTML = liveSeasons().map((menu) => `
+withEl("[data-event-grid]", (el) => { el.innerHTML = liveSeasons().map((menu) => `
   <article class="event-card tint-${menu.tint} state-${menu.state}" data-season="${menu.id}">
     <span class="event-status status-${menu.state}">${SEASON_LABEL[menu.state] || menu.state}</span>
     <span class="event-emoji" aria-hidden="true">${menu.emoji}</span>
@@ -295,7 +315,7 @@ $("[data-event-grid]").innerHTML = liveSeasons().map((menu) => `
         ? `<ul class="event-highlights">${menu.highlights.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>`
         : ""}
     </div>
-  </article>`).join("");
+  </article>`).join(""); });
 
 document.addEventListener("click", (event) => {
   const toggle = event.target.closest("[data-season-toggle]");
@@ -309,7 +329,7 @@ document.addEventListener("click", (event) => {
 });
 
 /* ── Plans ─────────────────────────────────────────────────── */
-$("[data-plan-grid]").innerHTML = plans.map((plan) => `
+withEl("[data-plan-grid]", (el) => { el.innerHTML = plans.map((plan) => `
   <article class="plan-card${plan.featured ? " is-featured" : ""}">
     ${plan.featured ? '<span class="plan-flag">Most popular</span>' : ""}
     <h3>${esc(plan.name)}</h3>
@@ -318,7 +338,7 @@ $("[data-plan-grid]").innerHTML = plans.map((plan) => `
     <ul class="plan-perks">${plan.perks.map((perk) => `<li>${esc(perk)}</li>`).join("")}</ul>
     <button class="button ${plan.featured ? "button-light" : "button-ghost"}" type="button"
             data-subscribe="${esc(plan.name)}">Choose ${esc(plan.name)}</button>
-  </article>`).join("");
+  </article>`).join(""); });
 
 document.addEventListener("click", (event) => {
   const sub = event.target.closest("[data-subscribe]");
@@ -330,7 +350,7 @@ document.addEventListener("click", (event) => {
 });
 
 /* ── Reviews ───────────────────────────────────────────────── */
-$("[data-review-summary]").innerHTML = `
+withEl("[data-review-summary]", (el) => { el.innerHTML = `
   <span class="summary-tag"><span class="agent-dot tint-mint"></span>Synthesized by the review agent</span>
   <div class="summary-score">
     <strong>${reviewSummary.rating}</strong>
@@ -343,9 +363,9 @@ $("[data-review-summary]").innerHTML = `
       <div class="meter"><i style="width:${point.score}%"></i></div>
       <small>${esc(point.detail)}</small>
     </div>`).join("")}
-  <p class="summary-watchout">${esc(reviewSummary.watchout)}</p>`;
+  <p class="summary-watchout">${esc(reviewSummary.watchout)}</p>`; });
 
-$("[data-review-grid]").innerHTML = reviews.map((review) => `
+withEl("[data-review-grid]", (el) => { el.innerHTML = reviews.map((review) => `
   <article class="review-card${review.featured ? " is-featured" : ""} tint-${review.tint}">
     <span class="review-stars" aria-label="${review.stars} out of 5">${"★".repeat(review.stars)}${"☆".repeat(5 - review.stars)}</span>
     <p>${esc(review.body)}</p>
@@ -353,11 +373,12 @@ $("[data-review-grid]").innerHTML = reviews.map((review) => `
       <span class="review-avatar">${esc(review.initials)}</span>
       <span class="review-who"><strong>${esc(review.name)}</strong><small>${esc(review.verified)}</small></span>
     </footer>
-  </article>`).join("");
+  </article>`).join(""); });
 
 /* ── AI crew ───────────────────────────────────────────────── */
 const crewGrid = $("[data-crew-grid]");
 function renderCrew(audience = "all") {
+  if (!crewGrid) return;            // AI crew section is homepage-only
   const list = agents.filter((agent) =>
     audience === "all" ? true :
       audience === "franchise" ? agent.audience === "franchise" : !agent.audience
@@ -392,26 +413,7 @@ $$("[data-crew]").forEach((chip) =>
   })
 );
 
-/* ── Concierge ─────────────────────────────────────────────── */
-const chatLog = $("[data-chat-log]");
-
-function bubble(html, from = "agent") {
-  const el = document.createElement("div");
-  el.className = `bubble from-${from}`;
-  el.innerHTML = html;
-  chatLog.appendChild(el);
-  chatLog.scrollTop = chatLog.scrollHeight;
-  return el;
-}
-
-function typingBubble() {
-  const el = document.createElement("div");
-  el.className = "bubble from-agent typing";
-  el.innerHTML = "<span></span><span></span><span></span>";
-  chatLog.appendChild(el);
-  chatLog.scrollTop = chatLog.scrollHeight;
-  return el;
-}
+/* ── Shared chat pieces (used by the concierge panel) ──────── */
 
 function recStrip(items) {
   return `<div class="rec-strip">${items.map((item) => `
@@ -431,62 +433,7 @@ function replyChips(chips, attribute) {
   ).join("")}</div>`;
 }
 
-/** Shows the steps the agent is taking, one at a time, while it composes. */
-function workingBubble(steps) {
-  const el = document.createElement("div");
-  el.className = "bubble from-agent working";
-  el.innerHTML = `<div class="working-step" data-step></div>
-    <div class="typing"><span></span><span></span><span></span></div>`;
-  chatLog.appendChild(el);
-  chatLog.scrollTop = chatLog.scrollHeight;
-
-  const target = el.querySelector("[data-step]");
-  let index = 0;
-  const show = () => {
-    if (index >= steps.length) return;
-    target.textContent = steps[index];
-    target.classList.remove("is-in");
-    void target.offsetWidth;          // restart the animation
-    target.classList.add("is-in");
-    index += 1;
-  };
-  show();
-  const timer = setInterval(show, 480);
-  return { el, stop: () => clearInterval(timer) };
-}
-
-async function conciergeReply(input) {
-  const cart = bag.snapshot ? bag.snapshot().lines : lastBag.lines;
-  const reply = conciergeRespond(input.text || labelFor(input.occasion), cart);
-
-  const working = workingBubble(reply.trace?.length ? reply.trace : ["Thinking"]);
-  const think = 420 + Math.min((reply.trace?.length || 1), 4) * 340;
-  await new Promise((resolve) => setTimeout(resolve, think));
-  working.stop();
-  working.el.remove();
-
-  // If the answer named no items but the question named some, show those —
-  // asking "is the Midnight Fudge nut-free?" should still surface the card.
-  const query = (input.text || "").toLowerCase();
-  const mentioned = query
-    ? fullMenu.filter((item) => query.includes(item.name.split(" ")[0].toLowerCase()))
-    : [];
-  const items = reply.items?.length ? reply.items : mentioned;
-
-  const body = [
-    `<div>${esc(reply.message)}</div>`,
-    items.length ? recStrip(items) : "",
-    reply.held ? `<small class="reply-held">Holding: ${esc(reply.held)}</small>` : "",
-    reply.trace?.length
-      ? `<details class="reply-trace"><summary>How it got there</summary><ol>${
-          reply.trace.map((step) => `<li>${esc(step)}</li>`).join("")}</ol></details>`
-      : "",
-    reply.chips ? replyChips(reply.chips, "data-concierge-chip") : ""
-  ].join("");
-  bubble(body);
-}
-
-/** The chat needs the live box; keep the latest snapshot to hand. */
+/** The concierge needs the live box; keep the latest snapshot to hand. */
 let lastBag = { lines: [] };
 bag.onChange((snapshot) => { lastBag = snapshot; });
 
@@ -499,95 +446,86 @@ const OCCASION_TEXT = {
   holiday: "For a holiday table"
 };
 
-function labelFor(occasion) {
-  return OCCASION_TEXT[occasion] || occasion || "";
-}
-
-$("[data-occasion-grid]").innerHTML = occasions.map((occ) => `
+withEl("[data-occasion-grid]", (el) => { el.innerHTML = occasions.map((occ) => `
   <button class="occasion" type="button" data-occasion="${occ.id}">
     <span aria-hidden="true">${occ.emoji}</span>${esc(occ.label)}
-  </button>`).join("");
+  </button>`).join(""); });
 
-$$("[data-occasion]").forEach((button) =>
-  button.addEventListener("click", () => {
-    $$("[data-occasion]").forEach((b) => b.classList.remove("is-active"));
-    button.classList.add("is-active");
-    bubble(esc(button.textContent.trim()), "user");
-    conciergeReply({ occasion: button.dataset.occasion });
-  })
-);
-
-$("[data-chat-form]").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const input = $("[data-chat-input]");
-  const text = input.value.trim();
-  if (!text) return;
-  bubble(esc(text), "user");
-  input.value = "";
-  conciergeReply({ text });
+initItemDetail({
+  onAdd: (itemId) => {
+    const item = fullMenu.find((entry) => entry.id === itemId)
+      || eventMenus.flatMap((menu) => menu.items || []).find((entry) => entry.id === itemId);
+    if (!item) return;
+    bag.add(item);
+    bag.flyToBag($(`[data-art="${item.id}"]`) || bagButton, bagButton, item.emoji);
+    toast(`${item.name} added to your box`);
+  }
 });
 
-bubble("Hi! Tell me the occasion or just a craving, and I'll shortlist from this week's menu. "
-  + "I'll remember anything you tell me — guests, allergies, budget — for the rest of the chat.");
+/* ── Party planner (catering page only) ─────────────────────── */
+// Scoped: the planner lives on catering.html, so skip it elsewhere.
+if (document.querySelector("[data-guests]")) {
+  const guestInput = $("[data-guests]");
+  const guestOut = $("[data-guest-out]");
+  const plannerResult = $("[data-planner-result]");
+  let vibe = "classic";
+  let dietary = [];
 
-/* ── Party planner ─────────────────────────────────────────── */
-const guestInput = $("[data-guests]");
-const guestOut = $("[data-guest-out]");
-const plannerResult = $("[data-planner-result]");
-let vibe = "classic";
-let dietary = [];
+  function syncRangeFill() {
+    const pct = ((guestInput.value - guestInput.min) / (guestInput.max - guestInput.min)) * 100;
+    guestInput.style.setProperty("--fill", `${pct}%`);
+    guestOut.textContent = guestInput.value;
+  }
+  guestInput.addEventListener("input", syncRangeFill);
+  syncRangeFill();
 
-function syncRangeFill() {
-  const pct = ((guestInput.value - guestInput.min) / (guestInput.max - guestInput.min)) * 100;
-  guestInput.style.setProperty("--fill", `${pct}%`);
-  guestOut.textContent = guestInput.value;
+  $$("[data-vibe]").forEach((chip) =>
+    chip.addEventListener("click", () => {
+      $$("[data-vibe]").forEach((c) => c.classList.remove("is-active"));
+      chip.classList.add("is-active");
+      vibe = chip.dataset.vibe;
+    })
+  );
+
+  $$("[data-diet]").forEach((chip) =>
+    chip.addEventListener("click", () => {
+      const on = chip.getAttribute("aria-pressed") === "true";
+      chip.setAttribute("aria-pressed", String(!on));
+      chip.classList.toggle("is-active", !on);
+      dietary = $$('[data-diet][aria-pressed="true"]').map((c) => c.dataset.diet);
+    })
+  );
+
+  document.querySelector("[data-plan]")?.addEventListener("click", async (event) => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    button.textContent = "Planning…";
+
+    const reply = await ask("planner", await withContext({
+      guests: Number(guestInput.value), vibe, dietary
+    }));
+
+    plannerResult.innerHTML = `
+      <p class="eyebrow"><span class="agent-dot tint-plum"></span>Planner result</p>
+      <h3 style="margin-top:10px">${esc(reply.message)}</h3>
+      <div class="planner-stats">
+        <div><strong>${reply.stats.guests}</strong><small>guests</small></div>
+        <div><strong>${reply.stats.servings}</strong><small>servings</small></div>
+        <div><strong>${reply.stats.boxes}</strong><small>boxes</small></div>
+        <div><strong>${reply.stats.variety}</strong><small>flavors</small></div>
+      </div>
+      ${recStrip(reply.items)}
+      <p class="planner-note">${esc(reply.note)}</p>`;
+
+    button.disabled = false;
+    button.innerHTML = 'Plan my spread <span aria-hidden="true">→</span>';
+  });
 }
-guestInput.addEventListener("input", syncRangeFill);
-syncRangeFill();
 
-$$("[data-vibe]").forEach((chip) =>
-  chip.addEventListener("click", () => {
-    $$("[data-vibe]").forEach((c) => c.classList.remove("is-active"));
-    chip.classList.add("is-active");
-    vibe = chip.dataset.vibe;
-  })
-);
-
-$$("[data-diet]").forEach((chip) =>
-  chip.addEventListener("click", () => {
-    const on = chip.getAttribute("aria-pressed") === "true";
-    chip.setAttribute("aria-pressed", String(!on));
-    chip.classList.toggle("is-active", !on);
-    dietary = $$('[data-diet][aria-pressed="true"]').map((c) => c.dataset.diet);
-  })
-);
-
-$("[data-plan]").addEventListener("click", async (event) => {
-  const button = event.currentTarget;
-  button.disabled = true;
-  button.textContent = "Planning…";
-
-  const reply = await ask("planner", await withContext({
-    guests: Number(guestInput.value), vibe, dietary
-  }));
-
-  plannerResult.innerHTML = `
-    <p class="eyebrow"><span class="agent-dot tint-plum"></span>Planner result</p>
-    <h3 style="margin-top:10px">${esc(reply.message)}</h3>
-    <div class="planner-stats">
-      <div><strong>${reply.stats.guests}</strong><small>guests</small></div>
-      <div><strong>${reply.stats.servings}</strong><small>servings</small></div>
-      <div><strong>${reply.stats.boxes}</strong><small>boxes</small></div>
-      <div><strong>${reply.stats.variety}</strong><small>flavors</small></div>
-    </div>
-    ${recStrip(reply.items)}
-    <p class="planner-note">${esc(reply.note)}</p>`;
-
-  button.disabled = false;
-  button.innerHTML = 'Plan my spread <span aria-hidden="true">→</span>';
-});
-
-/* ── Support agent ─────────────────────────────────────────── */
+/* ── Corner Concierge — the one chatbot ────────────────────── */
+/* The floating panel is now the only conversational surface. It runs the
+   same engine the in-page chat used, so it answers flavor and party
+   questions as well as the support ones it used to handle. */
 const supportPanel = $("[data-support-panel]");
 const supportLog = $("[data-support-log]");
 const supportFab = $("[data-support-open]");
@@ -598,36 +536,83 @@ function supportBubble(html, from = "agent") {
   el.innerHTML = html;
   supportLog.appendChild(el);
   supportLog.scrollTop = supportLog.scrollHeight;
+  return el;
+}
+
+/** The same staged working state the in-page chat had. */
+function supportWorking(steps) {
+  const el = document.createElement("div");
+  el.className = "bubble from-agent working";
+  el.innerHTML = `<div class="working-step" data-step></div>
+    <div class="typing"><span></span><span></span><span></span></div>`;
+  supportLog.appendChild(el);
+  supportLog.scrollTop = supportLog.scrollHeight;
+
+  const target = el.querySelector("[data-step]");
+  let index = 0;
+  const show = () => {
+    if (index >= steps.length) return;
+    target.textContent = steps[index];
+    target.classList.remove("is-in");
+    void target.offsetWidth;
+    target.classList.add("is-in");
+    index += 1;
+  };
+  show();
+  const timer = setInterval(show, 480);
+  return { el, stop: () => clearInterval(timer) };
 }
 
 async function supportReply(text) {
-  const typing = document.createElement("div");
-  typing.className = "bubble from-agent typing";
-  typing.innerHTML = "<span></span><span></span><span></span>";
-  supportLog.appendChild(typing);
-  supportLog.scrollTop = supportLog.scrollHeight;
+  const cart = lastBag.lines;
+  const reply = conciergeRespond(text, cart);
 
-  const reply = await ask("support", await withContext({ text }));
-  typing.remove();
-  const chips = reply.chips?.length
-    ? `<div class="reply-chips">${reply.chips.map((c) => `<button class="reply-chip" type="button" data-support-chip="${esc(c)}">${esc(c)}</button>`).join("")}</div>`
-    : "";
-  supportBubble(`${esc(reply.message)}${chips}`);
+  const working = supportWorking(reply.trace?.length ? reply.trace : ["Thinking"]);
+  const think = 420 + Math.min(reply.trace?.length || 1, 4) * 340;
+  await new Promise((resolve) => setTimeout(resolve, think));
+  working.stop();
+  working.el.remove();
+
+  const query = (text || "").toLowerCase();
+  const mentioned = query
+    ? fullMenu.filter((item) => query.includes(item.name.split(" ")[0].toLowerCase()))
+    : [];
+  const items = reply.items?.length ? reply.items : mentioned;
+
+  supportBubble([
+    `<div>${esc(reply.message)}</div>`,
+    items.length ? recStrip(items) : "",
+    reply.held ? `<small class="reply-held">Holding: ${esc(reply.held)}</small>` : "",
+    reply.trace?.length
+      ? `<details class="reply-trace"><summary>How it got there</summary><ol>${
+          reply.trace.map((step) => `<li>${esc(step)}</li>`).join("")}</ol></details>`
+      : "",
+    reply.chips ? replyChips(reply.chips, "data-support-chip") : ""
+  ].join(""));
 }
 
 function openSupport(open) {
+  if (!supportPanel || !supportFab) return;
   supportPanel.hidden = !open;
   supportFab.setAttribute("aria-expanded", String(open));
   if (open && !supportLog.childElementCount) {
-    supportReply("");
+    supportBubble("Hi — I'm the Corner Concierge. Tell me the occasion, who's eating, "
+      + "or just a craving. I'll remember anything you tell me: guests, allergies, budget."
+      + replyChips(["Plan a party for 20", "Something chocolatey", "Nut-free options",
+                    "What's seasonal?"], "data-support-chip"));
   }
-  if (open) $("[data-support-input]").focus();
+  if (open) $("[data-support-input]")?.focus();
 }
 
-supportFab.addEventListener("click", () => openSupport(supportPanel.hidden));
-$("[data-support-close]").addEventListener("click", () => openSupport(false));
+supportFab?.addEventListener("click", () => openSupport(supportPanel.hidden));
 
-$("[data-support-form]").addEventListener("submit", (event) => {
+/* Anything can open the concierge — the hero CTA, a chip, a card. */
+document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-open-concierge]")) openSupport(true);
+});
+document.querySelector("[data-support-close]")?.addEventListener("click", () => openSupport(false));
+
+document.querySelector("[data-support-form]")?.addEventListener("submit", (event) => {
   event.preventDefault();
   const input = $("[data-support-input]");
   const text = input.value.trim();
@@ -637,14 +622,20 @@ $("[data-support-form]").addEventListener("submit", (event) => {
   supportReply(text);
 });
 
+/* Occasion buttons now live in the panel and feed the same engine. */
+withEl("[data-occasion-grid]", (el) => {
+  el.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-occasion]");
+    if (!button) return;
+    el.querySelectorAll("[data-occasion]").forEach((b) => b.classList.remove("is-active"));
+    button.classList.add("is-active");
+    const label = button.textContent.trim();
+    supportBubble(esc(label), "user");
+    supportReply(OCCASION_TEXT[button.dataset.occasion] || label);
+  });
+});
+
 document.addEventListener("click", (event) => {
-  const conciergeChip = event.target.closest("[data-concierge-chip]");
-  if (conciergeChip) {
-    const label = conciergeChip.dataset.conciergeChip;
-    bubble(esc(label), "user");
-    conciergeReply({ text: label });
-    return;
-  }
   const chip = event.target.closest("[data-support-chip]");
   if (!chip) return;
   const label = chip.dataset.supportChip;
@@ -657,7 +648,7 @@ document.addEventListener("click", (event) => {
 });
 
 /* ── Voice ordering demo ───────────────────────────────────── */
-$('[data-action="voice"]').addEventListener("click", async () => {
+document.querySelector('[data-action="voice"]')?.addEventListener("click", async () => {
   toast("Voice demo ready — tell the Orders Agent what you want");
   const reply = await ask("orders", await withContext({ text: "" }));
   openSupport(true);
@@ -758,7 +749,7 @@ function openBag(open) {
 }
 
 bagButton.addEventListener("click", () => openBag(drawer.hidden));
-$("[data-close-bag]").addEventListener("click", () => openBag(false));
+document.querySelector("[data-close-bag]")?.addEventListener("click", () => openBag(false));
 scrim.addEventListener("click", () => openBag(false));
 
 document.addEventListener("keydown", (event) => {
@@ -772,21 +763,21 @@ document.addEventListener("click", (event) => {
   if (dec) bag.remove(dec.dataset.dec);
 });
 
-$("[data-clear-bag]").addEventListener("click", () => {
+document.querySelector("[data-clear-bag]")?.addEventListener("click", () => {
   bag.clear();
   toast("Box emptied");
 });
 
-$("[data-checkout]").addEventListener("click", () => {
+document.querySelector("[data-checkout]")?.addEventListener("click", () => {
   if (bag.getCount() === 0) return toast("Add something sweet first");
   checkoutSummary.textContent = `${latestBox.count} treat${latestBox.count === 1 ? "" : "s"} · ${money(latestBox.subtotal)}`;
   syncFulfillmentOptions();
   checkoutDialog.showModal();
 });
 
-$("[data-checkout-close]").addEventListener("click", () => checkoutDialog.close());
+document.querySelector("[data-checkout-close]")?.addEventListener("click", () => checkoutDialog.close());
 
-$("[data-checkout-form]").addEventListener("submit", (event) => {
+document.querySelector("[data-checkout-form]")?.addEventListener("submit", (event) => {
   event.preventDefault();
   const method = $("input[name=fulfillment]:checked", checkoutDialog).value;
   const windowLabel = $("select[name=window]", checkoutDialog).value;
@@ -814,3 +805,7 @@ renderMenu();
   avatar.classList.add("is-signed-in");
   link.setAttribute("aria-label", `Your account, signed in as ${user.name}`);
 })();
+
+// Marks that the whole script ran; pages share it, so this is how a page
+// says "nothing threw on the way down".
+document.documentElement.dataset.appReady = "1";

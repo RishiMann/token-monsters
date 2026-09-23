@@ -51,9 +51,8 @@
     <nav class="main-nav" aria-label="Main">
       <a href="#menu">This week</a>
       <a href="#events">Seasonal</a>
-      <a href="#concierge">Concierge</a>
-      <a href="#party">Parties</a>
-      <a href="#plans">Subscribe</a>
+      <a href="catering.html">Catering</a>
+      <a href="subscriptions.html">Subscribe</a>
       <a href="#crew">AI crew</a>
     </nav>
 
@@ -85,7 +84,7 @@
         </p>
         <div class="hero-actions">
           <a class="button button-primary" href="#menu">See this week's six <span aria-hidden="true">→</span></a>
-          <a class="button button-ghost" href="#concierge">Ask the concierge <span aria-hidden="true">✦</span></a>
+          <button class="button button-ghost" type="button" data-open-concierge>Ask the concierge <span aria-hidden="true">✦</span></button>
         </div>
         <div class="countdown" role="timer" aria-live="off">
           <span class="countdown-label">New flavors drop in</span>
@@ -156,37 +155,40 @@
     </section>
 
     <!-- ── Concierge ────────────────────────────────────────── -->
-    <section class="section concierge-section" id="concierge">
-      <div class="concierge-grid">
-        <div class="concierge-intro">
-          <p class="eyebrow"><span class="agent-dot tint-pink"></span>Recommendation Agent</p>
-          <h2>Not sure what <em>you want?</em></h2>
-          <p>
-            Tell it the occasion, the crowd, or just a craving. It reads the live menu,
-            your allergen profile and what's actually in stock at your corner.
-          </p>
-          <ul class="signal-list">
-            <li>Past orders</li>
-            <li>Saved events</li>
-            <li>Allergen profile</li>
-            <li>Local stock</li>
-          </ul>
-        </div>
-
-        <div class="chat-card">
-          <div class="chat-head">
-            <span class="online-dot" aria-hidden="true"></span>
-            <span class="chat-title"><strong>Corner Concierge</strong><small>Usually answers instantly</small></span>
-          </div>
-          <div class="chat-log" data-chat-log aria-live="polite"></div>
-          <div class="occasion-grid" data-occasion-grid></div>
-          <form class="chat-form" data-chat-form>
-            <label class="visually-hidden" for="chat-input">Tell the concierge what you need</label>
-            <input id="chat-input" name="message" type="text" autocomplete="off"
-              placeholder="Nut-free, for 20 people, Saturday…" data-chat-input />
-            <button class="send-button" type="submit" aria-label="Send">→</button>
-          </form>
-        </div>
+    <section class="section quick-nav-section">
+      <div class="quick-nav">
+        <a class="quick-tab" href="catering.html">
+          <span class="quick-tab-glyph" aria-hidden="true">◈</span>
+          <span class="quick-tab-text">
+            <strong>Catering &amp; parties</strong>
+            <small>Serving math for 6 to 60</small>
+          </span>
+          <span class="quick-tab-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="quick-tab" href="subscriptions.html">
+          <span class="quick-tab-glyph" aria-hidden="true">◎</span>
+          <span class="quick-tab-text">
+            <strong>Subscriptions</strong>
+            <small>Weekly boxes, skip any time</small>
+          </span>
+          <span class="quick-tab-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="quick-tab" href="#events">
+          <span class="quick-tab-glyph" aria-hidden="true">❉</span>
+          <span class="quick-tab-text">
+            <strong>Seasonal menus</strong>
+            <small>What's on, and what's next</small>
+          </span>
+          <span class="quick-tab-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="quick-tab" href="account.html">
+          <span class="quick-tab-glyph" aria-hidden="true">◍</span>
+          <span class="quick-tab-text">
+            <strong>Your profile</strong>
+            <small>Offers, favorites and history</small>
+          </span>
+          <span class="quick-tab-arrow" aria-hidden="true">→</span>
+        </a>
       </div>
     </section>
 
@@ -204,74 +206,13 @@
     </section>
 
     <!-- ── Party planner ────────────────────────────────────── -->
-    <section class="section party-section" id="party">
-      <div class="party-grid">
-        <div class="party-copy">
-          <p class="eyebrow"><span class="agent-dot tint-plum"></span>Party Planner Agent</p>
-          <h2>Make it a <em>spread</em></h2>
-          <p>Six friends or sixty — it does the serving math so you don't run short.</p>
-
-          <div class="planner-controls">
-            <div class="control">
-              <label for="guests">Guests <output data-guest-out>12</output></label>
-              <input id="guests" type="range" min="4" max="60" step="2" value="12" data-guests />
-            </div>
-            <div class="control">
-              <span class="control-label">Vibe</span>
-              <div class="chip-row" role="group" aria-label="Party vibe">
-                <button class="chip is-active" type="button" data-vibe="classic">Classic</button>
-                <button class="chip" type="button" data-vibe="garden">Garden</button>
-                <button class="chip" type="button" data-vibe="bold">Bold</button>
-                <button class="chip" type="button" data-vibe="cozy">Cozy</button>
-              </div>
-            </div>
-            <div class="control">
-              <span class="control-label">Dietary</span>
-              <div class="chip-row" role="group" aria-label="Dietary needs">
-                <button class="chip" type="button" data-diet="vegan" aria-pressed="false">Plant-based</button>
-                <button class="chip" type="button" data-diet="nut-free" aria-pressed="false">Nut-free</button>
-              </div>
-            </div>
-            <button class="button button-primary" type="button" data-plan>Plan my spread <span
-                aria-hidden="true">→</span></button>
-          </div>
-        </div>
-
-        <div class="planner-result" data-planner-result>
-          <div class="planner-placeholder">
-            <span aria-hidden="true">◈</span>
-            <p>Set your headcount and the planner will build the box list.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    
 
     <!-- ── Subscriptions ────────────────────────────────────── -->
-    <section class="section" id="plans">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Subscriptions</p>
-          <h2>Dessert, <em>handled</em></h2>
-          <p class="section-lede">Skip, swap or pause any week. The concierge fills the box if you'd rather not think
-            about it.</p>
-        </div>
-      </div>
-      <div class="plan-grid" data-plan-grid></div>
-    </section>
+    
 
     <!-- ── Reviews ──────────────────────────────────────────── -->
-    <section class="section reviews-section" id="reviews">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Kind words</p>
-          <h2>Worth writing <em>home</em> about</h2>
-        </div>
-      </div>
-      <div class="review-layout">
-        <aside class="review-summary" data-review-summary></aside>
-        <div class="review-grid" data-review-grid></div>
-      </div>
-    </section>
+    
 
     <!-- ── AI crew ──────────────────────────────────────────── -->
     <section class="section crew-section" id="crew">
@@ -320,7 +261,7 @@
       </div>
       <nav class="footer-links" aria-label="Footer">
         <a href="#menu">This week</a><a href="#events">Seasonal</a>
-        <a href="#party">Parties</a><a href="#plans">Subscribe</a><a href="#crew">AI crew</a>
+        <a href="catering.html">Catering</a><a href="subscriptions.html">Subscribe</a><a href="#crew">AI crew</a>
       </nav>
     </div>
     <p class="footer-note">© 2026 Frosted Corner · Prototype built for Cap-A-Thon</p>
@@ -357,21 +298,27 @@
 
   <!-- ── Support agent ──────────────────────────────────────── -->
   <button class="support-fab" type="button" data-support-open aria-expanded="false" aria-controls="support-panel">
-    <span aria-hidden="true">◍</span><span class="visually-hidden">Open help</span>
+    <span aria-hidden="true">◍</span><span class="visually-hidden">Open the concierge</span>
   </button>
-  <section class="support-panel" id="support-panel" data-support-panel hidden aria-label="Support">
+  <section class="support-panel" id="support-panel" data-support-panel hidden aria-label="Corner Concierge">
     <header class="support-head">
-      <span class="agent-dot tint-mint" aria-hidden="true"></span>
-      <span><strong>Support Agent</strong><small>Allergens, orders, refunds</small></span>
-      <button class="icon-button" type="button" data-support-close aria-label="Close help">✕</button>
+      <span class="agent-dot tint-pink" aria-hidden="true"></span>
+      <span><strong>Corner Concierge</strong><small>Flavors, parties, allergens, orders</small></span>
+      <button class="icon-button" type="button" data-support-close aria-label="Close concierge">✕</button>
     </header>
     <div class="support-log" data-support-log aria-live="polite"></div>
+    <div class="occasion-grid" data-occasion-grid></div>
     <form class="chat-form" data-support-form>
-      <label class="visually-hidden" for="support-input">Ask support</label>
-      <input id="support-input" type="text" autocomplete="off" placeholder="Is anything nut-free?" data-support-input />
+      <label class="visually-hidden" for="support-input">Ask the concierge</label>
+      <input id="support-input" type="text" autocomplete="off" placeholder="Nut-free, for 20 people, Saturday…" data-support-input />
       <button class="send-button" type="submit" aria-label="Send">→</button>
     </form>
   </section>
+
+  <dialog class="item-dialog" data-item-dialog aria-labelledby="item-dialog-title">
+    <button class="dialog-close" type="button" data-item-close aria-label="Close">×</button>
+    <div class="item-dialog-body" data-item-dialog-body></div>
+  </dialog>
 
   <dialog class="checkout-dialog" data-checkout-dialog aria-labelledby="checkout-title">
     <form method="dialog" class="checkout-form" data-checkout-form>
