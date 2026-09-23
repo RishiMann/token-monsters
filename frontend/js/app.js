@@ -309,7 +309,12 @@ async function conciergeReply(input) {
   const typing = typingBubble();
   const reply = await ask("concierge", await withContext(input));
   typing.remove();
-  const body = `<div>${esc(reply.message)}</div>${reply.items?.length ? recStrip(reply.items) : ""}${reply.note ? `<small class="reply-note">${esc(reply.note)}</small>` : ""}${reply.chips ? replyChips(reply.chips, "data-concierge-chip") : ""}`;
+  const localQuery = input.text?.toLowerCase() || "";
+  const localMatches = localQuery ? fullMenu.filter((item) =>
+    localQuery.includes(item.name.split(" ")[0].toLowerCase())
+  ) : [];
+  const items = reply.items?.length ? reply.items : localMatches;
+  const body = `<div>${esc(reply.message)}</div>${items.length ? recStrip(items) : ""}${reply.note ? `<small class="reply-note">${esc(reply.note)}</small>` : ""}${reply.chips ? replyChips(reply.chips, "data-concierge-chip") : ""}`;
   bubble(body);
 }
 
