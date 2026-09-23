@@ -4,8 +4,10 @@
     {
       "label": "Run Frosted Corner Python server",
       "type": "shell",
-      "command": "${workspaceFolder}/.venv/bin/python",
-      "args": ["${workspaceFolder}/backend/server.py"],
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "args": [
+        "${workspaceFolder}/backend/server.py"
+      ],
       "isBackground": true,
       "problemMatcher": []
     }
