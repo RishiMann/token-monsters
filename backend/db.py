@@ -98,22 +98,31 @@ def _open_sqlite():
     path = _sqlite_path()
     path.parent.mkdir(parents=True, exist_ok=True)
 
+    import threading
+
     class _SqlitePool:
         driver = "sqlite"
 
+        def __init__(self_inner):
+            self_inner._conn = sqlite3.connect(
+                str(path), timeout=30, check_same_thread=False
+            )
+            self_inner._conn.execute("PRAGMA foreign_keys = ON")
+            self_inner._conn.execute("PRAGMA journal_mode = WAL")
+            self_inner._lock = threading.Lock()
+
         @contextmanager
         def connection(self_inner):
-            conn = sqlite3.connect(str(path), timeout=10,
-                                   check_same_thread=False)
-            conn.execute("PRAGMA foreign_keys = ON")
-            try:
-                yield _SqliteConn(conn)
-                conn.commit()
-            except Exception:
-                conn.rollback()
-                raise
-            finally:
-                conn.close()
+            # sqlite3 connections are not thread-safe, and this server is
+            # threaded, so serialize access to the one connection.
+            with self_inner._lock:
+                conn = self_inner._conn
+                try:
+                    yield _SqliteConn(conn)
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+                    raise
 
     return _SqlitePool()
 

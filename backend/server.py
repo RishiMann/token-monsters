@@ -90,6 +90,9 @@ class AppHandler(SimpleHTTPRequestHandler):
         if self.path == "/api/context":
             return self._context()
 
+        if self.path == "/api/health":
+            return self._health()
+
         self.send_error(404)
 
     def _serve_file(self, path):
@@ -97,6 +100,19 @@ class AppHandler(SimpleHTTPRequestHandler):
             self._json(json.loads(path.read_text(encoding="utf-8")))
         except (OSError, json.JSONDecodeError) as exc:
             self._json({"error": f"data source unavailable: {exc}"}, status=500)
+
+    def _health(self):
+        """Which storage the running process actually ended up on."""
+        payload = {"ok": True}
+        try:
+            import db
+            payload["driver"] = db.driver()
+            payload["users"] = (db.query(
+                "SELECT count(*) AS n FROM users", one=True) or {}).get("n")
+        except Exception as exc:
+            payload["ok"] = False
+            payload["detail"] = str(exc)[:300]
+        self._json(payload)
 
     def _context(self):
         """Agent-readable context for the storefront.
