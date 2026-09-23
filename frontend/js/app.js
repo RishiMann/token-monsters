@@ -7,7 +7,7 @@
  */
 
 import {
-  fullMenu, eventMenus, smartOffers,
+  fullMenu, eventMenus, upcomingSeasonalMenus, smartOffers,
   plans, reviews, reviewSummary, agents, occasions, announcements, dataLoadError
 } from "./data.js";
 import { ask } from "./agents.js";
@@ -144,7 +144,11 @@ function productCard(item, index) {
 function renderMenu(filter = "all") {
   if (!grid) return;
   const source = fullMenu;
-  const items = filter === "all" ? source : source.filter((item) => item.tags.includes(filter));
+  const items = filter === "all"
+    ? source
+    : filter === "seasonal"
+      ? source.filter((item) => item.season)
+      : source.filter((item) => item.tags.includes(filter));
   if (items.length === 0) {
     grid.innerHTML = '<p class="menu-error">Failed to load menu. Please try again later.</p>';
   } else {
@@ -302,19 +306,21 @@ function availability(menu) {
   return `Opens ${longDate(menu.opens)}`;
 }
 
-withEl("[data-event-grid]", (el) => { el.innerHTML = liveSeasons().map((menu) => `
-  <article class="event-card tint-${menu.tint} state-${menu.state}" data-season="${menu.id}">
-    <span class="event-status status-${menu.state}">${SEASON_LABEL[menu.state] || menu.state}</span>
-    <span class="event-emoji" aria-hidden="true">${menu.emoji}</span>
-    <h3>${esc(menu.name)}</h3>
-    <span class="event-window">${esc(menu.window)}</span>
-    <p class="event-availability">${esc(availability(menu))}</p>
-    <p>${esc(menu.blurb)}</p>
+withEl("[data-event-grid]", (el) => { el.innerHTML = upcomingSeasonalMenus.map((menu) => {
+  const seasonal = liveSeasons().find((entry) => entry.id === menu.id) || menu;
+  return `
+  <article class="event-card tint-${seasonal.tint} state-${seasonal.state}" data-season="${seasonal.id}">
+    <span class="event-status status-${seasonal.state}">${SEASON_LABEL[seasonal.state] || seasonal.state}</span>
+    <span class="event-emoji" aria-hidden="true">${seasonal.emoji}</span>
+    <h3>${esc(seasonal.name)}</h3>
+    <span class="event-window">${esc(seasonal.window)}</span>
+    <p class="event-availability">${esc(availability(seasonal))}</p>
+    <p>${esc(seasonal.blurb)}</p>
     <button class="chip event-toggle" type="button" data-season-toggle="${menu.id}" aria-expanded="false">
-      View the ${menu.items?.length || menu.highlights.length} desserts
+      View the ${seasonal.items?.length || seasonal.highlights.length} desserts
     </button>
     <div class="season-items" data-season-items="${menu.id}" hidden>
-      ${(menu.items || []).map((item) => `
+      ${(seasonal.items || []).map((item) => `
         <div class="season-item">
           <img src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy" width="400" height="300" />
           <div class="season-item-body">
@@ -322,17 +328,18 @@ withEl("[data-event-grid]", (el) => { el.innerHTML = liveSeasons().map((menu) =>
             <small>${esc(item.blurb)}</small>
             <div class="season-item-foot">
               <span>${money(item.price)}</span>
-              ${menu.state === "live"
+              ${seasonal.state === "live"
                 ? `<button class="chip chip-solid" type="button" data-add="${item.id}">Add</button>`
-                : `<span class="season-soon">${menu.state === "preorder" ? "Pre-order" : longDate(menu.opens)}</span>`}
+                : `<span class="season-soon">${seasonal.state === "preorder" ? "Pre-order" : longDate(seasonal.opens)}</span>`}
             </div>
           </div>
         </div>`).join("")}
-      ${(menu.items || []).length === 0
-        ? `<ul class="event-highlights">${menu.highlights.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>`
+      ${(seasonal.items || []).length === 0
+        ? `<ul class="event-highlights">${seasonal.highlights.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>`
         : ""}
     </div>
-  </article>`).join(""); });
+  </article>`;
+}).join(""); });
 
 document.addEventListener("click", (event) => {
   const toggle = event.target.closest("[data-season-toggle]");

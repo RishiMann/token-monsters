@@ -34,6 +34,7 @@ export const seasonalMenu = eventMenus
         badge: item.badge || "Seasonal",
         seasonName: menu.name
     })));
+export const upcomingSeasonalMenus = eventMenus.filter((menu) => !isLive(menu));
 export const fullMenu = [...weeklyMenu, ...plantBased, ...seasonalMenu];
 export const smartOffers = source.smartOffers || [];
 export const plans = source.plans || [];

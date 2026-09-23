@@ -86,6 +86,7 @@
         </div>
         <div class="filter-row" role="group" aria-label="Filter the menu">
           <button class="chip is-active" type="button" data-filter="all">All</button>
+          <button class="chip" type="button" data-filter="seasonal">Seasonal now</button>
           <button class="chip" type="button" data-filter="new">New</button>
           <button class="chip" type="button" data-filter="shareable">Party-sized</button>
           <button class="chip" type="button" data-filter="vegan">Plant-based</button>
@@ -106,6 +107,17 @@
 
       <div class="product-grid" data-product-grid></div>
       <p class="grid-empty" data-grid-empty hidden>Nothing matches that filter this week — try another.</p>
+    </section>
+
+    <section class="section" aria-labelledby="upcoming-seasonal-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow"><span class="agent-dot tint-caramel"></span>Coming later</p>
+          <h2 id="upcoming-seasonal-title">Holiday menus on the <em>horizon</em></h2>
+          <p class="section-lede">Plan ahead for the seasonal desserts arriving after the current menu.</p>
+        </div>
+      </div>
+      <div class="event-grid" data-event-grid></div>
     </section>
 
   </main>
