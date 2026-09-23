@@ -121,7 +121,8 @@ async function askBackend(agentId, input) {
     body: JSON.stringify({
       agent: agentId,
       text: input.text || input.occasion || "",
-      cart
+      cart,
+      history: Array.isArray(input.history) ? input.history : []
     })
   });
 
@@ -130,9 +131,31 @@ async function askBackend(agentId, input) {
     backendAvailable = false;
     throw new Error("agent backend unavailable");
   }
-  if (!response.ok) throw new Error(`agent backend returned ${response.status}`);
+  // Anything else (a model hiccup, a 502) is reported for this turn only.
+  if (!response.ok) {
+    const error = new Error(`agent backend returned ${response.status}`);
+    error.status = response.status;
+    error.reason = (await response.json().catch(() => ({}))).reason || null;
+    throw error;
+  }
   return response.json();
 }
+
+/** The provider's content filter refused the message itself; ask for other words. */
+const FILTERED_REPLY = {
+  message: "The safety filter on our model service blocked that message, so I didn't get to read it. Could you put it another way?",
+  trace: ["The message was rejected by the model service's content filter before the model saw it"],
+  chips: ["What's in my box?", "What's seasonal?"],
+  transient: true
+};
+
+/** What the chat says when the model drops a turn mid-conversation. */
+const RETRY_REPLY = {
+  message: "I lost the thread for a second — could you say that again?",
+  trace: [],
+  chips: ["Say it again"],
+  transient: true
+};
 
 /** Whether the model-backed runtime answered at all this session. */
 export const modelAvailable = () => backendAvailable;
@@ -146,6 +169,16 @@ export async function ask(agentId, input = {}) {
       const reply = await askBackend(agentId, input);
       if (reply?.message) return { ...reply, agent: agentId, source: "model" };
     } catch (error) {
+      // Mid-conversation, a one-off model failure should not hand the chat to a
+      // different brain that has none of the context; ask to repeat instead.
+      if (error.reason === "content_filter") {
+        console.warn("Message blocked by the content filter");
+        return { ...FILTERED_REPLY, agent: agentId, source: "model" };
+      }
+      if (backendAvailable && agentId === "concierge" && (input.history || []).length) {
+        console.warn("Model dropped a turn:", error.message);
+        return { ...RETRY_REPLY, agent: agentId, source: "model" };
+      }
       console.warn("Falling back to local agent logic:", error.message);
     }
   }

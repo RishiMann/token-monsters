@@ -68,6 +68,11 @@ def _menu():
     return _CACHE["menu"]
 
 
+def on_sale():
+    """Everything on the counter today."""
+    return list(_menu())
+
+
 def item_by_id(item_id):
     return next((i for i in _menu() if i["id"] == item_id), None)
 
@@ -357,6 +362,89 @@ def price_box(user_id=None, cart=None, applied_offer=None, fulfillment="pickup",
         customer=_customer(user_id, cart), live_seasons=_live_seasons())
 
 
+# ── Actions ──────────────────────────────────────────────────────────────
+#
+# These change the box. The server holds no cart, so they mutate the cart
+# payload for the rest of this turn (so price_box sees the change) and report
+# what happened; the browser applies the same change to the real box.
+
+def add_to_box(cart=None, item_ids=None, quantity=1, **_):
+    """Put items on sale today into the box."""
+    cart = cart if isinstance(cart, dict) else {}
+    lines = cart.setdefault("lines", [])
+    try:
+        quantity = max(1, min(int(quantity or 1), 12))
+    except (TypeError, ValueError):
+        quantity = 1
+    added, rejected = [], []
+    for item_id in item_ids or []:
+        item = item_by_id(item_id)
+        if not item:
+            rejected.append({"id": item_id, "why": "not on the counter today"})
+            continue
+        line = next((l for l in lines if l.get("id") == item_id), None)
+        if line:
+            line["quantity"] = int(line.get("quantity") or line.get("qty") or 1) + quantity
+            line.pop("qty", None)
+        else:
+            lines.append({"id": item_id, "name": item["name"], "quantity": quantity, "price": item["price"]})
+        added.append({"id": item_id, "name": item["name"], "quantity": quantity})
+    box = assess_cart(cart=cart)
+    return {"ok": bool(added), "added": added, "rejected": rejected,
+            "box": {"count": box["count"], "subtotal": box["subtotal"], "remaining": box["remaining"]}}
+
+
+def remove_from_box(cart=None, item_ids=None, quantity=None, **_):
+    """Take items out of the box: `quantity` units each, or all of them."""
+    cart = cart if isinstance(cart, dict) else {}
+    lines = cart.setdefault("lines", [])
+    removed, missing = [], []
+    for item_id in item_ids or []:
+        line = next((l for l in lines if l.get("id") == item_id), None)
+        if not line:
+            missing.append(item_id)
+            continue
+        have = int(line.get("quantity") or line.get("qty") or 1)
+        take = have if quantity is None else max(1, min(int(quantity), have))
+        if take >= have:
+            lines.remove(line)
+        else:
+            line["quantity"] = have - take
+            line.pop("qty", None)
+        removed.append({"id": item_id, "name": (item_by_id(item_id) or {}).get("name", item_id), "quantity": take})
+    box = assess_cart(cart=cart)
+    return {"ok": bool(removed), "removed": removed, "missing": missing,
+            "box": {"count": box["count"], "subtotal": box["subtotal"], "remaining": box["remaining"]}}
+
+
+def apply_offer(cart=None, user_id=None, offer_id=None, **_):
+    """Apply an offer the box has earned, or clear the applied one with offer_id "none"."""
+    cart = cart if isinstance(cart, dict) else {}
+    if not offer_id or offer_id == "none":
+        cart["appliedOffer"] = None
+        return {"ok": True, "applied": None, "why": "No offer applied."}
+    evaluated = offer_rules.evaluate_offers(
+        _catalog().get("smartOffers", []), _lines(cart), _customer(user_id, cart), _live_seasons())
+    if offer_id == "best":
+        # The most valuable discount the box has earned right now, if any.
+        earned = [o for o in evaluated if o["eligible"] and not o.get("auto")]
+        if not earned:
+            locked = [o for o in evaluated if not o["eligible"] and not o.get("auto")]
+            nearest = max(locked, key=lambda o: o.get("progress") or 0, default=None)
+            return {"ok": False, "applied": cart.get("appliedOffer"),
+                    "why": "The box has not earned an offer yet." + (f" Closest: {nearest['why']}" if nearest else "")}
+        offer_id = max(earned, key=lambda o: o["discount"])["id"]
+    offer = next((o for o in evaluated if o["id"] == offer_id), None)
+    if not offer:
+        return {"ok": False, "applied": cart.get("appliedOffer"), "why": f"No offer called {offer_id}."}
+    if offer.get("auto"):
+        return {"ok": False, "applied": cart.get("appliedOffer"), "why": "Free delivery applies on its own at checkout."}
+    if not offer["eligible"]:
+        return {"ok": False, "applied": cart.get("appliedOffer"), "why": offer["why"]}
+    cart["appliedOffer"] = offer_id
+    return {"ok": True, "applied": offer_id, "title": offer["title"], "discount": offer["discount"], "why": offer["why"]}
+
+
 # ── Network / franchise ──────────────────────────────────────────────────
 
 def check_inventory(location=None, only_low=False, **_):
@@ -514,6 +602,23 @@ SCHEMAS = {
         "The receipt for the current box: subtotal, the applied offer if it still holds, delivery fee or free delivery, and the total.",
         {"applied_offer": {"type": "string", "description": "Offer id to apply, e.g. offer-bundle. Defaults to whatever the customer applied."},
          "fulfillment": {"type": "string", "description": "pickup or delivery."}}),
+    "add_to_box": _schema(
+        "add_to_box",
+        "Put items into the customer's box, only when they ask for it. Items must be on the counter today. Returns what was added and the new box count.",
+        {"item_ids": {"type": "array", "items": {"type": "string"}, "description": "Menu item ids to add."},
+         "quantity": {"type": "integer", "description": "How many of each, 1-12. Defaults to 1."}},
+        ["item_ids"]),
+    "remove_from_box": _schema(
+        "remove_from_box",
+        "Take items out of the customer's box, only when they ask for it.",
+        {"item_ids": {"type": "array", "items": {"type": "string"}, "description": "Menu item ids to remove."},
+         "quantity": {"type": "integer", "description": "How many of each to remove. Omit to remove all of that item."}},
+        ["item_ids"]),
+    "apply_offer": _schema(
+        "apply_offer",
+        "Apply an offer the box has earned (from find_offers), or clear it with offer_id 'none'. Fails with the reason if the box has not earned it.",
+        {"offer_id": {"type": "string", "description": "An offer id such as offer-bundle, 'best' for the most valuable earned offer, or 'none' to remove the applied offer."}},
+        ["offer_id"]),
     "check_inventory": _schema(
         "check_inventory",
         "Live stock levels against reorder points across the network, or for one corner.",
@@ -544,6 +649,9 @@ IMPLEMENTATIONS = {
     "get_customer_preferences": get_customer_preferences,
     "find_offers": find_offers,
     "price_box": price_box,
+    "add_to_box": add_to_box,
+    "remove_from_box": remove_from_box,
+    "apply_offer": apply_offer,
     "check_inventory": check_inventory,
     "get_sales_insights": get_sales_insights,
     "get_event_menus": get_event_menus,

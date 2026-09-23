@@ -10,9 +10,32 @@ interface instead of loopback.
 
 import json
 import os
+import sys
 from datetime import date, timedelta
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+
+def _load_dotenv(path):
+    """KEY=VALUE lines from a local .env, never overriding the real environment.
+
+    App Service supplies settings as environment variables; a developer machine
+    keeps them in an untracked .env so the model endpoint and key stay out of
+    the repository.
+    """
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 PORT = int(os.environ.get("PORT", "8000"))
 # A bare loopback bind is unreachable from App Service's front end, so any
@@ -301,25 +324,33 @@ class AppHandler(SimpleHTTPRequestHandler):
         self._json({"error": OFFLINE_MESSAGE}, status=503)
 
     def _agent(self, body):
+        """One conversational turn with the model. The browser sends the history."""
         try:
-            from agent_runtime import AgentUnavailable, run
+            from agent_runtime import AgentError, AgentUnavailable, run
         except ImportError as exc:
             return self._json({"error": f"agent runtime unavailable: {exc}"}, status=503)
 
         user = self._session_user()
+        history = body.get("history")
         try:
             payload = run(
-                str(body.get("agent", "recommendation")),
+                surface=str(body.get("agent") or "concierge"),
                 text=str(body.get("text", ""))[:2000],
                 cart=body.get("cart") or {},
-                user_id=user["id"] if user else None,
+                user=user,
+                history=history if isinstance(history, list) else None,
             )
             self._json(payload)
         except AgentUnavailable as exc:
-            # The frontend falls back to its rule-based path on 503.
+            # Not configured: the frontend stops asking for the rest of the session.
             self._json({"error": str(exc)}, status=503)
+        except AgentError as exc:
+            # The model failed this turn: the frontend falls back once and retries next time.
+            print(f"agent turn failed ({exc.reason}): {exc}", file=sys.stderr, flush=True)
+            self._json({"error": "the model did not answer", "reason": exc.reason}, status=502)
         except Exception as exc:
-            self._json({"error": f"agent failed: {exc}"}, status=500)
+            print(f"agent failed: {exc!r}", file=sys.stderr, flush=True)
+            self._json({"error": "agent failed"}, status=500)
 
 
 def main() -> None:

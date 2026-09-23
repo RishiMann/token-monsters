@@ -76,10 +76,23 @@ so a new item is recommendable the moment it is added:
   on the counter today; the calendar on the homepage pins each item to its
   release day and re-renders at midnight.
 
-The Corner Concierge is the one chat surface. `frontend/js/agents.js` sends
-every turn to `/api/agent` first; without a model configured the server
-answers 503 and `frontend/js/concierge.js` answers from the same engine and
-offer rules, so the chat never contradicts the page.
+The Corner Concierge is the one chat surface, and the one agent. The
+specialists the product used to describe — recommendation, planner, offers,
+support, orders, seasonal, franchise — are its tools: `suggest_pairings` is
+the recommendation engine, `plan_party` the planner, `find_offers` and
+`price_box` the offers agent, `get_event_menus` the seasonal agent, and
+`check_inventory` / `get_sales_insights` appear only for signed-in admins.
+`backend/agent_runtime.py` runs the model over the Responses API with a tool
+loop; the browser sends the conversation so far on every turn, so the server
+holds no chat state, and every reply carries the tool calls it made as a
+plain-English trace.
+
+`frontend/js/agents.js` sends every turn to `/api/agent` first. Without a
+model configured the server answers 503 and `frontend/js/concierge.js`
+answers from the same engine and offer rules, so the chat never contradicts
+the page. The "picked for you" panel and the offers rail stay on that
+deterministic engine — they re-run on every click — and the model reaches the
+same engine through its tools.
 
 ### Growing the catalog
 
@@ -94,19 +107,40 @@ Photos come from Pexels under the Pexels License; every source is listed in
 `profile` (see `PROFILES` in `tools/expand_catalog.py`), map a photo in
 `tools/photos.json`, and run both tools.
 
-### The model-backed agents
+### Configuring the model
 
-`backend/agent_runtime.py` runs every agent — recommendation, concierge,
-planner, offers, support, orders, seasonal — against a Foundry / Azure OpenAI
-deployment when these are set on the App Service:
+Locally, copy `.env.example` to `.env` (gitignored) and fill it in; the
+server loads it on start. On App Service, add the same names under
+Settings → Environment variables:
 
 ```
-AZURE_OPENAI_ENDPOINT    https://<resource>.openai.azure.com/openai/v1/
-AZURE_OPENAI_DEPLOYMENT  deployment name (default gpt-4.1)
-AZURE_OPENAI_API_KEY     optional; omit to use the managed identity
+AZURE_OPENAI_ENDPOINT    https://<resource>.services.ai.azure.com/openai/v1/
+AZURE_OPENAI_DEPLOYMENT  gpt-5-mini
+AZURE_OPENAI_API_KEY     the key (or omit it and grant the app's managed identity access)
+AZURE_OPENAI_REASONING   optional: minimal | low | medium (default low)
 ```
 
-Until they are, the storefront runs entirely on the rule-based path above.
+A pasted endpoint ending in `/responses` is accepted. Until these are set the
+storefront runs entirely on the rule-based path. gpt-5 models reject
+`temperature`, so the runtime never sends it.
+
+The model can act on the box through `add_to_box`, `remove_from_box` and
+`apply_offer`; the server holds no cart, so each action is applied to the
+cart for the rest of that turn (so `price_box` sees it) and echoed back as
+`actions` for the browser to mirror. A turn the model drops (a 502) asks the
+customer to repeat rather than switching to the rule-based brain
+mid-conversation.
+
+Azure's default content filter on the Foundry resource rejects some innocent
+phrasings before the model sees them — "take the fudge out" is blocked as
+profanity-adjacent while "remove the fudge" passes. The chat says so and asks
+for other words. To loosen it, give the deployment a custom content filter
+in Foundry (Safety + security → Content filters) with a higher prompt
+threshold for the hate category.
+
+```bash
+.venv/bin/python -m unittest tests/test_agent_runtime.py   # the tool loop, with a stub model
+```
 
 ## Deployment (Azure App Service)
 

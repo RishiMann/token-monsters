@@ -422,14 +422,18 @@ if (document.querySelector("[data-guests]")) {
     button.disabled = true;
     button.textContent = "Planning…";
 
+    const guests = Number(guestInput.value);
     const reply = await ask("planner", await withContext({
-      guests: Number(guestInput.value), vibe, dietary
+      guests, vibe, dietary,
+      text: `Plan a dessert spread for ${guests} guests with a ${vibe} vibe`
+        + (dietary.length ? `, ${dietary.join(" and ")}` : "") + "."
     }));
-    const stats = reply.stats || {
-      guests: Number(guestInput.value),
-      servings: Math.ceil(Number(guestInput.value) * 1.5),
-      boxes: Math.ceil(Math.ceil(Number(guestInput.value) * 1.5) / 6),
-      variety: (reply.items || []).length
+    const plan = reply.stats || reply.data?.plan_party || null;
+    const stats = {
+      guests: plan?.guests ?? guests,
+      servings: plan?.servings ?? Math.ceil(guests * 1.5),
+      boxes: plan?.boxes ?? Math.ceil(Math.ceil(guests * 1.5) / 6),
+      variety: plan?.variety ?? (reply.items || []).length
     };
 
     plannerResult.innerHTML = `
@@ -442,7 +446,11 @@ if (document.querySelector("[data-guests]")) {
         <div><strong>${stats.variety}</strong><small>flavors</small></div>
       </div>
       ${recStrip(reply.items || [])}
-      ${reply.note ? `<p class="planner-note">${esc(reply.note)}</p>` : ""}`;
+      ${reply.note ? `<p class="planner-note">${esc(reply.note)}</p>` : ""}
+      ${reply.trace?.length
+        ? `<details class="reply-trace"><summary>How it got there</summary><ol>${
+            reply.trace.map((step) => `<li>${esc(step)}</li>`).join("")}</ol></details>` : ""}
+      <p class="planner-note"><small>${reply.source === "model" ? "Planned by the model" : "Planned by the menu rules"}</small></p>`;
 
     button.disabled = false;
     button.innerHTML = 'Plan my spread <span aria-hidden="true">→</span>';
@@ -455,6 +463,8 @@ const supportLog = $("[data-support-log]");
 const supportFab = $("[data-support-open]");
 let lastReplyItems = [];
 let replying = false;
+/** The turns so far, sent with every request so the model remembers the conversation. */
+let chatHistory = [];
 
 function supportBubble(html, from = "agent") {
   const el = document.createElement("div");
@@ -486,13 +496,19 @@ async function supportReply(text) {
   const input = $("[data-support-input]");
   if (input) input.disabled = true;
 
+  // A model turn with several tool calls can take a while; say so rather than sit silent.
+  const slow = setTimeout(() => {
+    typing.insertAdjacentHTML("beforeend", '<small class="bubble-source">Checking the menu and your box…</small>');
+  }, 5000);
+
   let reply;
   try {
-    reply = await ask("concierge", await withContext({ text, cart: lastBag.lines }));
+    reply = await ask("concierge", await withContext({ text, cart: lastBag.lines, history: chatHistory.slice(-12) }));
   } catch (error) {
     console.error(error);
     reply = { message: "Something went wrong on my side. Try that again in a moment.", trace: [] };
   } finally {
+    clearTimeout(slow);
     typing.remove();
     replying = false;
     if (input) { input.disabled = false; input.focus(); }
@@ -500,6 +516,10 @@ async function supportReply(text) {
 
   const items = (reply.items || []).map((item) => findItem(item.id) || item).filter(Boolean);
   lastReplyItems = items;
+  if (!reply.transient) {
+    chatHistory.push({ role: "user", content: text }, { role: "assistant", content: reply.message });
+  }
+  applyActions(reply.actions || []);
 
   supportBubble([
     `<div>${esc(reply.message)}</div>`,
@@ -512,6 +532,28 @@ async function supportReply(text) {
     reply.chips ? replyChips(reply.chips, "data-support-chip") : "",
     `<small class="bubble-source">${reply.source === "model" ? "Answered by the model" : "Answered by the menu rules"}</small>`
   ].join(""));
+}
+
+/** The model acted on the box through its tools; make the real box match. */
+function applyActions(actions) {
+  let changed = 0;
+  for (const action of actions) {
+    if (action.type === "add") {
+      const item = findItem(action.id);
+      if (item && isOnSale(item.id)) {
+        bag.add(item, Math.max(1, Number(action.quantity) || 1));
+        bag.flyToBag(supportFab, bagButton, item.emoji);
+        changed += 1;
+      }
+    } else if (action.type === "remove") {
+      for (let i = 0; i < Math.max(1, Number(action.quantity) || 1); i += 1) bag.remove(action.id);
+      changed += 1;
+    } else if (action.type === "apply_offer") {
+      if (action.id) bag.applyOffer(action.id); else bag.removeOffer();
+      changed += 1;
+    }
+  }
+  if (changed) toast("Box updated by the concierge");
 }
 
 function openSupport(open) {
@@ -532,6 +574,7 @@ document.querySelector("[data-support-close]")?.addEventListener("click", () => 
 document.querySelector("[data-support-reset]")?.addEventListener("click", () => {
   resetMemory();
   lastReplyItems = [];
+  chatHistory = [];
   supportLog.innerHTML = "";
   supportBubble(greeting());
   toast("Started a fresh conversation");
@@ -568,6 +611,10 @@ function handleChip(label) {
     return true;
   }
   if (lower === "take me to checkout") { openSupport(false); openBag(true); return true; }
+  if (lower === "say it again") {
+    const last = [...supportLog.querySelectorAll(".bubble.from-user")].slice(-2, -1)[0];
+    if (last) { supportReply(last.textContent); return true; }
+  }
   if (lower === "show the calendar") {
     openSupport(false);
     $("[data-calendar]")?.scrollIntoView({ behavior: "smooth", block: "start" });
