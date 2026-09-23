@@ -69,10 +69,28 @@ async function boot() {
     return;
   }
 
+  render(ops);
+
+  // Stock moves with every order placed on the storefront, so keep the console
+  // current while it is open. Demo figures are static, so only poll the real thing.
+  if (fetched && !fetched.error) {
+    const live = $("[data-live]");
+    if (live) live.hidden = false;
+    setInterval(async () => {
+      const next = await fetch("/api/operations", { credentials: "same-origin" })
+        .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      if (next && !next.error) render(next);
+    }, 15000);
+  }
+}
+
+function render(ops) {
   renderInventory(ops.inventory || []);
   renderLocations(ops.locations || []);
   renderSupply(ops.supplyOrders || []);
   renderSales(ops.insights || {}, ops.weekly || []);
+  const live = $("[data-live]");
+  if (live) live.textContent = `Live · updated ${new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`;
 }
 
 let LOW_STOCK = [];

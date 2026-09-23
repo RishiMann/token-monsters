@@ -53,10 +53,11 @@ SYSTEM = (
     "are the one voice the customer talks to; the specialists are your tools.\n\n"
     "Your tools, and what each is for:\n"
     "- assess_cart: what is in the box now. Call it before recommending anything.\n"
-    "- suggest_pairings: the recommendation engine. It ranks what to add next by "
-    "pairing, flavor balance, texture, occasion, plant-based consistency, live "
-    "seasons and the customer's favorites, with a reason per candidate. Prefer its "
-    "top picks; pass the occasion when the customer states one.\n"
+    "- suggest_pairings: the recommendation engine. It follows the item the customer "
+    "just added — same flavor family, similar richness, its pairings — then occasion, "
+    "plant-based consistency, live seasons and favorites, with a reason per candidate. "
+    "Prefer its top picks; pass focus_item when the customer names an item, and the "
+    "occasion when they state one.\n"
     "- search_menu: find items by craving, tag, flavor family, occasion, or with "
     "allergens excluded. The only way to answer an allergen question.\n"
     "- analyze_purchase_history / get_customer_preferences: the signed-in "
@@ -225,7 +226,8 @@ def _summary(name, payload, args=None):
     if name == "assess_cart":
         return f"Read the box: {payload['count']} item{'' if payload['count'] == 1 else 's'}, ${payload['subtotal']:.2f}"
     if name == "suggest_pairings":
-        return (f"Ranked candidates against the box{_constraints(args)} — top: "
+        following = f" following {payload['following']}" if payload.get("following") else ""
+        return (f"Ranked candidates{following}{_constraints(args)} — top: "
                 f"{', '.join(c['name'] for c in payload['candidates'][:3]) or 'none'}")
     if name == "search_menu":
         return f"Searched the menu{_constraints(args)} — {payload['count']} match{'' if payload['count'] == 1 else 'es'}"

@@ -94,6 +94,25 @@ the page. The "picked for you" panel and the offers rail stay on that
 deterministic engine — they re-run on every click — and the model reaches the
 same engine through its tools.
 
+### Orders and stock
+
+Checkout posts to `POST /api/orders`. `backend/orders.py` resolves the lines
+against today's menu, prices the box again with the same offer rules (an
+offer the box has not earned is ignored), records the order (guest orders
+carry no user), then takes each unit's `uses` ingredients out of the
+customer's home corner — one six-count box per six units — and adds to the
+day's item and corner sales. The admin console re-reads stock every 15
+seconds while it is open, so an order placed in another tab shows up there.
+
+Every item's `uses` (kg or L per unit, keyed by the SKUs in `seed.py`) is
+derived in `tools/expand_catalog.py` from its allergens and flavor family;
+edit an item in `storefront.json` for anything more exact. Without a
+database the endpoint answers 503 and checkout stays a demo.
+
+```bash
+.venv/bin/python -m unittest tests/test_orders.py   # against a throwaway SQLite database
+```
+
 ### Growing the catalog
 
 ```bash
@@ -225,7 +244,10 @@ operations console go dark, and the console prints what to fix.
 
 `DATABASE_URL` overrides the default whenever it is set, which is how a hosted
 deployment points at its own server. Azure Database for PostgreSQL requires
-TLS, so a URL for it needs `?sslmode=require`.
+TLS, so a URL for it needs `?sslmode=require`. On App Service with no
+PostgreSQL yet, `DATABASE_URL=sqlite:////home/frostedcorner.db` gives the site
+a real, persistent database (`/home` survives restarts) so accounts, orders
+and stock work in production.
 
 ### SQLite (optional)
 

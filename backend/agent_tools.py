@@ -189,13 +189,18 @@ def assess_cart(cart=None, **_):
     }
 
 
-def suggest_pairings(cart=None, occasion=None, exclude_allergens=None, limit=5, user_id=None, **_):
-    """Rank what to add next against what is already in the box, with reasons.
+AFFINITY_TAGS = {"rich", "fruity", "signature", "vegan", "shareable", "new"}
 
-    Same rules as the browser engine: explicit pairings, complementary flavor
-    families, richness/brightness balance, texture contrast, occasion fit,
-    plant-based consistency, live seasonal menus and the customer's favorites.
+
+def suggest_pairings(cart=None, occasion=None, exclude_allergens=None, limit=5, user_id=None, focus_item=None, **_):
+    """Rank what to add next, following the item the customer just added.
+
+    Same rules as the browser engine: same flavor family, similar richness,
+    shared tags, the item's explicit pairings, kinship with the rest of the
+    box, occasion fit, plant-based consistency, favorites and live seasons.
+    Contrast is only a tie-breaker.
     """
+    cart = cart if isinstance(cart, dict) else {}
     lines = _lines(cart)
     in_box = {l["item"]["id"] for l in lines}
     banned = {a.lower() for a in (exclude_allergens or [])}
@@ -214,6 +219,7 @@ def suggest_pairings(cart=None, occasion=None, exclude_allergens=None, limit=5, 
         entry["score"] += points
         entry["signals"].append({"key": key, "points": points, "reason": reason})
 
+    focus = None
     if not lines:
         trace.append("Box is empty — starting from ratings" + (f" and {occasion}" if occasion else ""))
         for item in catalog:
@@ -225,57 +231,56 @@ def suggest_pairings(cart=None, occasion=None, exclude_allergens=None, limit=5, 
             if item.get("season") in live:
                 consider(item, 2, "season", f"{live[item['season']]['name']} is on now")
     else:
+        focus_id = focus_item or cart.get("lastAdded")
+        focus = next((l["item"] for l in lines if l["item"]["id"] == focus_id), lines[-1]["item"])
+        pf = _profile(focus)
+        focus_word = FAMILY_WORD.get(pf.get("family"), pf.get("family") or "flavor")
+        focus_tags = set(focus.get("tags", [])) & AFFINITY_TAGS
         count = sum(l["qty"] for l in lines)
-        rich = sum(_profile(l["item"]).get("rich", 2) * l["qty"] for l in lines)
-        bright = sum(_profile(l["item"]).get("bright", 2) * l["qty"] for l in lines)
-        families = {_profile(l["item"]).get("family") for l in lines} - {None}
-        textures = {_profile(l["item"]).get("texture") for l in lines} - {None}
+        families = {}
+        for l in lines:
+            fam = _profile(l["item"]).get("family")
+            if fam:
+                families[fam] = families.get(fam, 0) + l["qty"]
         all_vegan = all("vegan" in l["item"].get("tags", []) for l in lines)
         occasions = {}
         for l in lines:
             for occ in _profile(l["item"]).get("occasions", []):
                 occasions[occ] = occasions.get(occ, 0) + l["qty"]
-        trace.append(f"Read the box: {count} items")
-
-        for l in lines:
-            for pair in _profile(l["item"]).get("pairsWith", []):
-                consider(item_by_id(pair["id"]), 6, "pairing", f"{pair['why']}, next to {l['item']['name']}")
-        trace.append("Matched explicit pairings")
+        rich_word = "rich" if pf.get("rich", 2) >= 3 else "bright" if pf.get("bright", 2) >= 3 else "balanced"
+        trace.append(f"Following {focus['name']} — {focus_word}, {rich_word}")
 
         for item in catalog:
-            family = _profile(item).get("family")
-            if not family:
+            profile = _profile(item)
+            if profile.get("family") and profile["family"] == pf.get("family"):
+                consider(item, 6, "family", f"more {focus_word}, like the {focus['name']} just added")
+            rich_gap = abs(profile.get("rich", 2) - pf.get("rich", 2))
+            if rich_gap <= 1 and pf.get("rich", 2) >= 3:
+                consider(item, 3 - rich_gap, "rich", f"just as rich as the {focus['name']}")
+            elif rich_gap <= 1 and pf.get("bright", 2) >= 3:
+                consider(item, 3 - rich_gap, "bright", f"just as bright as the {focus['name']}")
+            elif rich_gap <= 1:
+                consider(item, 2 - rich_gap, "richness", f"a similar weight to the {focus['name']}")
+            if abs(profile.get("bright", 2) - pf.get("bright", 2)) <= 1:
+                consider(item, 1, "brightness", f"a similar brightness to the {focus['name']}")
+            shared = [t for t in item.get("tags", []) if t in focus_tags]
+            if shared:
+                consider(item, min(3, len(shared)), "tags", f"also {shared[0]}, like the {focus['name']}")
+            if profile.get("texture") and profile["texture"] == pf.get("texture"):
+                consider(item, 1, "texture", f"{profile['texture']} like the {focus['name']}")
+            kin = sum(min(2, n) for fam, n in families.items() if fam == profile.get("family") and fam != pf.get("family"))
+            if kin:
+                consider(item, min(2, kin), "box", "matches what else is in the box")
+            if profile.get("family") in COMPLEMENTS.get(pf.get("family"), []):
+                consider(item, 1, "contrast", f"{FAMILY_WORD.get(profile['family'], profile['family'])} against the {focus_word}")
+
+        for pair in pf.get("pairsWith", []):
+            consider(item_by_id(pair["id"]), 5, "pairing", f"{pair['why']}, next to the {focus['name']}")
+        for l in lines:
+            if l["item"]["id"] == focus["id"]:
                 continue
-            for box_family in families:
-                if family in COMPLEMENTS.get(box_family, []):
-                    consider(item, 3, "complement",
-                             f"{FAMILY_WORD.get(family, family)} against the {FAMILY_WORD.get(box_family, box_family)} in the box")
-            if family in families:
-                consider(item, -2, "repeat", f"another {FAMILY_WORD.get(family, family)} pick")
-
-        if rich >= bright + 4:
-            trace.append("Box skews rich — weighting bright flavors up")
-            for item in catalog:
-                if _profile(item).get("bright", 0) >= 2:
-                    consider(item, 4, "balance", "balances a rich box with something bright")
-        elif bright >= rich + 4:
-            trace.append("Box skews light — weighting richer flavors up")
-            for item in catalog:
-                if _profile(item).get("rich", 0) >= 3:
-                    consider(item, 4, "balance", "adds depth to a light box")
-
-        if len(textures) == 1:
-            only = next(iter(textures))
-            trace.append(f"Every item is {only} — looking for contrast")
-            for item in catalog:
-                texture = _profile(item).get("texture")
-                if texture and texture != only:
-                    consider(item, 2, "texture", f"{texture} against a {only} box")
-        elif count >= 3:
-            for item in catalog:
-                texture = _profile(item).get("texture")
-                if texture and texture not in textures:
-                    consider(item, 1, "texture", "a texture the box doesn't have yet")
+            for pair in _profile(l["item"]).get("pairsWith", []):
+                consider(item_by_id(pair["id"]), 2, "pairing", f"{pair['why']}, next to {l['item']['name']}")
 
         lead = occasion
         if not lead and occasions:
@@ -296,9 +301,9 @@ def suggest_pairings(cart=None, occasion=None, exclude_allergens=None, limit=5, 
 
         for item in catalog:
             if item["id"] in favorites:
-                consider(item, 3, "favorite", f"ordered {favorites[item['id']]} times before")
+                consider(item, 5, "favorite", f"ordered {favorites[item['id']]} times before")
             if item.get("season") in live:
-                consider(item, 2, "season", f"{live[item['season']]['name']} runs until {live[item['season']]['closes']}")
+                consider(item, 1, "season", f"{live[item['season']]['name']} runs until {live[item['season']]['closes']}")
 
     ranked = sorted((e for e in scored.values() if e["score"] > 0),
                     key=lambda e: (-e["score"], -(e["item"].get("rating") or 0), e["item"]["id"]))
@@ -306,6 +311,7 @@ def suggest_pairings(cart=None, occasion=None, exclude_allergens=None, limit=5, 
     trace.append(f"Ranked {len(scored)} candidates")
     return {
         "count": len(ranked[:limit]),
+        "following": focus["name"] if focus else None,
         "trace": trace,
         "candidates": [{
             **_slim(e["item"]),
@@ -622,8 +628,9 @@ SCHEMAS = {
     "assess_cart": _schema("assess_cart", "See what is already in the customer's box, how many of the six slots remain, and any offer they applied."),
     "suggest_pairings": _schema(
         "suggest_pairings",
-        "Rank what to add next against what is already in the box: explicit pairings, flavor balance, texture contrast, occasion fit, plant-based consistency, seasonal menus and favorites. Each candidate carries the reason. Call this before recommending.",
-        {"occasion": {"type": "string", "description": "An occasion the customer stated: just-because, birthday, dinner-party, thank-you, office, kids."},
+        "Rank what to add next, following the item the customer just added (or one you name): same flavor family, similar richness, shared tags, its pairings, kinship with the rest of the box, occasion fit, plant-based consistency, favorites and live seasons. Each candidate carries the reason. Call this before recommending.",
+        {"focus_item": {"type": "string", "description": "Item id in the box to follow, e.g. the one the customer just mentioned. Defaults to the last item added."},
+         "occasion": {"type": "string", "description": "An occasion the customer stated: just-because, birthday, dinner-party, thank-you, office, kids."},
          "exclude_allergens": {"type": "array", "items": {"type": "string"}, "description": "Allergens to exclude outright."},
          "limit": {"type": "integer", "description": "How many candidates to return, 1-8. Defaults to 5."}}),
     "analyze_purchase_history": _schema(

@@ -50,19 +50,33 @@ test("empty box with an occasion filters to it", () => {
   for (const p of r.items) assert.ok(p.item.profile.occasions.includes("birthday"), p.item.id);
 });
 
-test("a chocolate box gets something bright, not more chocolate", () => {
-  const r = recommend(catalog, [line("midnight-fudge"), line("salted-caramel-brownie")], { seasons });
+test("adding chocolate surfaces more rich, chocolatey picks", () => {
+  const r = recommend(catalog, [line("midnight-fudge")], { focus: "midnight-fudge", seasons });
+  assert.equal(r.headline, "Because you added Midnight Fudge");
   assert.equal(r.items.length, 3);
-  assert.ok(r.items[0].item.profile.bright >= 2, `top pick ${r.items[0].item.id} is bright`);
   assert.ok(!ids(r).includes("midnight-fudge"));
-  assert.ok(r.trace.some((t) => /skews rich/.test(t)));
-  for (const p of r.items) assert.notEqual(fam(p.item), "cocoa", `${p.item.id} is not another chocolate`);
+  for (const p of r.items.slice(0, 2)) {
+    assert.ok(fam(p.item) === "cocoa" || p.item.profile.rich >= 3, `${p.item.id} is chocolate or rich`);
+  }
+  assert.ok(r.trace[0].startsWith("You just added Midnight Fudge — chocolate, rich"));
+});
+
+test("the picks change when the focus changes", () => {
+  const box = [line("midnight-fudge"), line("lemon-cloud")];
+  const afterFudge = recommend(catalog, box, { focus: "midnight-fudge", seasons });
+  const afterLemon = recommend(catalog, box, { focus: "lemon-cloud", seasons });
+  assert.equal(afterLemon.headline, "Because you added Lemon Glaze Cloud");
+  assert.notDeepEqual(ids(afterFudge), ids(afterLemon));
+  assert.ok(afterLemon.items.slice(0, 2).every((p) => fam(p.item) === "citrus" || p.item.profile.bright >= 3),
+    `citrus follows citrus: ${ids(afterLemon)}`);
 });
 
 test("a seasonal item in the box is reasoned about (was invisible before)", () => {
-  const r = recommend(catalog, [line("maple-pecan")], { seasons });
-  assert.equal(r.items.length, 3);
+  const r = recommend(catalog, [line("maple-pecan")], { seasons, limit: 5 });
+  assert.equal(r.headline, "Because you added Maple Pecan Stack");
+  assert.equal(r.items.length, 5);
   assert.ok(ids(r).includes("spiced-pear"), "explicit pairing surfaces");
+  assert.ok(fam(r.items[0].item) === "nut" || r.items[0].item.profile.rich >= 3, `top pick ${r.items[0].item.id} is nutty or rich like the pecan stack`);
   assert.ok(r.items.every((p) => p.reason.length > 10));
 });
 
@@ -77,21 +91,24 @@ test("allergen avoidance is a hard exclusion", () => {
   for (const p of r.items) assert.ok(!p.item.allergens.includes("tree nut"), p.item.id);
 });
 
-test("a kids' box favors kids' picks", () => {
+test("a kids' box still leans on kids' picks", () => {
   const r = recommend(catalog, [line("pink-velvet"), line("strawberry-stack"), line("banana-pudding")], { seasons, occasionLabels: { kids: "a kids' party" } });
   assert.ok(r.trace.some((t) => /kids' party/.test(t)), r.trace.join(" | "));
-  assert.ok(r.items.filter((p) => p.item.profile.occasions.includes("kids")).length >= 2);
+  assert.ok(r.items.filter((p) => p.item.profile.occasions.includes("kids")).length >= 1);
 });
 
 test("favorites from history are surfaced and never duplicate the box", () => {
-  const r = recommend(catalog, [line("lemon-cloud")], { favorites: [{ id: "brown-butter", units: 6 }], seasons });
-  assert.ok(ids(r).includes("brown-butter"));
+  const r = recommend(catalog, [line("lemon-cloud")], { favorites: [{ id: "brown-butter", units: 6 }], seasons, limit: 5 });
+  assert.ok(ids(r).includes("brown-butter"), `favorite in the top five: ${ids(r)}`);
   assert.ok(!ids(r).includes("lemon-cloud"));
+  const dup = recommend(catalog, [line("brown-butter")], { favorites: [{ id: "brown-butter", units: 6 }], seasons });
+  assert.ok(!ids(dup).includes("brown-butter"));
 });
 
-test("nearly full box changes the headline", () => {
+test("a nearly full box says so in the trace", () => {
   const r = recommend(catalog, [line("lemon-cloud", 2), line("biscoff", 3)], { seasons });
-  assert.equal(r.headline, "1 more to complete the box");
+  assert.equal(r.headline, "Because you added Biscoff Butterscotch");
+  assert.ok(r.trace.some((t) => /1 slot left/.test(t)));
 });
 
 test("free-text cravings map to families via profiles", () => {
