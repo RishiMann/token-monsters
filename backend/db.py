@@ -359,6 +359,9 @@ def catalog():
     return _json("storefront.json")
 
 
-def menu_items():
+def menu_items(today=None):
+    """Everything on the counter today: year-round items plus released seasonal ones."""
+    import seasons
     data = catalog()
-    return [*data.get("weeklyMenu", []), *data.get("plantBased", [])]
+    return [*data.get("weeklyMenu", []), *data.get("plantBased", []),
+            *seasons.released_items(data.get("eventMenus", []), today)]
