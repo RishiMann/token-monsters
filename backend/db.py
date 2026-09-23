@@ -52,6 +52,11 @@ def _sqlite_path():
     override = os.environ.get("SQLITE_PATH")
     if override:
         return Path(override)
+    url = database_url() or ""
+    if url.startswith("sqlite:"):
+        path = url.split("sqlite:", 1)[1].lstrip("/")
+        if path:
+            return Path("/" + path) if url.startswith("sqlite:///") else Path(path)
     # App Service persists /home across restarts; everything else is ephemeral.
     home = Path("/home")
     if "PORT" in os.environ and home.is_dir() and os.access(home, os.W_OK):
@@ -176,15 +181,17 @@ def _pool_or_raise():
         return _pool
 
     url = database_url()
-    if url:
-        try:
-            _pool = _open_postgres(url)
-            return _pool
-        except Exception as exc:
-            print(f"PostgreSQL unavailable ({exc}); falling back to SQLite.")
 
-    _pool = _open_sqlite()
-    print(f"Using SQLite at {_sqlite_path()}.")
+    # Explicit opt-in to the file-backed store, e.g. DATABASE_URL=sqlite:///tmp/fc.db
+    if url and url.startswith("sqlite:"):
+        _pool = _open_sqlite()
+        print(f"Using SQLite at {_sqlite_path()}.")
+        return _pool
+
+    if not url:
+        raise DatabaseUnavailable("DATABASE_URL is not set")
+
+    _pool = _open_postgres(url)
     return _pool
 
 
