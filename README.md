@@ -50,31 +50,14 @@ explicitly to override either behavior.
 
 Accounts, sessions, preferences, orders, inventory and sales live in
 PostgreSQL. The catalog stays in `backend/storefront.json` because it is not
-mutable. Everything is driven by one environment variable:
+mutable.
 
-```
-DATABASE_URL=postgresql://user:password@host:5432/frostedcorner
-```
+Each machine runs its own local database, so the data on your laptop is yours
+alone. Nothing is shared and nothing leaves the machine.
 
-`init_schema()` and `seed()` run on every boot. Both are idempotent: the schema
-uses `CREATE TABLE IF NOT EXISTS` and the seed only fills empty tables, so
-restarting never duplicates or overwrites data. With no `DATABASE_URL` the
-storefront still serves; only accounts and the operations console go dark.
+### Install PostgreSQL 17
 
-### Option A — share one database (recommended for a team)
-
-Point every machine at the same Azure Database for PostgreSQL instance and skip
-the local install entirely. Everyone then sees the same accounts and the same
-inventory, which is what you want when two people are demoing the same build.
-Azure requires TLS, so append `sslmode`:
-
-```
-DATABASE_URL=postgresql://user:password@your-server.postgres.database.azure.com:5432/frostedcorner?sslmode=require
-```
-
-### Option B — a local database per machine
-
-Install **PostgreSQL 17** to match what this was built and tested against.
+Use **17** on every machine — it is what this was built and tested against.
 
 macOS:
 
@@ -85,24 +68,50 @@ createdb frostedcorner
 ```
 
 Windows: install PostgreSQL 17 from the EDB installer, keep the default port
-5432, and note the password you set for the `postgres` user. Then:
+5432, and note the password you set for the `postgres` user. Then create the
+database:
 
 ```powershell
 & "C:\Program Files\PostgreSQL\17\bin\createdb.exe" -U postgres frostedcorner
 ```
 
-Install the Python packages and run the server with the variable set:
+### Run it
+
+Install the Python packages once:
 
 ```bash
 .venv/bin/python -m pip install -r requirements.txt
-DATABASE_URL="postgresql://$(whoami)@localhost:5432/frostedcorner" .venv/bin/python backend/server.py
 ```
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+On macOS and Linux that is the whole setup — the server connects to a local
+`frostedcorner` database by default, so **F5** in VS Code works with no
+environment variable:
+
+```bash
+.venv/bin/python backend/server.py
+```
+
+On Windows the local `postgres` user needs a password, so set the variable in
+the same shell before starting:
+
+```powershell
 $env:DATABASE_URL = "postgresql://postgres:YOUR_PASSWORD@localhost:5432/frostedcorner"
 .\.venv\Scripts\python.exe .\backend\server.py
 ```
+
+On boot the server creates the schema and seeds it. Both steps are idempotent
+— the schema uses `CREATE TABLE IF NOT EXISTS` and the seed only fills empty
+tables — so restarting never duplicates or overwrites anything. If the
+database is unreachable the storefront still serves; only accounts and the
+operations console go dark, and the console prints what to fix.
+
+`DATABASE_URL` overrides the default whenever it is set, which is how a hosted
+deployment points at its own server. Azure Database for PostgreSQL requires
+TLS, so a URL for it needs `?sslmode=require`.
 
 ### Seeded accounts
 
@@ -120,19 +129,21 @@ The seed is deterministic, so every machine gets identical numbers.
 In the app: sign in as `hq@frostedcorner.com` and open the operations console,
 which reads live inventory and supply orders.
 
-From the command line:
+From the command line (`psql frostedcorner` on macOS; on Windows use pgAdmin or
+add `-U postgres`):
 
 ```bash
-psql "$DATABASE_URL" -c "\dt"
-psql "$DATABASE_URL" -c "select email, role, home_corner from users order by id;"
-psql "$DATABASE_URL" -c "select location_id, item_id, on_hand, reorder_point from inventory where on_hand <= reorder_point;"
+psql frostedcorner -c "\dt"
+psql frostedcorner -c "select email, role, home_corner from users order by id;"
+psql frostedcorner -c "select location_id, item_id, on_hand, reorder_point from inventory where on_hand <= reorder_point;"
 ```
 
 For a GUI, **pgAdmin** ships with the Windows installer; **DBeaver** and
-**TablePlus** both work on either platform. Connect with the same host, port,
-database, user and password from `DATABASE_URL`.
+**TablePlus** both work on either platform. Connect to host `localhost`, port
+5432, database `frostedcorner`.
 
-To start over on a local database:
+Because the seed only fills empty tables, editing `seed.py` will not change a
+database that already has rows. To pick up new mock data, start over:
 
 ```bash
 dropdb frostedcorner && createdb frostedcorner

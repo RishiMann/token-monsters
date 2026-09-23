@@ -5,6 +5,10 @@ server, Azure Database for PostgreSQL, or anything else that speaks Postgres:
 
     DATABASE_URL=postgresql://user:password@host:5432/frostedcorner
 
+Locally the variable is optional: with none set, and outside App Service,
+the connection falls back to a `frostedcorner` database on the machine's
+own PostgreSQL server.
+
 `init_schema()` is idempotent and `seed()` only fills empty tables, so both are
 safe to run on every boot. The JSON files in this directory remain the seed
 source for the catalog; everything mutable lives in the database from then on.
@@ -24,8 +28,22 @@ class DatabaseUnavailable(RuntimeError):
     """Raised when the database is not configured or not reachable."""
 
 
+LOCAL_DEFAULT = "postgresql:///frostedcorner"
+
+
 def database_url():
-    return os.environ.get("DATABASE_URL")
+    """DATABASE_URL, falling back to a local database during development.
+
+    App Service always sets PORT, so the fallback only ever applies on a
+    developer machine. That means `createdb frostedcorner` and running the
+    server is enough locally, with no environment variable to remember.
+    """
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        return url
+    if "PORT" in os.environ:
+        return None
+    return LOCAL_DEFAULT
 
 
 def _pool_or_raise():

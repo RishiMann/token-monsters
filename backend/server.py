@@ -240,6 +240,8 @@ def main() -> None:
             print("DATABASE_URL not set — accounts and franchise data are unavailable.")
     except Exception as exc:
         print(f"Database unavailable ({exc}); serving without accounts.")
+        print("Start PostgreSQL and run `createdb frostedcorner`, "
+              "or set DATABASE_URL. See README.md.")
 
     server = ThreadingHTTPServer((HOST, PORT), AppHandler)
     print(f"Frosted Corner running at http://{HOST}:{PORT}")
