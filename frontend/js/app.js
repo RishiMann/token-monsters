@@ -527,14 +527,6 @@ $("[data-chat-form]").addEventListener("submit", (event) => {
   conciergeReply({ text });
 });
 
-document.addEventListener("click", (event) => {
-  const chip = event.target.closest("[data-concierge-chip]");
-  if (!chip) return;
-  const text = chip.dataset.conciergeChip;
-  bubble(esc(text), "user");
-  conciergeReply({ text });
-});
-
 bubble("Hi! Tell me the occasion or just a craving, and I'll shortlist from this week's menu. "
   + "I'll remember anything you tell me — guests, allergies, budget — for the rest of the chat.");
 
