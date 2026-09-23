@@ -465,9 +465,17 @@ async function conciergeReply(input) {
   working.stop();
   working.el.remove();
 
+  // If the answer named no items but the question named some, show those —
+  // asking "is the Midnight Fudge nut-free?" should still surface the card.
+  const query = (input.text || "").toLowerCase();
+  const mentioned = query
+    ? fullMenu.filter((item) => query.includes(item.name.split(" ")[0].toLowerCase()))
+    : [];
+  const items = reply.items?.length ? reply.items : mentioned;
+
   const body = [
     `<div>${esc(reply.message)}</div>`,
-    reply.items?.length ? recStrip(reply.items) : "",
+    items.length ? recStrip(items) : "",
     reply.held ? `<small class="reply-held">Holding: ${esc(reply.held)}</small>` : "",
     reply.trace?.length
       ? `<details class="reply-trace"><summary>How it got there</summary><ol>${

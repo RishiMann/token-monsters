@@ -51,7 +51,10 @@ const KEYWORD_HINTS = [
   { match: /fruit|berry|citrus|lemon|strawberr/i, ids: ["lemon-cloud", "strawberry-stack"], line: "Fruit-forward and lighter — good after a big meal." },
   { match: /nut/i, ids: ["pink-velvet", "lemon-cloud"], line: "These two are made on a nut-free line. I've left the almond tart out." },
   { match: /wedding|anniversar|engagement/i, ids: ["pink-velvet", "strawberry-stack"], line: "Soft palette, photographs well, and both scale to a large tray." },
-  { match: /coffee|espresso|brunch/i, ids: ["biscoff", "brown-butter"], line: "Built to sit next to coffee without competing with it." }
+  { match: /coffee|espresso|brunch/i, ids: ["biscoff", "brown-butter"], line: "Built to sit next to coffee without competing with it." },
+  { match: /caramel|cookie|biscoff|spiced/i, ids: ["biscoff", "brown-butter"], line: "Toasty, familiar flavors with enough salt to keep the sweetness in check." },
+  { match: /light|fresh|not too sweet/i, ids: ["lemon-cloud", "strawberry-stack"], line: "These are the lighter picks: bright fruit and a clean finish." },
+  { match: /rich|decadent|indulgent/i, ids: ["midnight-fudge", "biscoff"], line: "For a proper treat, I'd start with these two richer flavors." }
 ];
 
 const pick = (ids) => ids.map(byId).filter(Boolean);
@@ -60,6 +63,11 @@ const uniqueItems = (items) => items.filter((item, index, all) =>
 );
 
 const normalized = (text = "") => text.trim().toLowerCase();
+
+const keywordItems = (text) => {
+  const hits = KEYWORD_HINTS.filter((hint) => hint.match.test(text));
+  return uniqueItems(hits.flatMap((hint) => pick(hint.ids))).slice(0, 3);
+};
 
 const serviceInfo = async ({ text = "" } = {}) => {
   await think(260);
@@ -110,7 +118,8 @@ const recommendation = async ({ occasion, text, context } = {}) => {
 
   if (text) {
     const hit = KEYWORD_HINTS.find((hint) => hint.match.test(text));
-    if (hit) return { agent: "recommendation", message: `${hit.line}${dealMessage}`, items: pick(hit.ids), analysis, deals };
+    const items = keywordItems(text);
+    if (hit && items.length) return { agent: "recommendation", message: `${hit.line}${dealMessage}`, items, analysis, deals };
   }
 
   if (history.availableFavorites.length) {
@@ -288,8 +297,7 @@ const orders = async ({ text = "" } = {}) => {
   const mentioned = fullMenu.filter((item) =>
     text.toLowerCase().includes(item.name.toLowerCase().split(" ")[0].toLowerCase())
   );
-  const keywordMatch = KEYWORD_HINTS.find((hint) => hint.match.test(text));
-  const matches = mentioned.length ? mentioned : keywordMatch ? pick(keywordMatch.ids) : [];
+  const matches = mentioned.length ? mentioned : keywordItems(text);
   if (matches.length) {
     return {
       agent: "orders",
