@@ -326,14 +326,13 @@ def main() -> None:
     # Best effort: a missing database must not stop the storefront serving.
     try:
         import db, seed
-        if db.database_url():
-            db.init_schema()
-            written = seed.seed()
-            if written:
-                print(f"Database seeded: {written}")
-            print("Database ready.")
-        else:
-            print("DATABASE_URL not set — accounts and franchise data are unavailable.")
+        # Always initialize. Without DATABASE_URL the layer falls back to
+        # SQLite, which still needs its schema and seed on first boot.
+        db.init_schema()
+        written = seed.seed()
+        if written:
+            print(f"Database seeded: {written}")
+        print(f"Database ready ({db.driver()}).")
     except Exception as exc:
         print(f"Database unavailable ({exc}); serving without accounts.")
         print("Start PostgreSQL and run `createdb frostedcorner`, "
