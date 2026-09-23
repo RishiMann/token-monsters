@@ -7,3 +7,6 @@ __pycache__/
 
 # Editor settings are per-machine; copy .vscode.example/ to .vscode/
 .vscode/
+
+# Local Claude Code launch config
+.claude/

@@ -50,6 +50,64 @@ The templates resolve the interpreter through VS Code rather than hardcoding a
 path, so the same files work on either platform once VS Code has selected the
 `.venv` interpreter.
 
+## How the storefront reasons
+
+The catalog in `backend/storefront.json` carries everything the agents need,
+so a new item is recommendable the moment it is added:
+
+- **`profile`** on every item: flavor family, richness and brightness (0-4),
+  texture, the occasions it suits, and explicit pairings with a reason.
+  `frontend/js/recommendation-engine.js` ranks candidates against the box
+  from these — pairings, complementary families, rich/bright balance, texture
+  contrast, occasion fit, plant-based consistency, live seasons and the
+  customer's favorites — and explains each pick. `backend/agent_tools.py`
+  exposes the same ranking to the model as `suggest_pairings`.
+- **`rule`** on every offer. `frontend/js/offers.js` and `backend/offers.py`
+  evaluate the same rules: the six-count bundle (10%, or 15% with three or
+  more flavors), the party box (free flavor flight at 12+), $1.50 off each
+  live seasonal treat, the reorder rate (signed in, four or more of a
+  favorite), and free delivery over $45. An offer is either earned by the box,
+  with the amount it takes off, or locked with the reason. One discount
+  applies at a time; free delivery is automatic. The applied offer is shown in
+  the box drawer, priced on the checkout receipt, and drops off by itself if
+  the box stops qualifying.
+- **`releaseDate`** on every seasonal item, inside its menu's `opens`/`closes`
+  window. `frontend/js/seasons.js` and `backend/seasons.py` compute what is
+  on the counter today; the calendar on the homepage pins each item to its
+  release day and re-renders at midnight.
+
+The Corner Concierge is the one chat surface. `frontend/js/agents.js` sends
+every turn to `/api/agent` first; without a model configured the server
+answers 503 and `frontend/js/concierge.js` answers from the same engine and
+offer rules, so the chat never contradicts the page.
+
+### Growing the catalog
+
+```bash
+.venv/bin/python tools/expand_catalog.py   # profiles, new items, release dates, offer rules (idempotent)
+.venv/bin/python tools/fetch_photos.py     # photos from tools/photos.json -> frontend/assets/desserts/
+node --test tests/storefront.test.mjs      # engine, offers and seasons against the real catalog
+```
+
+Photos come from Pexels under the Pexels License; every source is listed in
+`frontend/assets/desserts/ATTRIBUTION.md`. To add an item, give it a
+`profile` (see `PROFILES` in `tools/expand_catalog.py`), map a photo in
+`tools/photos.json`, and run both tools.
+
+### The model-backed agents
+
+`backend/agent_runtime.py` runs every agent — recommendation, concierge,
+planner, offers, support, orders, seasonal — against a Foundry / Azure OpenAI
+deployment when these are set on the App Service:
+
+```
+AZURE_OPENAI_ENDPOINT    https://<resource>.openai.azure.com/openai/v1/
+AZURE_OPENAI_DEPLOYMENT  deployment name (default gpt-4.1)
+AZURE_OPENAI_API_KEY     optional; omit to use the managed identity
+```
+
+Until they are, the storefront runs entirely on the rule-based path above.
+
 ## Deployment (Azure App Service)
 
 `.github/workflows/main_tokenmonster.yml` deploys `main` to the `tokenmonster`

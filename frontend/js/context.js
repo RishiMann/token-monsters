@@ -1,6 +1,7 @@
 /** Builds agent-readable context from the backend context data source. */
 
 import { eventMenus, fullMenu, weeklyMenu } from "./data.js";
+import { liveSeasons } from "./seasons.js";
 
 const CONTEXT_ENDPOINT = "/api/context";
 const DEFAULT_NEEDS = ["customer", "history", "cart", "market", "signals"];
@@ -72,7 +73,7 @@ function summarizeMarket(source) {
     const popular = (Array.isArray(source.popularity) ? source.popularity : [])
         .map((signal) => ({ ...signal, item: itemById(signal.id) }))
         .filter((signal) => signal.item);
-    const liveSeasonal = eventMenus.find((menu) => menu.status === "live") || eventMenus[0];
+    const liveSeasonal = liveSeasons(eventMenus)[0] || eventMenus[0] || { id: null, name: "", highlights: [] };
 
     return {
         popular,

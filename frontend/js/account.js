@@ -56,51 +56,6 @@ async function boot() {
   renderPreferences(me.preferences || {});
 }
 
-function renderStats(me, menu) {
-  const orders = me.orders || [];
-  const treats = orders.reduce((sum, o) => sum + (o.items || []).reduce((n, i) => n + (i.quantity || 1), 0), 0);
-  const spend = orders.reduce((sum, o) => sum + (o.items || []).reduce((n, i) => {
-    const item = menu.find((m) => m.id === i.id);
-    return n + (item ? item.price * (i.quantity || 1) : 0);
-  }, 0), 0);
-
-  $("[data-stats]").innerHTML = [
-    { value: me.history?.order_count ?? orders.length, label: "boxes ordered" },
-    { value: treats, label: "treats total" },
-    { value: money(spend), label: "spend on record" },
-    { value: me.preferences?.repeat_pattern || "—", label: "your rhythm" }
-  ].map((s) => `<div class="stat"><strong>${esc(s.value)}</strong><small>${esc(s.label)}</small></div>`).join("");
-}
-
-function renderOffers(offers) {
-  const wrap = $("[data-offers]");
-  if (!offers.length) {
-    wrap.innerHTML = `<p class="empty">No offers yet — order a box and they'll start showing up.</p>`;
-    return;
-  }
-  wrap.innerHTML = offers.map((offer) => `
-    <article class="offer-row tint-${esc(offer.tint || "gold")}">
-      <span class="offer-row-emoji" aria-hidden="true">${esc(offer.emoji || "◎")}</span>
-      <div class="offer-row-body">
-        <span class="offer-label">${esc(offer.label)}</span>
-        <strong>${esc(offer.title)}</strong>
-        <p>${esc(offer.detail)}</p>
-        <p class="offer-why"><strong>Why you:</strong> ${esc(offer.eligibility || offer.reason)}</p>
-      </div>
-      <div class="offer-row-act">
-        <span class="offer-value">${esc(offer.value)}</span>
-        <button class="chip" type="button" data-claim="${esc(offer.title)}">Apply</button>
-      </div>
-    </article>`).join("");
-
-  wrap.querySelectorAll("[data-claim]").forEach((b) =>
-    b.addEventListener("click", () => {
-      b.textContent = "Applied ✓"; b.classList.add("is-active");
-      toast(`${b.dataset.claim} applied to your next box`);
-    })
-  );
-}
-
 function renderFavorites(favorites, byId) {
   const wrap = $("[data-favorites]");
   if (!favorites.length) {
