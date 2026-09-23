@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Your Frosted Corner profile — offers, favorites and box history." />
+    <title>Your profile | Frosted Corner</title>
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="account.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Frosted Corner, home">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="42" height="42" /></span>
+        <span class="brand-word"><strong>Frosted</strong><small>Corner</small></span>
+      </a>
+      <nav class="main-nav" aria-label="Main">
+        <a href="index.html#menu">This week</a>
+        <a href="index.html#events">Seasonal</a>
+        <a href="index.html#plans">Subscribe</a>
+      </nav>
+      <div class="header-actions">
+        <span class="session-chip" data-session-chip></span>
+        <button class="chip" type="button" data-signout>Sign out</button>
+      </div>
+    </header>
+
+    <main id="main" class="account-shell">
+      <section class="account-hero">
+        <div class="avatar-lg" data-initials aria-hidden="true"></div>
+        <div>
+          <p class="eyebrow">Your profile</p>
+          <h1 data-name>—</h1>
+          <p class="account-sub" data-sub>—</p>
+        </div>
+        <a class="button button-primary" href="index.html#menu">Build a box <span aria-hidden="true">→</span></a>
+      </section>
+
+      <section class="stat-row" data-stats></section>
+
+      <section class="account-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Your offers</h2>
+            <span class="panel-tag"><span class="agent-dot tint-gold"></span>Offers Agent</span>
+          </div>
+          <p class="panel-lede">Each one exists because of something you actually did.</p>
+          <div class="offer-stack" data-offers></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Your favorites</h2>
+            <span class="panel-tag">From your order history</span>
+          </div>
+          <p class="panel-lede">What you come back for, ranked by how often you order it.</p>
+          <div class="favorite-list" data-favorites></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h2>Recent boxes</h2></div>
+          <div class="order-list" data-orders></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h2>Saved event</h2></div>
+          <div data-event></div>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" data-toast role="status" aria-live="polite"></div>
+    <script type="module" src="js/account.js"></script>
+  </body>
+</html>

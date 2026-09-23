@@ -21,6 +21,7 @@ HOST = os.environ.get("HOST") or ("0.0.0.0" if "PORT" in os.environ else "127.0.
 ROOT = Path(__file__).resolve().parent.parent / "frontend"
 CONTEXT_SOURCE = Path(__file__).resolve().parent / "context.json"
 STOREFRONT_SOURCE = Path(__file__).resolve().parent / "storefront.json"
+OPERATIONS_SOURCE = Path(__file__).resolve().parent / "operations.json"
 
 
 class AppHandler(SimpleHTTPRequestHandler):
@@ -33,6 +34,7 @@ class AppHandler(SimpleHTTPRequestHandler):
         sources = {
             "/api/context": CONTEXT_SOURCE,
             "/api/storefront": STOREFRONT_SOURCE,
+            "/api/operations": OPERATIONS_SOURCE,
         }
         source = sources.get(self.path)
         if source:
