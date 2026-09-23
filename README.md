@@ -32,6 +32,24 @@ The current server has no third-party dependencies. Add future backend packages 
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
+### Editor settings
+
+`.vscode/` is not tracked, because the interpreter path differs per machine and
+committing it means macOS and Windows overwrite each other's settings on every
+pull. Copy the template once after cloning:
+
+```bash
+cp .vscode.example/*.json .vscode/
+```
+
+```powershell
+Copy-Item .vscode.example\*.json .vscode\
+```
+
+The templates resolve the interpreter through VS Code rather than hardcoding a
+path, so the same files work on either platform once VS Code has selected the
+`.venv` interpreter.
+
 ## Deployment (Azure App Service)
 
 `.github/workflows/main_tokenmonster.yml` deploys `main` to the `tokenmonster`
