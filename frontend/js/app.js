@@ -198,7 +198,11 @@ $("[data-plan-grid]").innerHTML = plans.map((plan) => `
 
 document.addEventListener("click", (event) => {
   const sub = event.target.closest("[data-subscribe]");
-  if (sub) toast(`${sub.dataset.subscribe} selected — checkout coming next`);
+  if (sub) {
+    $$('[data-subscribe]').forEach((button) => button.classList.remove("is-active"));
+    sub.classList.add("is-active");
+    toast(`${sub.dataset.subscribe} selected — sign in to manage your weekly box`);
+  }
 });
 
 /* ── Reviews ───────────────────────────────────────────────── */
@@ -294,11 +298,18 @@ function recStrip(items) {
     </div>`).join("")}</div>`;
 }
 
+function replyChips(chips, attribute) {
+  if (!chips?.length) return "";
+  return `<div class="reply-chips">${chips.map((chip) =>
+    `<button class="reply-chip" type="button" ${attribute}="${esc(chip)}">${esc(chip)}</button>`
+  ).join("")}</div>`;
+}
+
 async function conciergeReply(input) {
   const typing = typingBubble();
-  const reply = await ask("recommendation", await withContext(input));
+  const reply = await ask("concierge", await withContext(input));
   typing.remove();
-  const body = `<div>${esc(reply.message)}</div>${reply.items?.length ? recStrip(reply.items) : ""}`;
+  const body = `<div>${esc(reply.message)}</div>${reply.items?.length ? recStrip(reply.items) : ""}${reply.note ? `<small class="reply-note">${esc(reply.note)}</small>` : ""}${reply.chips ? replyChips(reply.chips, "data-concierge-chip") : ""}`;
   bubble(body);
 }
 
@@ -436,6 +447,13 @@ $("[data-support-form]").addEventListener("submit", (event) => {
 });
 
 document.addEventListener("click", (event) => {
+  const conciergeChip = event.target.closest("[data-concierge-chip]");
+  if (conciergeChip) {
+    const label = conciergeChip.dataset.conciergeChip;
+    bubble(esc(label), "user");
+    conciergeReply({ text: label });
+    return;
+  }
   const chip = event.target.closest("[data-support-chip]");
   if (!chip) return;
   const label = chip.dataset.supportChip;
@@ -447,12 +465,12 @@ document.addEventListener("click", (event) => {
   supportReply(label);
 });
 
-/* ── Voice ordering (affordance only for now) ──────────────── */
+/* ── Voice ordering demo ───────────────────────────────────── */
 $('[data-action="voice"]').addEventListener("click", async () => {
-  toast("Listening… (voice ordering ships with the Orders Agent)");
+  toast("Voice demo ready — tell the Orders Agent what you want");
   const reply = await ask("orders", await withContext({ text: "" }));
   openSupport(true);
-  supportBubble(esc(reply.message));
+  supportBubble(`${esc(reply.message)}${reply.items?.length ? recStrip(reply.items) : ""}`);
 });
 
 /* ── The box ───────────────────────────────────────────────── */
@@ -462,8 +480,26 @@ const scrim = $("[data-scrim]");
 const boxEl = $("[data-box]");
 const slotWrap = $("[data-box-slots]");
 const linesWrap = $("[data-drawer-lines]");
+const checkoutDialog = $(`[data-checkout-dialog]`);
+const checkoutSummary = $(`[data-checkout-summary]`);
+const addressField = $(`[data-address-field]`);
+let latestBox = { count: 0, subtotal: 0 };
+
+function syncFulfillmentOptions() {
+  const selected = $("input[name=fulfillment]:checked", checkoutDialog)?.value;
+  $$('input[name="fulfillment"]', checkoutDialog).forEach((input) =>
+    input.closest(".fulfillment-option").classList.toggle("is-selected", input.checked)
+  );
+  addressField.hidden = selected !== "delivery";
+  addressField.querySelector("input").required = selected === "delivery";
+}
+
+checkoutDialog.querySelectorAll('input[name="fulfillment"]').forEach((input) =>
+  input.addEventListener("change", syncFulfillmentOptions)
+);
 
 function renderBox(snapshot) {
+  latestBox = snapshot;
   const { lines, count, subtotal, capacity } = snapshot;
 
   $("[data-bag-count]").textContent = count;
@@ -552,7 +588,21 @@ $("[data-clear-bag]").addEventListener("click", () => {
 
 $("[data-checkout]").addEventListener("click", () => {
   if (bag.getCount() === 0) return toast("Add something sweet first");
-  toast("Checkout is next on the build list");
+  checkoutSummary.textContent = `${latestBox.count} treat${latestBox.count === 1 ? "" : "s"} · ${money(latestBox.subtotal)}`;
+  syncFulfillmentOptions();
+  checkoutDialog.showModal();
+});
+
+$("[data-checkout-close]").addEventListener("click", () => checkoutDialog.close());
+
+$("[data-checkout-form]").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const method = $("input[name=fulfillment]:checked", checkoutDialog).value;
+  const windowLabel = $("select[name=window]", checkoutDialog).value;
+  checkoutDialog.close();
+  bag.clear();
+  openBag(false);
+  toast(`Demo order placed for ${method}, ${windowLabel.toLowerCase()}`);
 });
 
 /* ── Boot ──────────────────────────────────────────────────── */

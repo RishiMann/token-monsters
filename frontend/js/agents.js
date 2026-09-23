@@ -59,6 +59,40 @@ const uniqueItems = (items) => items.filter((item, index, all) =>
   item && all.findIndex((candidate) => candidate.id === item.id) === index
 );
 
+const normalized = (text = "") => text.trim().toLowerCase();
+
+const serviceInfo = async ({ text = "" } = {}) => {
+  await think(260);
+  const query = normalized(text);
+
+  if (/delivery|deliver|shipping|drop.?off/i.test(query)) {
+    return {
+      agent: "service",
+      message: "Delivery runs within 5 miles of your corner, usually in 30–45 minutes. It is free over $45; otherwise the delivery fee is $6.95. Choose delivery at checkout and we will show the available window.",
+      chips: ["Build a delivery box", "What is pickup like?", "Ask about allergens"]
+    };
+  }
+  if (/pickup|pick up|takeout|take.?away|counter/i.test(query)) {
+    return {
+      agent: "service",
+      message: "Pickup and takeout are ready at Frisco Corner in about 20 minutes. We will hold a prepared box for 30 minutes after your selected window, and you can collect it at the counter.",
+      chips: ["Build a pickup box", "Can you deliver?", "What are your hours?"]
+    };
+  }
+  if (/hour|open|close|when are you/i.test(query)) {
+    return {
+      agent: "service",
+      message: "Frisco Corner is open Monday–Saturday, 8:00 AM–8:00 PM, and Sunday, 9:00 AM–4:00 PM. Pickup windows are offered throughout open hours.",
+      chips: ["Plan pickup", "Plan delivery", "See this week's menu"]
+    };
+  }
+  return {
+    agent: "service",
+    message: "I can help with pickup, takeout, delivery windows, store hours, and getting a box ready for checkout.",
+    chips: ["How does delivery work?", "How does pickup work?", "What are your hours?"]
+  };
+};
+
 const recommendation = async ({ occasion, text, context } = {}) => {
   await think();
 
@@ -158,6 +192,10 @@ const offers = async ({ basketSize = 0, context } = {}) => {
 const support = async ({ text = "" } = {}) => {
   await think(380);
 
+  if (/delivery|deliver|shipping|pickup|pick up|takeout|take.?away|hour|open|close/i.test(text)) {
+    return serviceInfo({ text });
+  }
+
   if (/allergen|nut|gluten|dairy|vegan/i.test(text)) {
     return {
       agent: "support",
@@ -165,11 +203,11 @@ const support = async ({ text = "" } = {}) => {
       chips: ["Show nut-free", "Show plant-based", "Talk to a person"]
     };
   }
-  if (/where|order|status|track|pickup|late/i.test(text)) {
+  if (/where|order|status|track|late|missing/i.test(text)) {
     return {
       agent: "support",
-      message: "I can pull up live order status once you're signed in. Orders usually move from oven to counter in about 20 minutes.",
-      chips: ["Track my order", "Change pickup time", "Talk to a person"]
+      message: "Orders move from oven to counter in about 20 minutes. For this demo, sign in to see your order history; a live order tracker would appear there once an order is placed.",
+      chips: ["How does pickup work?", "How does delivery work?", "Talk to a person"]
     };
   }
   if (/refund|wrong|missing|cold|broken/i.test(text)) {
@@ -187,11 +225,51 @@ const support = async ({ text = "" } = {}) => {
     };
   }
 
+  if (/subscribe|subscription|weekly|pause|skip|swap/i.test(text)) {
+    return {
+      agent: "support",
+      message: "Subscriptions are flexible weekly boxes: choose a plan, then skip, swap, or pause from your account before the next flavor drop. The concierge can fill the box from the live menu when you want it to.",
+      chips: ["Show subscription plans", "Pick up my box", "Build a one-time box"]
+    };
+  }
+
+  if (/hello|hi|hey|help|what can you do/i.test(text)) {
+    return {
+      agent: "support",
+      message: "I can recommend flavors, build a party spread, explain allergens, answer pickup and delivery questions, help with subscriptions, or find an order. Tell me what you are planning.",
+      chips: ["Recommend something", "Plan for 12 people", "How does delivery work?"]
+    };
+  }
+
   return {
     agent: "support",
     message: "Happy to help. I can answer allergens, order status, subscriptions and party sizing — or hand you to someone at your local corner.",
     chips: ["Allergens", "Track my order", "Subscriptions", "Talk to a person"]
   };
+};
+
+const concierge = async (input = {}) => {
+  const text = input.text || "";
+  const query = normalized(text);
+  const guestsMatch = query.match(/\b(\d{1,3})\s*(?:people|guests|person|friends|servings)\b/);
+
+  if (!query && input.occasion) return recommendation(input);
+  if (/delivery|deliver|shipping|pickup|pick up|takeout|take.?away|hour|open|close/i.test(query)) {
+    return serviceInfo(input);
+  }
+  if (guestsMatch || /party|event|catering|spread|office|birthday|wedding/i.test(query)) {
+    const guests = guestsMatch ? Math.max(4, Math.min(60, Number(guestsMatch[1]))) : 12;
+    return planner({ ...input, guests, dietary: /vegan|plant.?based/i.test(query) ? ["vegan"] : [] });
+  }
+  if (/order|buy|checkout|box|add|two|three|four|five|six/i.test(query)) {
+    return orders(input);
+  }
+  if (/offer|deal|discount|save/i.test(query)) return offers({ ...input, basketSize: input.context?.cart?.count || 0 });
+  if (/season|seasonal|event|holiday/i.test(query)) return seasonal(input);
+  if (/allergen|nut|gluten|dairy|refund|wrong|missing|subscription|subscribe|help|hello|hi|hey|hours/i.test(query)) {
+    return support(input);
+  }
+  return recommendation(input);
 };
 
 const seasonal = async ({ context } = {}) => {
@@ -210,11 +288,13 @@ const orders = async ({ text = "" } = {}) => {
   const mentioned = fullMenu.filter((item) =>
     text.toLowerCase().includes(item.name.toLowerCase().split(" ")[0].toLowerCase())
   );
-  if (mentioned.length) {
+  const keywordMatch = KEYWORD_HINTS.find((hint) => hint.match.test(text));
+  const matches = mentioned.length ? mentioned : keywordMatch ? pick(keywordMatch.ids) : [];
+  if (matches.length) {
     return {
       agent: "orders",
-      message: `Got it — ${mentioned.map((item) => item.name).join(" and ")} added. Pickup or delivery?`,
-      items: mentioned,
+      message: `I found ${matches.map((item) => item.name).join(" and ")}. Add them to your box below, then choose pickup or delivery at checkout.`,
+      items: matches,
       chips: ["Pickup", "Delivery"]
     };
   }
@@ -225,7 +305,7 @@ const orders = async ({ text = "" } = {}) => {
   };
 };
 
-const HANDLERS = { recommendation, planner, offers, support, seasonal, orders };
+const HANDLERS = { recommendation, concierge, planner, offers, support, seasonal, orders, service: serviceInfo };
 
 /** Single entry point the UI calls. Unknown ids fall back to support. */
 export async function ask(agentId, input = {}) {
