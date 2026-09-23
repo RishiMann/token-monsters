@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Current offers, deals and seasonal dessert menus from Frosted Corner." />
+  <title>Offers &amp; deals | Frosted Corner</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="announcement"><span data-announce>Free delivery over $45</span></div>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Frosted Corner, home">
+      <span class="brand-mark"><img src="assets/logo.svg" alt="" width="42" height="42" /></span>
+      <span class="brand-word"><strong>Frosted</strong><small>Corner</small></span>
+    </a>
+    <nav class="main-nav" aria-label="Main">
+      <a href="index.html#menu">This week</a>
+      <a href="offers.html" aria-current="page">Offers &amp; deals</a>
+      <a href="catering.html">Catering</a>
+      <a href="subscriptions.html">Subscribe</a>
+      <a href="account.html">Profile</a>
+    </nav>
+    <div class="header-actions">
+      <a class="account-button" href="account.html">Profile</a>
+      <a class="button button-primary" href="index.html#menu">Shop the menu <span aria-hidden="true">→</span></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-intro">
+      <p class="eyebrow"><span class="agent-dot tint-gold"></span>Offers Agent</p>
+      <h1>Good reasons to <em>treat yourself.</em></h1>
+      <p class="lede">Personalized savings, limited drops and seasonal menus, all in one easy place.</p>
+    </section>
+
+    <section class="section offers-section" aria-labelledby="offers-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Personalized for you</p>
+          <h2 id="offers-title">Offers with a <em>reason</em></h2>
+          <p class="section-lede">No blanket codes. Each offer exists because of something you actually did.</p>
+        </div>
+      </div>
+      <div class="offer-rail" data-offer-rail></div>
+    </section>
+
+    <section class="section" id="seasonal" aria-labelledby="seasonal-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow"><span class="agent-dot tint-caramel"></span>Seasonal menus</p>
+          <h2 id="seasonal-title">What follows <em>the calendar</em></h2>
+          <p class="section-lede">Explore the limited menus that are here now and the ones coming next.</p>
+        </div>
+      </div>
+      <div class="event-grid" data-event-grid></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="footer-brand"><img src="assets/logo.svg" alt="" width="40" height="40" /><p><strong>Frosted Corner</strong><br />Desserts, figured out.</p></div>
+      <nav class="footer-links" aria-label="Footer"><a href="index.html#menu">This week</a><a href="catering.html">Catering</a><a href="subscriptions.html">Subscribe</a><a href="account.html">Profile</a></nav>
+    </div>
+    <p class="footer-note">© 2026 Frosted Corner · Prototype built for Cap-A-Thon</p>
+  </footer>
+
+  <dialog class="item-dialog" data-item-dialog aria-labelledby="item-dialog-title">
+    <button class="dialog-close" type="button" data-item-close aria-label="Close">×</button>
+    <div class="item-dialog-body" data-item-dialog-body></div>
+  </dialog>
+  <div class="toast" data-toast role="status" aria-live="polite"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

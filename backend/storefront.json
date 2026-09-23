@@ -552,6 +552,45 @@
         }
       ],
       "reviewCount": 3
+    },
+    {
+      "id": "salted-honey",
+      "id": "salted-honey",
+      "name": "Salted Honey Cake",
+      "blurb": "Whipped honey cream · flaky sea salt",
+      "price": 5.25,
+      "emoji": "🍯",
+      "tint": "gold",
+      "badge": "New this week",
+      "tags": ["new", "rich"],
+      "rating": 4.8,
+      "allergens": ["wheat", "dairy", "egg"],
+      "image": "assets/desserts/salted-honey.svg",
+      "dietary": [],
+      "reviews": [
+        {"id": "salted-honey-r1", "name": "Maya L.", "initials": "ML", "stars": 5, "date": "2026-09-20", "verified": "Verified purchase", "body": "The honey flavor is warm and clear, and the salt keeps the cream from becoming too sweet."},
+        {"id": "salted-honey-r2", "name": "Jon P.", "initials": "JP", "stars": 5, "date": "2026-09-17", "verified": "Verified purchase", "body": "Soft cake, light frosting, exactly the kind of dessert I want with coffee."}
+      ],
+      "reviewCount": 2
+    },
+    {
+      "id": "raspberry-oat",
+      "name": "Raspberry Oat Crumble",
+      "blurb": "Tart raspberry jam · brown sugar oat topping",
+      "price": 4.95,
+      "emoji": "🍓",
+      "tint": "berry",
+      "badge": "New this week",
+      "tags": ["new", "fruity", "shareable"],
+      "rating": 4.9,
+      "allergens": ["wheat", "dairy"],
+      "image": "assets/desserts/raspberry-oat.svg",
+      "dietary": ["Vegetarian"],
+      "reviews": [
+        {"id": "raspberry-oat-r1", "name": "Leah S.", "initials": "LS", "stars": 5, "date": "2026-09-21", "verified": "Verified purchase", "body": "Bright raspberry and a genuinely crisp oat topping. It is not overly sweet."},
+        {"id": "raspberry-oat-r2", "name": "Noah K.", "initials": "NK", "stars": 5, "date": "2026-09-15", "verified": "Verified purchase", "body": "This disappeared first from our shared box. The tart filling makes it very easy to keep eating."}
+      ],
+      "reviewCount": 2
     }
   ],
   "plantBased": [

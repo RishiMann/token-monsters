@@ -140,6 +140,12 @@ export function initItemDetail({ onAdd } = {}) {
     const toReviews = trigger.matches("[data-open-reviews]");
     open(trigger.dataset.openItem, { reviews: toReviews });
   });
+  document.addEventListener("keydown", (event) => {
+    const trigger = event.target.closest("[data-open-item]");
+    if (!trigger || (event.key !== "Enter" && event.key !== " ")) return;
+    event.preventDefault();
+    open(trigger.dataset.openItem, { reviews: trigger.matches("[data-open-reviews]") });
+  });
 }
 
 export function open(itemId, { reviews = false } = {}) {

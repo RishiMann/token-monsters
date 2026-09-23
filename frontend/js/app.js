@@ -125,8 +125,8 @@ function productCard(item, index) {
                 aria-label="Read the ${(item.reviews || []).length} reviews for ${esc(item.name)}">
           ★ ${item.rating}
         </button>
-        <img class="product-photo" data-art="${item.id}" src="${esc(item.image)}"
-             alt="${esc(item.name)}" loading="lazy" width="400" height="300" />
+           <img class="product-photo" data-art="${item.id}" data-open-item="${item.id}" data-open-reviews
+             src="${esc(item.image)}" alt="Read reviews for ${esc(item.name)}" loading="lazy" width="400" height="300" tabindex="0" role="button" />
       </div>
       <div class="product-info">
         <h3><button class="product-name" type="button" data-open-item="${item.id}">${esc(item.name)}</button></h3>

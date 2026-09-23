@@ -106,7 +106,7 @@
 .account-shell {
   max-width: var(--wrap); margin-inline: auto;
   padding: clamp(24px, 4vw, 44px) clamp(16px, 4vw, 40px) 72px;
-  display: grid; gap: 22px;
+  display: grid; gap: 28px;
 }
 
 .session-chip {
@@ -123,7 +123,7 @@
 .account-hero {
   display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
   background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--r-xl); padding: 26px 28px; box-shadow: var(--shadow-sm);
+  border-radius: var(--r-lg); padding: 30px 32px; box-shadow: var(--shadow-sm);
 }
 .account-hero > div:nth-child(2) { flex: 1; display: grid; gap: 6px; }
 .account-hero h1 { font-size: clamp(1.7rem, 3.4vw, 2.3rem); }
@@ -158,13 +158,23 @@
 
 .panel {
   background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--r-lg); padding: 24px;
+  border-radius: var(--r-lg); padding: 26px;
 }
 .panel-head {
   display: flex; align-items: center; justify-content: space-between;
   gap: 14px; flex-wrap: wrap; margin-bottom: 6px;
 }
 .panel-head h2 { font-size: 1.3rem; }
+
+.account-grid .panel { min-width: 0; }
+.pref-list { display: grid; gap: 8px; margin-top: 14px; }
+.pref-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--cream); font-size: .86rem;
+}
+.pref-row span { color: var(--ink-soft); text-transform: capitalize; }
+.pref-row strong { text-align: right; }
 .panel-tag {
   display: inline-flex; align-items: center; gap: 7px;
   font-size: .72rem; font-weight: 600; color: var(--ink-soft);

@@ -820,12 +820,17 @@ a {
   position: absolute;
   top: 12px;
   right: 12px;
+  z-index: 3;
   background: rgba(255, 255, 255, .92);
   border-radius: 999px;
   padding: 4px 10px;
   font-size: .74rem;
   font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(42, 26, 31, .08);
 }
+
+.product-photo[data-open-item] { cursor: pointer; }
 
 .product-info {
   padding: 16px 18px 18px;
@@ -878,6 +883,16 @@ a {
   color: var(--ink-soft);
   padding: 40px 0;
 }
+
+.page-intro {
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding: clamp(48px, 7vw, 86px) clamp(16px, 4vw, 40px) 12px;
+  display: grid;
+  gap: 16px;
+}
+
+.page-intro h1 { max-width: 12ch; }
 
 /* ── Smart offers ───────────────────────────────────────────── */
 .offers-section {
