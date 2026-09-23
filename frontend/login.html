@@ -33,8 +33,13 @@
           <span class="brand-word"><strong>Frosted</strong><small>Corner</small></span>
         </a>
 
-        <h1>Welcome back</h1>
-        <p class="auth-lede">Sign in to see your offers, favorites and box history.</p>
+        <h1 data-heading>Welcome back</h1>
+        <p class="auth-lede" data-lede>Sign in to see your offers, favorites and box history.</p>
+
+        <div class="mode-tabs" role="tablist" aria-label="Sign in or create an account">
+          <button class="mode-tab is-active" type="button" role="tab" aria-selected="true" data-mode="signin">Sign in</button>
+          <button class="mode-tab" type="button" role="tab" aria-selected="false" data-mode="signup">Create account</button>
+        </div>
 
         <div class="role-toggle" role="group" aria-label="Account type">
           <button class="role-option is-active" type="button" data-role="customer">
@@ -46,6 +51,11 @@
         </div>
 
         <form class="auth-form" data-login-form novalidate>
+          <div data-name-field hidden>
+            <label for="name">Your name</label>
+            <input id="name" name="name" type="text" autocomplete="name" placeholder="Alex Rivera" />
+          </div>
+
           <label for="email">Email</label>
           <input id="email" name="email" type="email" autocomplete="username"
                  placeholder="you@frostedcorner.com" required />
@@ -56,12 +66,13 @@
 
           <p class="auth-error" data-error role="alert" hidden></p>
 
-          <button class="button button-primary full" type="submit">Sign in</button>
+          <button class="button button-primary full" type="submit" data-submit>Sign in</button>
+          <p class="auth-hint" data-hint hidden>At least 8 characters.</p>
         </form>
 
         <div class="demo-note">
-          <p class="demo-note-head">Prototype — demo accounts</p>
-          <p>This MVP has no real accounts. Use one of these, or press <em>Fill</em>.</p>
+          <p class="demo-note-head">Seeded demo accounts</p>
+          <p>Accounts are stored in PostgreSQL. Create your own, or use a seeded one.</p>
           <div class="demo-account" data-fill="customer">
             <div><strong>Customer</strong><code>alex@frostedcorner.com / treat</code></div>
             <button class="chip" type="button">Fill</button>

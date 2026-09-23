@@ -43,7 +43,7 @@ def _deployment():
 
 AGENTS = {
     "recommendation": {
-        "tools": ["search_menu", "assess_cart", "analyze_purchase_history", "find_offers", "present_items"],
+        "tools": ["search_menu", "assess_cart", "analyze_purchase_history", "get_customer_preferences", "find_offers", "present_items"],
         "system": (
             f"{_BRAND}\n\n"
             "You are the Recommendation Agent. Given an occasion, a craving or a "
@@ -146,7 +146,7 @@ def _client():
     return OpenAI(base_url=endpoint, api_key=key)
 
 
-def run(agent_id, text="", cart=None):
+def run(agent_id, text="", cart=None, user_id=None):
     """Run one agent turn. Returns {agent, message, items, model}."""
     config = AGENTS.get(agent_id)
     if not config:
@@ -190,7 +190,7 @@ def run(agent_id, text="", cart=None):
                 try:
                     # Arguments arrive as a JSON string and are not guaranteed valid.
                     args = json.loads(call.function.arguments or "{}")
-                    payload = impl(cart=cart, **args)
+                    payload = impl(cart=cart, user_id=user_id, **args)
                     if name == "present_items":
                         presented = payload.get("presented", [])
                 except json.JSONDecodeError:

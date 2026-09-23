@@ -2,7 +2,6 @@
 
 import { requireRole, signOut } from "./auth.js";
 
-const session = requireRole("admin");
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (v) =>
@@ -30,14 +29,17 @@ function stockStatus(row) {
 const STATUS_LABEL = { ok: "Healthy", low: "Getting low", inbound: "Order inbound", critical: "Below reorder point" };
 
 async function boot() {
-  $("[data-signout]").addEventListener("click", () => {
-    signOut();
+  const session = await requireRole("admin");
+  if (!session) return;
+
+  $("[data-signout]").addEventListener("click", async () => {
+    await signOut();
     location.assign("login.html");
   });
 
   $("[data-initials]").textContent = session.initials;
   $("[data-name]").textContent = session.name;
-  $("[data-sub]").textContent = `${session.title} · ${session.scope}`;
+  $("[data-sub]").textContent = "Franchise Operations, HQ · all corners";
   $("[data-session-chip]").textContent = session.email;
 
   document.querySelectorAll("[data-tab]").forEach((tab) =>
@@ -52,8 +54,9 @@ async function boot() {
     })
   );
 
-  const ops = await fetch("/api/operations").then((r) => r.json()).catch(() => null);
-  if (!ops) {
+  const ops = await fetch("/api/operations", { credentials: "same-origin" })
+    .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  if (!ops || ops.error) {
     document.querySelector(".account-shell").insertAdjacentHTML(
       "beforeend",
       `<p class="empty">Operations data is unavailable right now.</p>`
@@ -64,17 +67,19 @@ async function boot() {
   renderInventory(ops.inventory || []);
   renderLocations(ops.locations || []);
   renderSupply(ops.supplyOrders || []);
-  renderSales(ops.salesInsights || {});
+  renderSales(ops.insights || {}, ops.weekly || []);
 }
 
-function renderInventory(inventory) {
-  const rows = inventory.map((row) => ({ ...row, status: stockStatus(row) }));
+let LOW_STOCK = [];
+
+function renderInventory(rows) {
+  LOW_STOCK = rows.filter((r) => r.status === "critical" || r.status === "inbound");
   const needsOrder = rows.filter((r) => r.status === "critical").length;
   const inbound = rows.filter((r) => r.status === "inbound").length;
-  const slowest = rows.reduce((max, r) => Math.max(max, r.leadTimeDays), 0);
+  const slowest = rows.reduce((max, r) => Math.max(max, r.lead_time_days || 0), 0);
 
   $("[data-inv-stats]").innerHTML = [
-    { value: rows.length, label: "tracked SKUs" },
+    { value: rows.length, label: "tracked stock rows" },
     { value: needsOrder, label: "need ordering now", tone: needsOrder ? "alert" : "" },
     { value: inbound, label: "replenishment inbound" },
     { value: `${slowest}d`, label: "longest lead time" }
@@ -86,17 +91,15 @@ function renderInventory(inventory) {
   $("[data-inventory]").innerHTML = rows.map((row) => `
     <tr>
       <td><code>${esc(row.sku)}</code></td>
-      <td>${esc(row.name)}</td>
-      <td class="num">${esc(row.onHand)} ${esc(row.unit)}</td>
-      <td class="num">${esc(row.reorderPoint)}</td>
-      <td class="num">${row.onOrder ? esc(row.onOrder) : "—"}</td>
-      <td class="num">${esc(row.leadTimeDays)}d</td>
+      <td>${esc(row.name)}<small class="row-sub">${esc(row.location)}</small></td>
+      <td class="num">${esc(row.on_hand)} ${esc(row.unit)}</td>
+      <td class="num">${esc(row.reorder_point)}</td>
+      <td class="num">${row.on_order ? esc(row.on_order) : "—"}</td>
+      <td class="num">${esc(row.lead_time_days)}d</td>
       <td><span class="pill pill-${row.status}">${STATUS_LABEL[row.status]}</span></td>
-      <td>${
-        row.status === "critical"
-          ? `<button class="chip" type="button" data-order="${esc(row.name)}">Order</button>`
-          : ""
-      }</td>
+      <td>${row.status === "critical"
+        ? `<button class="chip" type="button" data-order="${esc(row.name)} at ${esc(row.location)}">Order</button>`
+        : ""}</td>
     </tr>`).join("");
 
   $("[data-inventory]").querySelectorAll("[data-order]").forEach((button) =>
@@ -111,19 +114,19 @@ function renderInventory(inventory) {
 
 function renderLocations(locations) {
   $("[data-locations]").innerHTML = locations.map((loc) => `
-    <article class="location-card status-${esc(loc.status)}">
+    <article class="location-card status-${Number(loc.stock_health) < 50 ? "critical" : Number(loc.stock_health) < 85 ? "watch" : "healthy"}">
       <div class="location-top">
         <strong>${esc(loc.name)}</strong>
-        <span class="pill pill-${esc(loc.status === "healthy" ? "ok" : loc.status === "watch" ? "low" : "critical")}">${esc(loc.status)}</span>
+        <span class="pill pill-${Number(loc.stock_health) < 50 ? "critical" : Number(loc.stock_health) < 85 ? "low" : "ok"}">${Number(loc.stock_health) < 50 ? "critical" : Number(loc.stock_health) < 85 ? "watch" : "healthy"}</span>
       </div>
       <small>${esc(loc.region)}</small>
       <div class="location-stats">
-        <div><strong>${esc(loc.ordersWeek)}</strong><small>orders</small></div>
-        <div><strong>${money0(loc.revenueWeek)}</strong><small>revenue ${delta(loc.change)}</small></div>
+        <div><strong>${esc(loc.orders_week)}</strong><small>orders</small></div>
+        <div><strong>${money0(loc.revenue_week)}</strong><small>revenue ${delta(loc.change_pct)}</small></div>
       </div>
       <div class="health">
-        <div class="health-bar"><i style="width:${Number(loc.stockHealth)}%"></i></div>
-        <small>${esc(loc.stockHealth)}% stock health</small>
+        <div class="health-bar"><i style="width:${Number(loc.stock_health)}%"></i></div>
+        <small>${esc(loc.stock_health)}% stock health</small>
       </div>
     </article>`).join("");
 }
@@ -141,47 +144,51 @@ function renderSupply(orders) {
     </tr>`).join("");
 }
 
-function renderSales(sales) {
+/** Watch-outs are computed from the stock rows already on the page. */
+function renderWatchouts() {
+  const notes = LOW_STOCK.slice(0, 4).map((row) =>
+    `${row.location}: ${row.name} at ${row.on_hand} ${row.unit}, reorder point ${row.reorder_point}` +
+    (row.on_order ? ` (${row.on_order} inbound)` : `, nothing on order, ${row.lead_time_days}-day lead time`)
+  );
+  $("[data-watchouts]").innerHTML = notes.length
+    ? notes.map((note) => `<li>${esc(note)}</li>`).join("")
+    : `<li>Nothing below reorder point across the network.</li>`;
+}
+
+function renderSales(sales, weekly) {
   $("[data-sales-stats]").innerHTML = [
-    { value: money0(sales.revenueWeek), label: `revenue this week ${delta(sales.revenueChange)}` },
-    { value: Number(sales.ordersWeek || 0).toLocaleString(), label: `orders ${delta(sales.ordersChange)}` },
-    { value: money2(sales.avgBasket || 0), label: `average basket ${delta(sales.avgBasketChange)}` },
-    { value: Number(sales.subscriberCount || 0).toLocaleString(), label: `subscribers ${delta(sales.subscriberChange)}` }
+    { value: money0(sales.revenue), label: `revenue, last ${sales.window_days || 7} days ${sales.revenue_change_pct != null ? delta(sales.revenue_change_pct) : ""}` },
+    { value: Number(sales.orders || 0).toLocaleString(), label: "orders in window" },
+    { value: money0((sales.revenue || 0) / Math.max(sales.orders || 1, 1)), label: "average basket" },
+    { value: (sales.by_region || []).length, label: "regions reporting" }
   ].map((s) => `<div class="stat"><strong>${s.value}</strong><small>${s.label}</small></div>`).join("");
 
-  const weeks = sales.weekly || [];
-  const peak = Math.max(...weeks.map((w) => w.revenue), 1);
-  $("[data-revenue-chart]").innerHTML = weeks.map((week) => `
+  const peak = Math.max(...weekly.map((w) => Number(w.revenue)), 1);
+  $("[data-revenue-chart]").innerHTML = weekly.map((week) => `
     <div class="bar-col">
-      <div class="bar" style="height:${Math.round((week.revenue / peak) * 100)}%">
+      <div class="bar" style="height:${Math.round((Number(week.revenue) / peak) * 100)}%">
         <span class="bar-value">${money0(week.revenue)}</span>
       </div>
       <small>${esc(week.label)}</small>
     </div>`).join("");
 
-  const topUnits = Math.max(...(sales.topFlavors || []).map((f) => f.units), 1);
-  $("[data-top-flavors]").innerHTML = (sales.topFlavors || []).map((flavor) => `
+  const topUnits = Math.max(...(sales.top_items || []).map((f) => f.units), 1);
+  $("[data-top-flavors]").innerHTML = (sales.top_items || []).map((flavor) => `
     <div class="rank-row">
       <div class="rank-head"><span>${esc(flavor.name)}</span><span>${esc(flavor.units)} units</span></div>
       <div class="rank-bar"><i style="width:${Math.round((flavor.units / topUnits) * 100)}%"></i></div>
     </div>`).join("");
 
-  const topRegion = Math.max(...(sales.regions || []).map((r) => r.revenue), 1);
-  $("[data-regions]").innerHTML = (sales.regions || []).map((region) => `
+  const topRegion = Math.max(...(sales.by_region || []).map((r) => Number(r.revenue)), 1);
+  $("[data-regions]").innerHTML = (sales.by_region || []).map((region) => `
     <div class="rank-row">
-      <div class="rank-head"><span>${esc(region.name)}</span><span>${money0(region.revenue)} ${delta(region.change)}</span></div>
-      <div class="rank-bar"><i style="width:${Math.round((region.revenue / topRegion) * 100)}%"></i></div>
+      <div class="rank-head"><span>${esc(region.region)}</span><span>${money0(region.revenue)}</span></div>
+      <div class="rank-bar"><i style="width:${Math.round((Number(region.revenue) / topRegion) * 100)}%"></i></div>
     </div>`).join("");
 
-  $("[data-channels]").innerHTML = (sales.channelMix || []).map((channel) => `
-    <div class="rank-row">
-      <div class="rank-head"><span>${esc(channel.channel)}</span><span>${esc(channel.share)}%</span></div>
-      <div class="rank-bar"><i style="width:${Number(channel.share)}%"></i></div>
-    </div>`).join("");
+  $("[data-channels]").innerHTML = `<p class="empty">Channel mix moves to the orders table next.</p>`;
 
-  $("[data-watchouts]").innerHTML = (sales.watchouts || [])
-    .map((note) => `<li>${esc(note)}</li>`).join("");
+  renderWatchouts();
 }
 
-// Start only once every const below has initialized.
-if (session) boot();
+boot();

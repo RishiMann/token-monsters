@@ -6,3 +6,7 @@ openai>=1.0
 
 # Entra ID auth, so App Service can use its managed identity instead of a key.
 azure-identity>=1.19
+
+# PostgreSQL driver for accounts, orders, inventory and sales.
+psycopg[binary]>=3.2
+psycopg_pool>=3.2
