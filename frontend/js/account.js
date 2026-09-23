@@ -44,7 +44,7 @@ async function boot() {
   const me = (!fetched || fetched.error) ? demoProfile(user) : fetched;
 
   if (!me || me.error) {
-    $("[data-offers]").innerHTML = `<p class="empty">Your account data is unavailable right now.</p>`;
+    $("[data-stats]").innerHTML = `<p class="empty">Your account data is unavailable right now.</p>`;
     return;
   }
 
@@ -52,7 +52,6 @@ async function boot() {
   const byId = (id) => menu.find((i) => i.id === id);
 
   renderStats(me, menu);
-  renderOffers(me.offers || []);
   renderFavorites(me.history?.favorites || [], byId);
   renderOrders(me.orders || [], byId);
   renderPreferences(me.preferences || {});

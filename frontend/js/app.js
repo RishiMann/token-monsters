@@ -232,16 +232,15 @@ function renderPicks(lines) {
 /** A beat of "thinking" before the new answer, so the work reads as work. */
 let agentTimer = null;
 function refreshAgents(snapshot) {
-  // Guarded: a missing surface should never take the whole storefront down.
-  if (!picksPanel || !offerRail) return;
+  if (!picksPanel && !offerRail) return;
   clearTimeout(agentTimer);
-  picksPanel.classList.add("is-thinking");
-  offerRail.classList.add("is-thinking");
+  picksPanel?.classList.add("is-thinking");
+  offerRail?.classList.add("is-thinking");
   agentTimer = setTimeout(() => {
-    renderPicks(snapshot.lines);
+    if (picksPanel) renderPicks(snapshot.lines);
     renderOffers(snapshot.lines);
-    picksPanel.classList.remove("is-thinking");
-    offerRail.classList.remove("is-thinking");
+    picksPanel?.classList.remove("is-thinking");
+    offerRail?.classList.remove("is-thinking");
   }, 420);
 }
 
@@ -676,11 +675,12 @@ function syncFulfillmentOptions() {
   addressField.querySelector("input").required = selected === "delivery";
 }
 
-checkoutDialog.querySelectorAll('input[name="fulfillment"]').forEach((input) =>
+checkoutDialog?.querySelectorAll('input[name="fulfillment"]').forEach((input) =>
   input.addEventListener("change", syncFulfillmentOptions)
 );
 
 function renderBox(snapshot) {
+  if (!drawer) return;
   latestBox = snapshot;
   const { lines, count, subtotal, capacity } = snapshot;
 
@@ -748,13 +748,13 @@ function openBag(open) {
   if (open) $("[data-close-bag]").focus();
 }
 
-bagButton.addEventListener("click", () => openBag(drawer.hidden));
+bagButton?.addEventListener("click", () => openBag(drawer.hidden));
 document.querySelector("[data-close-bag]")?.addEventListener("click", () => openBag(false));
-scrim.addEventListener("click", () => openBag(false));
+scrim?.addEventListener("click", () => openBag(false));
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
-  if (!drawer.hidden) openBag(false);
+  if (drawer && !drawer.hidden) openBag(false);
   else if (!supportPanel.hidden) openSupport(false);
 });
 
@@ -789,6 +789,7 @@ document.querySelector("[data-checkout-form]")?.addEventListener("submit", (even
 
 /* ── Boot ──────────────────────────────────────────────────── */
 renderMenu();
+renderOffers(bag.snapshot().lines);
 
 /* ── Header account state ──────────────────────────────────── */
 (async function showAccount() {

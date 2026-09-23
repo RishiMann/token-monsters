@@ -66,6 +66,16 @@ export function toggle() {
 
 export const getCount = totalCount;
 
+export function snapshot() {
+  return {
+    lines: state.lines.map((line) => ({ ...line })),
+    count: totalCount(),
+    subtotal: subtotal(),
+    capacity: BOX_CAPACITY,
+    open: state.open
+  };
+}
+
 /**
  * Flattens line items into individual units so the box can show one tile per
  * treat, capped at the visible capacity.
