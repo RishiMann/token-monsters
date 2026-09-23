@@ -128,6 +128,17 @@
           <button class="chip" type="button" data-filter="fruity">Fruity</button>
         </div>
       </div>
+      <section class="picks-panel" data-picks hidden aria-live="polite">
+        <div class="picks-head">
+          <span class="picks-agent"><span class="agent-dot tint-pink"></span>Recommendation Agent</span>
+          <strong data-picks-headline>Picked to go with your box</strong>
+          <button class="picks-trace-toggle" type="button" data-picks-trace-toggle
+                  aria-expanded="false">How it decided</button>
+        </div>
+        <ol class="picks-trace" data-picks-trace hidden></ol>
+        <div class="picks-row" data-picks-row></div>
+      </section>
+
       <div class="product-grid" data-product-grid></div>
       <p class="grid-empty" data-grid-empty hidden>Nothing matches that filter this week — try another.</p>
     </section>

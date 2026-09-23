@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Sesame Rice Ball">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fdf4e9"/>
+      <stop offset="1" stop-color="#ecd9bd"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="36%" r="54%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+  <rect width="400" height="300" fill="url(#glow)"/>
+  <ellipse cx="200" cy="245" rx="98" ry="15" fill="#3b1f2b" opacity=".15" filter="url(#soft)"/>
+  <ellipse cx="200" cy="122" rx="82" ry="44" fill="#f0dcb4"/>
+  <ellipse cx="200" cy="114" rx="70" ry="33" fill="#ffffff" opacity=".2"/>
+  <path d="M118 130 c0 20 36 30 82 30 s82 -10 82 -30 v10 c0 20 -36 30 -82 30 s-82 -10 -82 -30 z" fill="#d4b98c"/>
+  <ellipse cx="200" cy="170" rx="80" ry="25" fill="#fff8ec"/>
+  <ellipse cx="200" cy="196" rx="82" ry="42" fill="#f0dcb4"/>
+  <path d="M118 196 c0 -22 36 -40 82 -40 s82 18 82 40" fill="#d4b98c" opacity=".22"/>
+  <ellipse cx="166" cy="108" rx="20" ry="9" fill="#ffffff" opacity=".35" transform="rotate(-14 166 108)"/>
+</svg>

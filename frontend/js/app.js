@@ -14,6 +14,8 @@ import { ask } from "./agents.js";
 import * as bag from "./bag.js";
 import { currentUser, homeFor } from "./auth.js";
 import { generateContext } from "./context.js";
+import { recommend, offersFor, liveSeasons } from "./agent-engine.js";
+import { respond as conciergeRespond, conversationMemory } from "./concierge.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -105,7 +107,8 @@ function productCard(item, index) {
       <div class="product-art">
         <span class="product-badge">${esc(item.badge)}</span>
         <span class="product-rating">★ ${item.rating}</span>
-        <span class="product-emoji" data-art="${item.id}" aria-hidden="true">${item.emoji}</span>
+        <img class="product-photo" data-art="${item.id}" src="${esc(item.image)}"
+             alt="${esc(item.name)}" loading="lazy" width="400" height="300" />
       </div>
       <div class="product-info">
         <h3>${esc(item.name)}</h3>
@@ -151,19 +154,85 @@ document.addEventListener("click", (event) => {
   toast(`${item.name} added to your box`);
 });
 
-/* ── Offers ────────────────────────────────────────────────── */
-$("[data-offer-rail]").innerHTML = smartOffers.map((offer) => `
-  <article class="offer-card tint-${offer.tint}">
-    <span class="offer-emoji" aria-hidden="true">${offer.emoji}</span>
-    <span class="offer-label">${esc(offer.label)}</span>
-    <h3>${esc(offer.title)}</h3>
-    <p class="offer-detail">${esc(offer.detail)}</p>
-    <p class="offer-reason"><strong>Why this offer:</strong> ${esc(offer.reason)}</p>
-    <div class="offer-foot">
-      <span class="offer-value">${esc(offer.value)}</span>
-      <button class="chip" type="button" data-claim="${offer.id}">Apply</button>
-    </div>
-  </article>`).join("");
+/* ── Offers — re-priced by the Offers Agent on every box change ── */
+const offerRail = $("[data-offer-rail]");
+
+function renderOffers(lines) {
+  if (!offerRail) return;
+  const offers = offersFor(lines, smartOffers);
+  offerRail.innerHTML = offers.map((offer) => `
+    <article class="offer-card tint-${offer.tint}${offer.live ? " is-live" : ""}">
+      ${offer.live ? '<span class="offer-live">Live<span class="offer-live-dot"></span></span>' : ""}
+      <span class="offer-emoji" aria-hidden="true">${offer.emoji}</span>
+      <span class="offer-label">${esc(offer.label)}</span>
+      <h3>${esc(offer.title)}</h3>
+      <p class="offer-detail">${esc(offer.detail)}</p>
+      ${offer.progress != null ? `
+        <div class="offer-progress"><i style="width:${Math.min(offer.progress, 100)}%"></i></div>` : ""}
+      <p class="offer-reason"><strong>Why this offer:</strong> ${esc(offer.reason)}</p>
+      <div class="offer-foot">
+        <span class="offer-value">${esc(offer.value)}</span>
+        <button class="chip" type="button" data-claim="${offer.id}">Apply</button>
+      </div>
+    </article>`).join("");
+}
+
+/* ── Picked for you — the Recommendation Agent, live ──────────── */
+const picksPanel = $("[data-picks]");
+const picksRow = $("[data-picks-row]");
+const picksTrace = $("[data-picks-trace]");
+
+function renderPicks(lines) {
+  if (!picksPanel || !picksRow) return;
+  const { items, trace, headline } = recommend(lines, { limit: 3 });
+  if (!items.length) { picksPanel.hidden = true; return; }
+
+  picksPanel.hidden = false;
+  $("[data-picks-headline]").textContent = headline;
+  picksTrace.innerHTML = trace.map((step) => `<li>${esc(step)}</li>`).join("");
+
+  picksRow.innerHTML = items.map((pick, index) => `
+    <article class="pick-card tint-${pick.item.tint}" style="animation-delay:${index * 70}ms">
+      <img class="pick-photo" data-art="${pick.item.id}" src="${esc(pick.item.image)}"
+           alt="${esc(pick.item.name)}" loading="lazy" width="400" height="300" />
+      <div class="pick-body">
+        <div class="pick-top">
+          <strong>${esc(pick.item.name)}</strong>
+          <span class="pick-confidence" title="How strongly the agent recommends this">${pick.confidence}%</span>
+        </div>
+        <p class="pick-reason">${esc(pick.reason)}</p>
+        <div class="pick-foot">
+          <span class="pick-price">${money(pick.item.price)}</span>
+          <button class="chip chip-solid" type="button" data-add="${pick.item.id}">Add</button>
+        </div>
+      </div>
+    </article>`).join("");
+}
+
+/** A beat of "thinking" before the new answer, so the work reads as work. */
+let agentTimer = null;
+function refreshAgents(snapshot) {
+  // Guarded: a missing surface should never take the whole storefront down.
+  if (!picksPanel || !offerRail) return;
+  clearTimeout(agentTimer);
+  picksPanel.classList.add("is-thinking");
+  offerRail.classList.add("is-thinking");
+  agentTimer = setTimeout(() => {
+    renderPicks(snapshot.lines);
+    renderOffers(snapshot.lines);
+    picksPanel.classList.remove("is-thinking");
+    offerRail.classList.remove("is-thinking");
+  }, 420);
+}
+
+bag.onChange(refreshAgents);
+
+$("[data-picks-trace-toggle]")?.addEventListener("click", (event) => {
+  const open = picksTrace.hidden;
+  picksTrace.hidden = !open;
+  event.currentTarget.setAttribute("aria-expanded", String(open));
+  event.currentTarget.textContent = open ? "Hide reasoning" : "How it decided";
+});
 
 document.addEventListener("click", (event) => {
   const claim = event.target.closest("[data-claim]");
@@ -173,16 +242,71 @@ document.addEventListener("click", (event) => {
   toast("Offer applied to your next box");
 });
 
-/* ── Event menus ───────────────────────────────────────────── */
-$("[data-event-grid]").innerHTML = eventMenus.map((menu) => `
-  <article class="event-card tint-${menu.tint}">
-    <span class="event-status status-${menu.status}">${menu.status === "preorder" ? "Pre-order" : menu.status}</span>
+/* ── Seasonal menus — each one opens to its line-up and dates ── */
+const SEASON_LABEL = {
+  live: "On sale now",
+  preorder: "Pre-order open",
+  planned: "Planned",
+  closed: "Closed"
+};
+
+const longDate = (iso) => {
+  if (!iso) return "";
+  const date = new Date(`${iso}T00:00:00`);
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+};
+
+function availability(menu) {
+  if (menu.state === "live") return `Available now through ${longDate(menu.closes)}`;
+  if (menu.state === "closed") return `Ran until ${longDate(menu.closes)}`;
+  if (menu.daysUntil != null && menu.daysUntil > 0) {
+    return `Opens ${longDate(menu.opens)} — ${menu.daysUntil} day${menu.daysUntil === 1 ? "" : "s"} away`;
+  }
+  return `Opens ${longDate(menu.opens)}`;
+}
+
+$("[data-event-grid]").innerHTML = liveSeasons().map((menu) => `
+  <article class="event-card tint-${menu.tint} state-${menu.state}" data-season="${menu.id}">
+    <span class="event-status status-${menu.state}">${SEASON_LABEL[menu.state] || menu.state}</span>
     <span class="event-emoji" aria-hidden="true">${menu.emoji}</span>
     <h3>${esc(menu.name)}</h3>
     <span class="event-window">${esc(menu.window)}</span>
+    <p class="event-availability">${esc(availability(menu))}</p>
     <p>${esc(menu.blurb)}</p>
-    <ul class="event-highlights">${menu.highlights.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>
+    <button class="chip event-toggle" type="button" data-season-toggle="${menu.id}" aria-expanded="false">
+      View the ${menu.items?.length || menu.highlights.length} desserts
+    </button>
+    <div class="season-items" data-season-items="${menu.id}" hidden>
+      ${(menu.items || []).map((item) => `
+        <div class="season-item">
+          <img src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy" width="400" height="300" />
+          <div class="season-item-body">
+            <strong>${esc(item.name)}</strong>
+            <small>${esc(item.blurb)}</small>
+            <div class="season-item-foot">
+              <span>${money(item.price)}</span>
+              ${menu.state === "live"
+                ? `<button class="chip chip-solid" type="button" data-add="${item.id}">Add</button>`
+                : `<span class="season-soon">${menu.state === "preorder" ? "Pre-order" : longDate(menu.opens)}</span>`}
+            </div>
+          </div>
+        </div>`).join("")}
+      ${(menu.items || []).length === 0
+        ? `<ul class="event-highlights">${menu.highlights.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>`
+        : ""}
+    </div>
   </article>`).join("");
+
+document.addEventListener("click", (event) => {
+  const toggle = event.target.closest("[data-season-toggle]");
+  if (!toggle) return;
+  const panel = $(`[data-season-items="${toggle.dataset.seasonToggle}"]`);
+  if (!panel) return;
+  const open = panel.hidden;
+  panel.hidden = !open;
+  toggle.setAttribute("aria-expanded", String(open));
+  toggle.textContent = open ? "Hide the line-up" : `View the ${panel.querySelectorAll(".season-item").length} desserts`;
+});
 
 /* ── Plans ─────────────────────────────────────────────────── */
 $("[data-plan-grid]").innerHTML = plans.map((plan) => `
@@ -292,7 +416,9 @@ function typingBubble() {
 function recStrip(items) {
   return `<div class="rec-strip">${items.map((item) => `
     <div class="rec-item tint-${item.tint}">
-      <span class="rec-emoji" aria-hidden="true">${item.emoji}</span>
+      ${item.image
+        ? `<img class="rec-photo" src="${esc(item.image)}" alt="" loading="lazy" width="400" height="300" />`
+        : `<span class="rec-emoji" aria-hidden="true">${item.emoji}</span>`}
       <span class="rec-body"><strong>${esc(item.name)}</strong><small>${esc(item.blurb)}</small></span>
       <button class="rec-add" type="button" data-add="${item.id}">Add</button>
     </div>`).join("")}</div>`;
@@ -305,12 +431,68 @@ function replyChips(chips, attribute) {
   ).join("")}</div>`;
 }
 
+/** Shows the steps the agent is taking, one at a time, while it composes. */
+function workingBubble(steps) {
+  const el = document.createElement("div");
+  el.className = "bubble from-agent working";
+  el.innerHTML = `<div class="working-step" data-step></div>
+    <div class="typing"><span></span><span></span><span></span></div>`;
+  chatLog.appendChild(el);
+  chatLog.scrollTop = chatLog.scrollHeight;
+
+  const target = el.querySelector("[data-step]");
+  let index = 0;
+  const show = () => {
+    if (index >= steps.length) return;
+    target.textContent = steps[index];
+    target.classList.remove("is-in");
+    void target.offsetWidth;          // restart the animation
+    target.classList.add("is-in");
+    index += 1;
+  };
+  show();
+  const timer = setInterval(show, 480);
+  return { el, stop: () => clearInterval(timer) };
+}
+
 async function conciergeReply(input) {
-  const typing = typingBubble();
-  const reply = await ask("concierge", await withContext(input));
-  typing.remove();
-  const body = `<div>${esc(reply.message)}</div>${reply.items?.length ? recStrip(reply.items) : ""}${reply.note ? `<small class="reply-note">${esc(reply.note)}</small>` : ""}${reply.chips ? replyChips(reply.chips, "data-concierge-chip") : ""}`;
+  const cart = bag.snapshot ? bag.snapshot().lines : lastBag.lines;
+  const reply = conciergeRespond(input.text || labelFor(input.occasion), cart);
+
+  const working = workingBubble(reply.trace?.length ? reply.trace : ["Thinking"]);
+  const think = 420 + Math.min((reply.trace?.length || 1), 4) * 340;
+  await new Promise((resolve) => setTimeout(resolve, think));
+  working.stop();
+  working.el.remove();
+
+  const body = [
+    `<div>${esc(reply.message)}</div>`,
+    reply.items?.length ? recStrip(reply.items) : "",
+    reply.held ? `<small class="reply-held">Holding: ${esc(reply.held)}</small>` : "",
+    reply.trace?.length
+      ? `<details class="reply-trace"><summary>How it got there</summary><ol>${
+          reply.trace.map((step) => `<li>${esc(step)}</li>`).join("")}</ol></details>`
+      : "",
+    reply.chips ? replyChips(reply.chips, "data-concierge-chip") : ""
+  ].join("");
   bubble(body);
+}
+
+/** The chat needs the live box; keep the latest snapshot to hand. */
+let lastBag = { lines: [] };
+bag.onChange((snapshot) => { lastBag = snapshot; });
+
+const OCCASION_TEXT = {
+  party: "I'm planning a party",
+  office: "Something for the office",
+  gift: "It's a gift",
+  solo: "Just for me",
+  wedding: "For a wedding",
+  holiday: "For a holiday table"
+};
+
+function labelFor(occasion) {
+  return OCCASION_TEXT[occasion] || occasion || "";
 }
 
 $("[data-occasion-grid]").innerHTML = occasions.map((occ) => `
@@ -337,7 +519,16 @@ $("[data-chat-form]").addEventListener("submit", (event) => {
   conciergeReply({ text });
 });
 
-bubble("Hi! Tell me the occasion or just a craving, and I'll shortlist from this week's menu.");
+document.addEventListener("click", (event) => {
+  const chip = event.target.closest("[data-concierge-chip]");
+  if (!chip) return;
+  const text = chip.dataset.conciergeChip;
+  bubble(esc(text), "user");
+  conciergeReply({ text });
+});
+
+bubble("Hi! Tell me the occasion or just a craving, and I'll shortlist from this week's menu. "
+  + "I'll remember anything you tell me — guests, allergies, budget — for the rest of the chat.");
 
 /* ── Party planner ─────────────────────────────────────────── */
 const guestInput = $("[data-guests]");

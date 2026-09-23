@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Gingerbread Spice Cake">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fdf0dd"/>
+      <stop offset="1" stop-color="#eed4a8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="36%" r="54%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+  <rect width="400" height="300" fill="url(#glow)"/>
+  <ellipse cx="200" cy="245" rx="98" ry="15" fill="#3b1f2b" opacity=".15" filter="url(#soft)"/>
+  <defs>
+    <clipPath id="wedge">
+      <path d="M132 216 L268 126 a6 6 0 0 1 10 5 v92 a8 8 0 0 1 -8 8 h-134 a6 6 0 0 1 -4 -15 z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#wedge)">
+    <rect x="120" y="120" width="170" height="120" fill="#c98a4e"/>
+    <rect x="120" y="150" width="170" height="14" fill="#f6e6cd"/>
+    <rect x="120" y="182" width="170" height="14" fill="#f6e6cd"/>
+    <rect x="120" y="214" width="170" height="12" fill="#f6e6cd"/>
+  </g>
+  <path d="M132 216 L268 126 a6 6 0 0 1 10 5 v92 a8 8 0 0 1 -8 8 h-134 a6 6 0 0 1 -4 -15 z"
+        fill="none" stroke="#6b3c14" stroke-opacity=".16" stroke-width="2"/>
+  <path d="M132 216 L268 126 a6 6 0 0 1 10 5 l-12 8 c-40 26 -92 60 -134 88 z" fill="#f6e6cd"/>
+  <path d="M150 210 c34 -24 76 -50 110 -70" stroke="#8c5220" stroke-width="6"
+        fill="none" stroke-linecap="round" opacity=".75"/>
+  <path d="M278 131 v92 a8 8 0 0 1 -8 8 h-14 v-92 z" fill="#3b1f2b" opacity=".08"/>
+
+</svg>

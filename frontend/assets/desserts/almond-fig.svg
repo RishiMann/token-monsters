@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Almond Fig Tart">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f2fb"/>
+      <stop offset="1" stop-color="#e2d6ef"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="36%" r="54%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+  <rect width="400" height="300" fill="url(#glow)"/>
+  <ellipse cx="200" cy="245" rx="98" ry="15" fill="#3b1f2b" opacity=".15" filter="url(#soft)"/>
+  <path d="M108 180 v12 c0 20 42 34 92 34 s92 -14 92 -34 v-12 z" fill="#e8c48f"/>
+  <g>
+    <rect x="118.0" y="178" width="9" height="32" rx="4.5" fill="#c79a5e" opacity=".5"/>
+    <rect x="134.4" y="178" width="9" height="32" rx="4.5" fill="#c79a5e" opacity=".5"/>
+    <rect x="150.8" y="178" width="9" height="32" rx="4.5" fill="#c79a5e" opacity=".5"/>
+    <rect x="167.2" y="178" width="9" height="32" rx="4.5" fill="#c79a5e" opacity=".5"/>
+    <rect x="183.6" y="178" width="9" height="32" rx="4.5" fill="#c79a5e" opacity=".5"/>
+    <rect x="200.0" y="178" width="9" height="32" rx="4.5" fill="#c79a5e" opacity=".5"/>
+    <rect x="216.4" y="178" width="9" height="32" rx="4.5" fill="#c79a5e" opacity=".5"/>
+    <rect x="232.8" y="178" width="9" height="32" rx="4.5" fill="#c79a5e" opacity=".5"/>
+    <rect x="249.2" y="178" width="9" height="32" rx="4.5" fill="#c79a5e" opacity=".5"/>
+    <rect x="265.6" y="178" width="9" height="32" rx="4.5" fill="#c79a5e" opacity=".5"/>
+  </g>
+  <ellipse cx="200" cy="180" rx="92" ry="34" fill="#e8c48f"/>
+  <ellipse cx="200" cy="178" rx="78" ry="27" fill="#f6ead6"/>
+  <ellipse cx="200" cy="175" rx="58" ry="18" fill="#ffffff" opacity=".18"/>
+  <g>
+    <ellipse cx="172" cy="172" rx="17" ry="14" fill="#8e5aa8"/>
+    <ellipse cx="172" cy="172" rx="8" ry="6" fill="#5f3573"/>
+    <ellipse cx="212" cy="166" rx="15" ry="12" fill="#8e5aa8"/>
+    <ellipse cx="212" cy="166" rx="7" ry="5" fill="#5f3573"/>
+    <ellipse cx="238" cy="180" rx="13" ry="11" fill="#8e5aa8"/>
+    <ellipse cx="238" cy="180" rx="6" ry="5" fill="#5f3573"/>
+  </g>
+</svg>
