@@ -131,6 +131,21 @@ operations console go dark, and the console prints what to fix.
 deployment points at its own server. Azure Database for PostgreSQL requires
 TLS, so a URL for it needs `?sslmode=require`.
 
+### The SQLite fallback
+
+PostgreSQL is what this targets, but if it is not configured or not reachable
+the app falls back to a SQLite file and keeps working: accounts, the profile
+and the operations console all run against the same seed data. This is what
+makes the hosted demo signable-in without provisioning a database server.
+
+The schema, the queries and the seed are shared; only the type names differ,
+which `_sqlite_schema()` in `backend/db.py` translates. The file lives at
+`SQLITE_PATH` if set, `/home/frostedcorner.db` on App Service (which persists
+across restarts), or next to the backend locally.
+
+Set `DATABASE_URL` and PostgreSQL is used instead, always in preference to the
+fallback. The boot log says which one is in play.
+
 ### Seeded accounts
 
 The seed is deterministic, so every machine gets identical numbers.

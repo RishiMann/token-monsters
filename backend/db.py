@@ -16,6 +16,7 @@ source for the catalog; everything mutable lives in the database from then on.
 
 import json
 import os
+import re
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -46,32 +47,140 @@ def database_url():
     return LOCAL_DEFAULT
 
 
+def _sqlite_path():
+    """Where the fallback database file lives."""
+    override = os.environ.get("SQLITE_PATH")
+    if override:
+        return Path(override)
+    # App Service persists /home across restarts; everything else is ephemeral.
+    home = Path("/home")
+    if "PORT" in os.environ and home.is_dir() and os.access(home, os.W_OK):
+        return home / "frostedcorner.db"
+    return DATA_DIR / "frostedcorner.db"
+
+
+def _open_postgres(url):
+    try:
+        from psycopg_pool import ConnectionPool
+    except ImportError:
+        import psycopg
+
+        class _Direct:
+            driver = "postgres"
+
+            def connection(self_inner):
+                return psycopg.connect(url)
+
+        direct = _Direct()
+        with direct.connection():          # fail fast if it is not reachable
+            pass
+        return direct
+
+    pool = ConnectionPool(url, min_size=1, max_size=4, open=True)
+    pool.wait(timeout=5)                   # surface a bad URL now, not mid-request
+    pool.driver = "postgres"
+    return pool
+
+
+def _open_sqlite():
+    """A file-backed fallback so the app still works with no PostgreSQL.
+
+    This keeps a deployment without a database fully demoable: accounts, the
+    profile and the operations console all work against the same seed data.
+    PostgreSQL remains the real target and is always preferred.
+    """
+    import sqlite3
+    from datetime import date, datetime
+
+    sqlite3.register_adapter(date, lambda value: value.isoformat())
+    sqlite3.register_adapter(datetime, lambda value: value.isoformat())
+
+    path = _sqlite_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    class _SqlitePool:
+        driver = "sqlite"
+
+        @contextmanager
+        def connection(self_inner):
+            conn = sqlite3.connect(str(path), timeout=10,
+                                   check_same_thread=False)
+            conn.execute("PRAGMA foreign_keys = ON")
+            try:
+                yield _SqliteConn(conn)
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
+            finally:
+                conn.close()
+
+    return _SqlitePool()
+
+
+class _SqliteConn:
+    """Gives sqlite3 the cursor-as-context-manager shape psycopg has."""
+
+    def __init__(self, conn):
+        self._conn = conn
+
+    @contextmanager
+    def cursor(self):
+        cur = self._conn.cursor()
+        try:
+            yield _SqliteCursor(cur)
+        finally:
+            cur.close()
+
+
+class _SqliteCursor:
+    def __init__(self, cur):
+        self._cur = cur
+
+    def execute(self, sql, params=()):
+        # psycopg uses %s placeholders; sqlite uses ?.
+        return self._cur.execute(sql.replace("%s", "?"), tuple(params))
+
+    def executescript(self, sql):
+        return self._cur.executescript(sql)
+
+    @property
+    def description(self):
+        return self._cur.description
+
+    @property
+    def rowcount(self):
+        return self._cur.rowcount
+
+    def fetchall(self):
+        return self._cur.fetchall()
+
+
 def _pool_or_raise():
-    """One lazily-created connection pool for the process."""
+    """One lazily-created connection source for the process.
+
+    PostgreSQL is preferred whenever it is configured and reachable. If it is
+    not, the app falls back to SQLite rather than losing accounts entirely.
+    """
     global _pool
     if _pool is not None:
         return _pool
 
     url = database_url()
-    if not url:
-        raise DatabaseUnavailable("DATABASE_URL is not set")
-    try:
-        from psycopg_pool import ConnectionPool
-    except ImportError:
+    if url:
         try:
-            import psycopg
-        except ImportError as exc:
-            raise DatabaseUnavailable("psycopg is not installed") from exc
+            _pool = _open_postgres(url)
+            return _pool
+        except Exception as exc:
+            print(f"PostgreSQL unavailable ({exc}); falling back to SQLite.")
 
-        # No pool package: fall back to a connection per call.
-        class _Direct:
-            def connection(self_inner):
-                return psycopg.connect(url)
-        _pool = _Direct()
-        return _pool
-
-    _pool = ConnectionPool(url, min_size=1, max_size=4, open=True)
+    _pool = _open_sqlite()
+    print(f"Using SQLite at {_sqlite_path()}.")
     return _pool
+
+
+def driver():
+    return getattr(_pool_or_raise(), "driver", "unknown")
 
 
 @contextmanager
@@ -93,7 +202,7 @@ def query(sql, params=(), one=False):
             cur.execute(sql, params)
             if cur.description is None:
                 return None
-            cols = [c.name for c in cur.description]
+            cols = [getattr(c, "name", None) or c[0] for c in cur.description]
             rows = [dict(zip(cols, r)) for r in cur.fetchall()]
     return (rows[0] if rows else None) if one else rows
 
@@ -201,10 +310,28 @@ CREATE TABLE IF NOT EXISTS item_sales (
 """
 
 
+def _sqlite_schema():
+    """The same schema in SQLite's dialect.
+
+    Only the type names and the identity column differ; the tables, keys and
+    constraints are identical, so every query in the app runs unchanged.
+    """
+    sql = SCHEMA
+    sql = re.sub(r"\bBIGSERIAL PRIMARY KEY\b", "INTEGER PRIMARY KEY AUTOINCREMENT", sql)
+    sql = re.sub(r"\bTIMESTAMPTZ\b", "TEXT", sql)
+    sql = re.sub(r"\bNUMERIC\(\d+,\s*\d+\)", "REAL", sql)
+    sql = re.sub(r"\bBIGINT\b", "INTEGER", sql)
+    sql = re.sub(r"\bnow\(\)", "CURRENT_TIMESTAMP", sql)
+    return sql
+
+
 def init_schema():
     with connect() as conn:
         with conn.cursor() as cur:
-            cur.execute(SCHEMA)
+            if driver() == "sqlite":
+                cur.executescript(_sqlite_schema())
+            else:
+                cur.execute(SCHEMA)
 
 
 def _json(name):

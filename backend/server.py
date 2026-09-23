@@ -10,6 +10,7 @@ interface instead of loopback.
 
 import json
 import os
+from datetime import date, timedelta
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -167,14 +168,21 @@ class AppHandler(SimpleHTTPRequestHandler):
     def _orders(self, user_id):
         import db
         rows = db.query(
-            """SELECT o.id, o.placed_at, o.channel,
-                      json_agg(json_build_object('id', oi.item_id, 'quantity', oi.quantity)) AS items
+            """SELECT o.id, o.placed_at, o.channel, oi.item_id, oi.quantity
                FROM orders o JOIN order_items oi ON oi.order_id = o.id
-               WHERE o.user_id = %s GROUP BY o.id ORDER BY o.placed_at DESC LIMIT 10""",
+               WHERE o.user_id = %s ORDER BY o.placed_at DESC""",
             (user_id,),
         )
-        return [{"id": r["id"], "date": str(r["placed_at"]),
-                 "channel": r["channel"], "items": r["items"]} for r in rows]
+        orders = {}
+        for row in rows:
+            order = orders.setdefault(row["id"], {
+                "id": row["id"],
+                "date": str(row["placed_at"])[:10],
+                "channel": row["channel"],
+                "items": [],
+            })
+            order["items"].append({"id": row["item_id"], "quantity": row["quantity"]})
+        return list(orders.values())[:10]
 
     def _operations(self):
         """Franchise console data. Admin only — this is the server-side check."""
@@ -197,12 +205,21 @@ class AppHandler(SimpleHTTPRequestHandler):
                    FROM supply_orders s JOIN locations l ON l.id = s.location_id
                    ORDER BY s.placed DESC"""
             )
-            weekly = db.query(
-                """SELECT to_char(date_trunc('week', day), 'IYYY-"W"IW') AS label,
-                          sum(revenue) AS revenue
-                   FROM sales_daily WHERE day > current_date - 42
-                   GROUP BY 1 ORDER BY 1"""
+            since = date.today() - timedelta(days=42)
+            daily = db.query(
+                "SELECT day, revenue FROM sales_daily WHERE day > %s ORDER BY day",
+                (since,),
             )
+            buckets = {}
+            for row in daily:
+                day = row["day"]
+                if not hasattr(day, "isocalendar"):
+                    day = date.fromisoformat(str(day)[:10])
+                year, week, _ = day.isocalendar()
+                label = f"{year}-W{week:02d}"
+                buckets[label] = buckets.get(label, 0) + float(row["revenue"])
+            weekly = [{"label": label, "revenue": round(total, 2)}
+                      for label, total in sorted(buckets.items())]
             return self._json({
                 "locations": locations,
                 "inventory": agent_tools.check_inventory()["items"],

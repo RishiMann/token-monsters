@@ -9,6 +9,8 @@ Tool results are data, never instructions: nothing here echoes caller-supplied
 free text back into the model as a directive.
 """
 
+from datetime import date, timedelta
+
 import db
 
 _CACHE = {}
@@ -181,23 +183,29 @@ def check_inventory(location=None, only_low=False, **_):
 def get_sales_insights(days=7, **_):
     """Revenue, orders and top flavors over a recent window."""
     days = max(1, min(int(days), 90))
+    # Window boundaries are computed here rather than in SQL, so the same
+    # queries run on PostgreSQL and on the SQLite fallback.
+    today = date.today()
+    since = today - timedelta(days=days)
+    prev_since = today - timedelta(days=days * 2)
+
     totals = db.query(
         """SELECT coalesce(sum(orders),0) AS orders, coalesce(sum(revenue),0) AS revenue
-           FROM sales_daily WHERE day > current_date - %s""", (days,), one=True)
+           FROM sales_daily WHERE day > %s""", (since,), one=True)
     prev = db.query(
         """SELECT coalesce(sum(revenue),0) AS revenue FROM sales_daily
-           WHERE day > current_date - %s AND day <= current_date - %s""",
-        (days * 2, days), one=True)
+           WHERE day > %s AND day <= %s""",
+        (prev_since, since), one=True)
 
     by_region = db.query(
         """SELECT l.region, sum(s.revenue) AS revenue
            FROM sales_daily s JOIN locations l ON l.id = s.location_id
-           WHERE s.day > current_date - %s
-           GROUP BY l.region ORDER BY revenue DESC""", (days,))
+           WHERE s.day > %s
+           GROUP BY l.region ORDER BY revenue DESC""", (since,))
     top = db.query(
         """SELECT item_id, sum(units) AS units FROM item_sales
-           WHERE day > current_date - %s
-           GROUP BY item_id ORDER BY units DESC LIMIT 6""", (days,))
+           WHERE day > %s
+           GROUP BY item_id ORDER BY units DESC LIMIT 6""", (since,))
 
     current, previous = _num(totals["revenue"]), _num(prev["revenue"]) if prev else 0.0
     change = round((current - previous) / previous * 100, 1) if previous else None

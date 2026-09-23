@@ -46,6 +46,15 @@ def verify_password(password, digest_hex, salt_hex):
     return hmac.compare_digest(candidate, digest_hex)
 
 
+def _year(value):
+    """created_at is a datetime on PostgreSQL and an ISO string on SQLite."""
+    if not value:
+        return None
+    if hasattr(value, "strftime"):
+        return value.strftime("%Y")
+    return str(value)[:4]
+
+
 def _public(user):
     """The shape the frontend gets. Never includes hash or salt."""
     return {
@@ -56,7 +65,7 @@ def _public(user):
         "initials": "".join(p[0] for p in user["name"].split()[:2]).upper(),
         "homeCorner": user.get("home_corner"),
         "plan": user.get("plan"),
-        "memberSince": user["created_at"].strftime("%Y") if user.get("created_at") else None,
+        "memberSince": _year(user.get("created_at")),
     }
 
 
@@ -117,8 +126,8 @@ def session_user(token):
     row = db.query(
         """SELECT u.id, u.email, u.name, u.role, u.home_corner, u.plan, u.created_at
            FROM sessions s JOIN users u ON u.id = s.user_id
-           WHERE s.token = %s AND s.expires_at > now()""",
-        (token,),
+           WHERE s.token = %s AND s.expires_at > %s""",
+        (token, datetime.now(timezone.utc)),
         one=True,
     )
     return _public(row) if row else None
@@ -130,7 +139,8 @@ def sign_out(token):
 
 
 def purge_expired():
-    return db.execute("DELETE FROM sessions WHERE expires_at <= now()")
+    return db.execute("DELETE FROM sessions WHERE expires_at <= %s",
+                      (datetime.now(timezone.utc),))
 
 
 def preferences(user_id):
