@@ -1,6 +1,7 @@
 /** Customer profile, rendered from /api/me. */
 
-import { requireRole, signOut } from "./auth.js";
+import { requireRole, signOut, isDemo } from "./auth.js";
+import { demoProfile } from "./demo-data.js";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (v) =>
@@ -32,10 +33,15 @@ async function boot() {
     user.memberSince && `member since ${user.memberSince}`
   ].filter(Boolean).join(" · ") || "New member";
 
-  const [me, storefront] = await Promise.all([
-    fetch("/api/me", { credentials: "same-origin" }).then((r) => r.json()).catch(() => null),
+  const [fetched, storefront] = await Promise.all([
+    isDemo()
+      ? null
+      : fetch("/api/me", { credentials: "same-origin" }).then((r) => r.json()).catch(() => null),
     fetch("/api/storefront").then((r) => r.json()).catch(() => ({}))
   ]);
+
+  // Without a database the server cannot answer, so the demo profile stands in.
+  const me = (!fetched || fetched.error) ? demoProfile(user) : fetched;
 
   if (!me || me.error) {
     $("[data-offers]").innerHTML = `<p class="empty">Your account data is unavailable right now.</p>`;

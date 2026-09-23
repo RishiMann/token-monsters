@@ -146,6 +146,20 @@ across restarts), or next to the backend locally.
 Set `DATABASE_URL` and PostgreSQL is used instead, always in preference to the
 fallback. The boot log says which one is in play.
 
+### Demo sign-in fallback
+
+If the server has no database at all it answers `503`, and the frontend then
+signs in against the seeded accounts held in `frontend/js/demo-data.js`,
+keeping a session in `sessionStorage`. The profile and console render
+generated figures that match what the database would hold.
+
+This exists so a deployment with no database is still demoable. It is not
+real authentication: the accounts and their passwords are in the page source,
+which the login page already lists, and on this path the console's figures are
+generated in the browser rather than read from a server. Configure
+`DATABASE_URL` and none of it runs — the server verifies hashed passwords and
+enforces the admin role itself.
+
 ### Seeded accounts
 
 The seed is deterministic, so every machine gets identical numbers.

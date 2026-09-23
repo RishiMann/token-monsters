@@ -1,6 +1,7 @@
 /** Franchise & HQ console: inventory and supplies, plus order and sales insights. */
 
 import { requireRole, signOut } from "./auth.js";
+import { demoOperations } from "./demo-data.js";
 
 
 const $ = (sel) => document.querySelector(sel);
@@ -54,8 +55,12 @@ async function boot() {
     })
   );
 
-  const ops = await fetch("/api/operations", { credentials: "same-origin" })
+  const fetched = await fetch("/api/operations", { credentials: "same-origin" })
     .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+
+  // Without a database the server cannot answer, so demo figures stand in.
+  const ops = (!fetched || fetched.error) ? demoOperations() : fetched;
+
   if (!ops || ops.error) {
     document.querySelector(".account-shell").insertAdjacentHTML(
       "beforeend",
