@@ -23,6 +23,13 @@ BACKEND = Path(__file__).resolve().parent
 # Secure cookies need HTTPS; local development is plain http.
 COOKIES_SECURE = "PORT" in os.environ
 
+# Shown when the storefront is running without a database. The browsing
+# experience still works; only anything account-shaped is unavailable.
+OFFLINE_MESSAGE = (
+    "Accounts are offline on this deployment. Browsing, the menu and the "
+    "concierge all work; sign-in needs the database, which runs locally."
+)
+
 
 class AppHandler(SimpleHTTPRequestHandler):
     """Serves the frontend, plus the JSON API under /api."""
@@ -204,7 +211,8 @@ class AppHandler(SimpleHTTPRequestHandler):
                 "weekly": weekly,
             })
         except Exception as exc:
-            return self._json({"error": f"operations unavailable: {exc}"}, status=503)
+            print(f"operations failed: {exc}")
+            return self._json({"error": OFFLINE_MESSAGE}, status=503)
 
     # ── POST ─────────────────────────────────────────────────────────
 
@@ -255,7 +263,9 @@ class AppHandler(SimpleHTTPRequestHandler):
                 return self._json({"error": str(exc)}, status=400)
         except ImportError:
             pass
-        self._json({"error": f"accounts unavailable: {exc}"}, status=503)
+        # Internal detail goes to the log, not to the visitor's screen.
+        print(f"auth failed: {exc}")
+        self._json({"error": OFFLINE_MESSAGE}, status=503)
 
     def _agent(self, body):
         try:
