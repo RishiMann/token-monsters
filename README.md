@@ -134,6 +134,38 @@ Endpoints: `POST /api/orders` (place; returns the order and its token),
 `POST /api/orders/<id>/cancel` (owner, token or console),
 `POST /api/orders/<id>/advance` and `POST /api/orders/<id>/status` (console).
 
+## Replenishment: franchise to HQ
+
+The inventory agent turns sales into supply orders. For each corner and each
+ingredient it takes the last 14 days of item sales (a corner's share of the
+network's orders apportions network item units to it), multiplies by every
+item's `uses` recipe plus one six-count box per six units, and gets a burn
+rate per day. From on-hand stock that gives days of cover and a run-dry date;
+against the supplier's lead time it decides:
+
+| Status | Meaning |
+| --- | --- |
+| Order now | at or under the reorder point, or runs dry before an order placed today could land, with nothing on the way |
+| Order this cycle | fine today, but would not stay covered through the lead time plus 14 days |
+| Order inbound | short, but a supply order is already coming |
+| Covered | nothing to do |
+
+The suggested quantity brings the shelf to lead time plus 14 days of burn
+(never below the reorder point). The agent keeps one draft supply order per
+corner (`supply_orders.status = 'draft'`, with `supply_order_lines`),
+rebuilt on every console read until it is approved. Approving sends it to HQ
+and puts the quantities on order; HQ marks it shipped and then delivered,
+which adds the quantities to the shelf. The console's Inventory tab shows the
+drafts, a forecast table, and the orders in flight; the "Draft order" button on
+a critical stock row asks the agent for that corner's draft. In the franchise
+chat, `forecast_stock` answers "when do we run out of butter?" and
+`approve_supply_order` sends a draft when asked.
+
+Endpoints (console role): `POST /api/supply/draft` (`{location}` optional),
+`POST /api/supply/<id>/approve|ship|deliver|dismiss`. The forecast and drafts
+come back with `GET /api/operations` under `replenishment`.
+
+
 ## Deployment (Azure App Service)
 
 `.github/workflows/main_tokenmonster.yml` deploys `main` to the `tokenmonster`

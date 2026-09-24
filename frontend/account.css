@@ -412,3 +412,20 @@ tr.is-final td { opacity: .6; }
 .panel-wide { grid-column: 1 / -1; }
 .tab-count { display: inline-block; min-width: 20px; padding: 1px 7px; border-radius: 999px; background: var(--pink); color: #fff; font-size: .72rem; margin-left: 6px; }
 .tab.is-active .tab-count { background: #fff; color: var(--ink); }
+
+/* ── Console: replenishment ─────────────────────────────────── */
+.draft-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); margin-bottom: 14px; }
+.draft-card {
+  background: var(--cream); border-radius: var(--r-md); padding: 16px 18px; display: grid; gap: 12px;
+  border-left: 4px solid var(--gold, #F5C451);
+}
+.draft-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.draft-head > div { display: grid; gap: 2px; }
+.draft-head small { font-size: .78rem; color: var(--ink-soft); }
+.draft-total { font-size: 1.15rem; }
+.draft-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.draft-lines li { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: .86rem; align-items: baseline; }
+.draft-lines small { grid-column: 2; font-size: .76rem; color: var(--ink-soft); }
+.draft-qty { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.forecast-details summary { cursor: pointer; font-weight: 600; font-size: .9rem; color: var(--ink-soft); padding: 8px 0; }
+.forecast-table { min-width: 760px; }

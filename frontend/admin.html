@@ -73,6 +73,32 @@
       <section class="tab-panel" data-panel="inventory" hidden>
         <div class="stat-row" data-inv-stats></div>
 
+        <div class="panel" data-replenishment-panel>
+          <div class="panel-head">
+            <h2>Replenishment</h2>
+            <span class="panel-tag"><span class="agent-dot tint-caramel"></span>Inventory Agent</span>
+          </div>
+          <p class="panel-lede" data-replenishment-lede>From the last two weeks of sales and each recipe, the agent works out how fast every corner burns each ingredient, when it runs dry, and drafts the supply order to HQ so it lands before then. Approve a draft to send it; HQ marks it shipped and delivered, and delivery puts the stock on the shelf.</p>
+          <div class="draft-list" data-drafts></div>
+          <p class="board-empty" data-drafts-empty hidden>Every corner is covered through its lead time. Nothing to order right now.</p>
+          <details class="forecast-details" data-forecast-details>
+            <summary>Forecast by corner and ingredient</summary>
+            <div class="table-wrap">
+              <table class="data-table forecast-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Corner</th><th scope="col">Ingredient</th>
+                    <th scope="col" class="num">On hand</th><th scope="col" class="num">Burn / day</th>
+                    <th scope="col" class="num">Days of cover</th><th scope="col">Runs dry</th>
+                    <th scope="col" class="num">Lead</th><th scope="col" class="num">Suggest</th><th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody data-forecast></tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+
         <div class="panel">
           <div class="panel-head">
             <h2>Stock levels</h2>
@@ -102,17 +128,18 @@
 
         <div class="panel">
           <div class="panel-head"><h2>Supply orders to HQ</h2></div>
+          <p class="panel-lede">Sent, shipped and delivered. Delivery puts the quantities on the corner's shelf.</p>
           <div class="table-wrap">
             <table class="data-table">
               <thead>
                 <tr>
                   <th scope="col">Order</th><th scope="col">Corner</th>
                   <th scope="col">Placed</th><th scope="col">ETA</th>
-                  <th scope="col" class="num">Lines</th><th scope="col" class="num">Total</th>
-                  <th scope="col">Status</th>
+                  <th scope="col">Lines</th><th scope="col" class="num">Total</th>
+                  <th scope="col">Status</th><th scope="col"><span class="visually-hidden">Action</span></th>
                 </tr>
               </thead>
-              <tbody data-supply></tbody>
+              <tbody data-supply-rows></tbody>
             </table>
           </div>
         </div>

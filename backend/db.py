@@ -381,14 +381,33 @@ CREATE TABLE IF NOT EXISTS inventory (
     PRIMARY KEY (location_id, sku)
 );
 
+-- Supply orders from a corner to HQ. status: draft (the inventory agent's
+-- suggestion) -> submitted -> in-transit -> delivered.
 CREATE TABLE IF NOT EXISTS supply_orders (
-    id           TEXT PRIMARY KEY,
-    location_id  TEXT NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
-    placed       DATE NOT NULL,
-    eta          DATE NOT NULL,
-    status       TEXT NOT NULL,
-    total        NUMERIC(10,2) NOT NULL,
-    lines        INT NOT NULL
+    id            TEXT PRIMARY KEY,
+    location_id   TEXT NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
+    placed        DATE NOT NULL,
+    eta           DATE NOT NULL,
+    status        TEXT NOT NULL,
+    total         NUMERIC(10,2) NOT NULL,
+    lines         INT NOT NULL,
+    source        TEXT,
+    note          TEXT,
+    created_at    TIMESTAMPTZ,
+    submitted_at  TIMESTAMPTZ,
+    shipped_at    TIMESTAMPTZ,
+    delivered_at  TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS supply_order_lines (
+    order_id   TEXT NOT NULL REFERENCES supply_orders(id) ON DELETE CASCADE,
+    sku        TEXT NOT NULL,
+    name       TEXT NOT NULL,
+    unit       TEXT NOT NULL,
+    quantity   NUMERIC(10,2) NOT NULL,
+    unit_cost  NUMERIC(10,2) NOT NULL DEFAULT 0,
+    reason     TEXT,
+    PRIMARY KEY (order_id, sku)
 );
 
 CREATE TABLE IF NOT EXISTS sales_daily (
@@ -445,6 +464,13 @@ MIGRATIONS = [
     "ALTER TABLE orders ADD COLUMN tracking_token TEXT",
     "ALTER TABLE order_items ADD COLUMN unit_price NUMERIC(10,2)",
     "ALTER TABLE orders ADD COLUMN dismissed_at TIMESTAMPTZ",   # the customer put a finished order away
+    # Replenishment: supply orders gain a lifecycle and lines.
+    "ALTER TABLE supply_orders ADD COLUMN source TEXT",
+    "ALTER TABLE supply_orders ADD COLUMN note TEXT",
+    "ALTER TABLE supply_orders ADD COLUMN created_at TIMESTAMPTZ",
+    "ALTER TABLE supply_orders ADD COLUMN submitted_at TIMESTAMPTZ",
+    "ALTER TABLE supply_orders ADD COLUMN shipped_at TIMESTAMPTZ",
+    "ALTER TABLE supply_orders ADD COLUMN delivered_at TIMESTAMPTZ",
     "UPDATE orders SET created_at = placed_at WHERE created_at IS NULL",
     # Orders placed before tracking existed were fulfilled on the spot.
     "UPDATE orders SET status = 'completed' WHERE status = 'placed' AND updated_at IS NULL",
