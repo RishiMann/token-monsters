@@ -169,7 +169,15 @@ export function initTracker(root, { section = null, onToast = () => {}, compact 
 
   const wrap = section || root;
 
+  const STALE_MS = 6 * 3600 * 1000;
+
   function paint() {
+    // A finished order stays until dismissed, but not forever: after six
+    // hours it is forgotten on its own so the page opens on the menu again.
+    for (const o of orders) {
+      const ended = o.completedAt || o.updatedAt;
+      if (!o.active && ended && Date.now() - new Date(ended) > STALE_MS) { dismissed.add(o.id); forgetOrder(o.id); }
+    }
     const visible = orders.filter((o) => !dismissed.has(o.id));
     wrap.hidden = visible.length === 0;
     root.innerHTML = visible.map((o) => orderCard(o, { compact })).join("");
