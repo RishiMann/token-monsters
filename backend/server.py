@@ -155,6 +155,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             admin = db.query("SELECT role FROM users WHERE email = %s", ("hq@frostedcorner.com",), one=True)
             payload["demo_admin"] = admin["role"] if admin else "missing"
             payload["boot"] = BOOT
+            if getattr(db, "RECOVERED", None):
+                payload["recovered_from"] = db.RECOVERED
         except Exception as exc:
             payload["ok"] = False
             payload["detail"] = str(exc)[:300]
