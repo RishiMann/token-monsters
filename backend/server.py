@@ -154,6 +154,7 @@ class AppHandler(SimpleHTTPRequestHandler):
                 "SELECT count(*) AS n FROM users", one=True) or {}).get("n")
             admin = db.query("SELECT role FROM users WHERE email = %s", ("hq@frostedcorner.com",), one=True)
             payload["demo_admin"] = admin["role"] if admin else "missing"
+            payload["boot"] = BOOT
         except Exception as exc:
             payload["ok"] = False
             payload["detail"] = str(exc)[:300]
@@ -477,18 +478,44 @@ class AppHandler(SimpleHTTPRequestHandler):
             self._json({"error": "agent failed"}, status=500)
 
 
+# What happened to the database at boot, reported by /api/health so a
+# deployment can be diagnosed without reading its log.
+BOOT = {}
+
+
+def _boot_database():
+    """Schema, seed and demo accounts, each as its own step so one failure is named, not hidden."""
+    import db, seed
+    try:
+        db.init_schema()
+        BOOT["schema"] = "ok"
+    except Exception as exc:
+        BOOT["schema"] = f"failed: {exc}"[:300]
+        raise
+    try:
+        written = seed.seed()
+        BOOT["seed"] = written or "nothing to do"
+        if written:
+            print(f"Database seeded: {written}")
+    except Exception as exc:
+        BOOT["seed"] = f"failed: {exc}"[:300]
+        print(f"Seed failed: {exc!r}", file=sys.stderr, flush=True)
+    try:
+        # Runs again on its own: the seed above may have stopped before it got here.
+        added = seed.ensure_demo_accounts()
+        BOOT["demo_accounts"] = f"added {added}" if added else "present"
+    except Exception as exc:
+        BOOT["demo_accounts"] = f"failed: {exc}"[:300]
+        print(f"Demo accounts failed: {exc!r}", file=sys.stderr, flush=True)
+    print(f"Database ready ({db.driver()}).")
+
+
 def main() -> None:
     # Best effort: a missing database must not stop the storefront serving.
     try:
-        import db, seed
-        # Always initialize. Without DATABASE_URL the layer falls back to
-        # SQLite, which still needs its schema and seed on first boot.
-        db.init_schema()
-        written = seed.seed()
-        if written:
-            print(f"Database seeded: {written}")
-        print(f"Database ready ({db.driver()}).")
+        _boot_database()
     except Exception as exc:
+        BOOT["error"] = str(exc)[:300]
         print(f"Database unavailable ({exc}); serving without accounts.")
         print("Start PostgreSQL and run `createdb frostedcorner`, "
               "or set DATABASE_URL. See README.md.")

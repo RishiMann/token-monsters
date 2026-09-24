@@ -90,20 +90,8 @@ def seed():
     item_ids = [i["id"] for i in db.menu_items()]
 
     # ── Accounts, preferences, order history ──────────────────────────
-    # The demo accounts are created whenever they are missing, not only on an
-    # empty table, so a database that already held other users still gets them.
     fresh = _empty("users")
-    added = 0
-    for email, password, name, role, corner, plan in ACCOUNTS:
-        if db.query("SELECT 1 FROM users WHERE email = %s", (email,), one=True):
-            continue
-        digest, salt = hash_password(password)
-        db.execute(
-            """INSERT INTO users (email, password_hash, password_salt, name, role, home_corner, plan)
-               VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-            (email, digest, salt, name, role, corner, plan),
-        )
-        added += 1
+    added = ensure_demo_accounts()
     if added:
         written["users"] = added
 
@@ -212,6 +200,26 @@ def seed():
         written["sales_rows"] = rows
 
     return written
+
+
+def ensure_demo_accounts():
+    """Creates any of the demo accounts that are missing. Returns how many were added.
+
+    Runs on every boot, not only on an empty table, so a database that already
+    held other users still gets them.
+    """
+    added = 0
+    for email, password, name, role, corner, plan in ACCOUNTS:
+        if db.query("SELECT 1 FROM users WHERE email = %s", (email,), one=True):
+            continue
+        digest, salt = hash_password(password)
+        db.execute(
+            """INSERT INTO users (email, password_hash, password_salt, name, role, home_corner, plan)
+               VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+            (email, digest, salt, name, role, corner, plan),
+        )
+        added += 1
+    return added
 
 
 def reset_demo_accounts():
