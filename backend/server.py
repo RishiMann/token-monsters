@@ -46,7 +46,9 @@ HOST = os.environ.get("HOST") or ("0.0.0.0" if "PORT" in os.environ else "127.0.
 ROOT = Path(__file__).resolve().parent.parent / "frontend"
 BACKEND = Path(__file__).resolve().parent
 
-# Secure cookies need HTTPS; local development is plain http.
+# Secure cookies need HTTPS. App Service terminates TLS in front of the app and
+# says so with X-Forwarded-Proto; a plain http://localhost never gets the flag,
+# whatever the environment looks like, or the browser would drop the cookie.
 COOKIES_SECURE = "PORT" in os.environ
 
 # Shown when the storefront is running without a database. The browsing
@@ -81,6 +83,14 @@ class AppHandler(SimpleHTTPRequestHandler):
         if length > 64_000:
             raise ValueError("payload too large")
         return json.loads(self.rfile.read(length) or b"{}")
+
+    def _secure(self):
+        """Whether the session cookie may carry Secure for this request."""
+        proto = (self.headers.get("X-Forwarded-Proto") or "").lower()
+        if proto:
+            return proto == "https"
+        host = (self.headers.get("Host") or "").split(":")[0].lower()
+        return COOKIES_SECURE and host not in ("localhost", "127.0.0.1", "")
 
     def _session_user(self):
         """The signed-in user for this request, or None."""
@@ -142,6 +152,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             payload["database_setting"] = db.database_url_source()
             payload["users"] = (db.query(
                 "SELECT count(*) AS n FROM users", one=True) or {}).get("n")
+            admin = db.query("SELECT role FROM users WHERE email = %s", ("hq@frostedcorner.com",), one=True)
+            payload["demo_admin"] = admin["role"] if admin else "missing"
         except Exception as exc:
             payload["ok"] = False
             payload["detail"] = str(exc)[:300]
@@ -377,7 +389,7 @@ class AppHandler(SimpleHTTPRequestHandler):
         try:
             import auth
             user, token = auth.sign_up(body.get("email"), body.get("password"), body.get("name"))
-            self._json({"user": user}, status=201, cookie=auth.cookie_header(token, COOKIES_SECURE))
+            self._json({"user": user}, status=201, cookie=auth.cookie_header(token, self._secure()))
         except Exception as exc:
             self._auth_error(exc)
 
@@ -385,7 +397,7 @@ class AppHandler(SimpleHTTPRequestHandler):
         try:
             import auth
             user, token = auth.sign_in(body.get("email"), body.get("password"))
-            self._json({"user": user}, cookie=auth.cookie_header(token, COOKIES_SECURE))
+            self._json({"user": user}, cookie=auth.cookie_header(token, self._secure()))
         except Exception as exc:
             self._auth_error(exc)
 

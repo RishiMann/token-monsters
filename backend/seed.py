@@ -90,16 +90,24 @@ def seed():
     item_ids = [i["id"] for i in db.menu_items()]
 
     # ── Accounts, preferences, order history ──────────────────────────
-    if _empty("users"):
-        for email, password, name, role, corner, plan in ACCOUNTS:
-            digest, salt = hash_password(password)
-            db.execute(
-                """INSERT INTO users (email, password_hash, password_salt, name, role, home_corner, plan)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-                (email, digest, salt, name, role, corner, plan),
-            )
-        written["users"] = len(ACCOUNTS)
+    # The demo accounts are created whenever they are missing, not only on an
+    # empty table, so a database that already held other users still gets them.
+    fresh = _empty("users")
+    added = 0
+    for email, password, name, role, corner, plan in ACCOUNTS:
+        if db.query("SELECT 1 FROM users WHERE email = %s", (email,), one=True):
+            continue
+        digest, salt = hash_password(password)
+        db.execute(
+            """INSERT INTO users (email, password_hash, password_salt, name, role, home_corner, plan)
+               VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+            (email, digest, salt, name, role, corner, plan),
+        )
+        added += 1
+    if added:
+        written["users"] = added
 
+    if fresh:
         for email, prefs in PREFERENCES.items():
             user = db.query("SELECT id FROM users WHERE email = %s", (email,), one=True)
             for key, value in prefs.items():
@@ -204,3 +212,38 @@ def seed():
         written["sales_rows"] = rows
 
     return written
+
+
+def reset_demo_accounts():
+    """Puts the seeded accounts back to their documented passwords. Returns how many were reset."""
+    count = 0
+    for email, password, name, role, corner, plan in ACCOUNTS:
+        digest, salt = hash_password(password)
+        if db.execute("UPDATE users SET password_hash = %s, password_salt = %s, role = %s WHERE email = %s",
+                      (digest, salt, role, email)):
+            count += 1
+        else:
+            db.execute(
+                """INSERT INTO users (email, password_hash, password_salt, name, role, home_corner, plan)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                (email, digest, salt, name, role, corner, plan))
+            count += 1
+    db.execute("DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE email IN (%s, %s, %s, %s))",
+               tuple(a[0] for a in ACCOUNTS))
+    return count
+
+
+if __name__ == "__main__":
+    # python backend/seed.py --reset-demo-accounts   (reads DATABASE_URL / .env like the server)
+    import sys
+    from pathlib import Path as _Path
+    try:
+        import server  # noqa: F401  (loads .env)
+    except Exception:
+        pass
+    db.init_schema()
+    if "--reset-demo-accounts" in sys.argv:
+        print(f"Reset {reset_demo_accounts()} demo accounts on {db.driver()}: "
+              + ", ".join(f"{a[0]} / {a[1]}" for a in ACCOUNTS))
+    else:
+        print(f"Seeded: {seed() or 'nothing to do'} ({db.driver()})")
