@@ -289,6 +289,26 @@ function refreshAgents(snapshot) {
   }, 380);
 }
 
+// The picks follow the scroll: the panel is sticky under the header, and it
+// compacts itself once it is actually stuck so it never hides the menu.
+(function followScroll() {
+  const header = $(".site-header");
+  if (!picksPanel || !header) return;
+  const setHeaderHeight = () =>
+    document.documentElement.style.setProperty("--header-h", `${header.offsetHeight}px`);
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    if (picksPanel.hidden) return;
+    const stuck = picksPanel.getBoundingClientRect().top <= header.offsetHeight + 9 && window.scrollY > 0;
+    picksPanel.classList.toggle("is-stuck", stuck);
+  };
+  const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+  setHeaderHeight();
+  window.addEventListener("resize", () => { setHeaderHeight(); onScroll(); });
+  window.addEventListener("scroll", onScroll, { passive: true });
+})();
+
 $("[data-picks-trace-toggle]")?.addEventListener("click", (event) => {
   const open = picksTrace.hidden;
   picksTrace.hidden = !open;
@@ -665,8 +685,6 @@ document.addEventListener("click", (event) => {
 const bagButton = $('[data-action="bag"]');
 const drawer = $("[data-drawer]");
 const scrim = $("[data-scrim]");
-const boxEl = $("[data-box]");
-const slotWrap = $("[data-box-slots]");
 const linesWrap = $("[data-drawer-lines]");
 const checkoutDialog = $(`[data-checkout-dialog]`);
 const checkoutSummary = $(`[data-checkout-summary]`);
@@ -728,26 +746,6 @@ function renderBox(snapshot) {
   $("[data-subtotal]").textContent = money(subtotal);
   $("[data-drawer-title]").textContent =
     count === 0 ? "Empty box" : `${count} treat${count === 1 ? "" : "s"}`;
-
-  // Slots: one tile per unit, with the last slot absorbing any overflow.
-  const units = bag.slots();
-  const tiles = [];
-  for (let i = 0; i < capacity; i += 1) {
-    const overflowing = units.length > capacity && i === capacity - 1;
-    if (overflowing) {
-      tiles.push(`<div class="slot is-filled is-overflow">+${units.length - capacity + 1}</div>`);
-    } else if (units[i]) {
-      tiles.push(`
-        <div class="slot is-filled tint-${units[i].tint}" style="animation-delay:${i * 50}ms">
-          <span class="slot-emoji" aria-hidden="true">${units[i].emoji}</span>
-          <span class="slot-name">${esc(units[i].name)}</span>
-        </div>`);
-    } else {
-      tiles.push('<div class="slot">empty</div>');
-    }
-  }
-  slotWrap.innerHTML = tiles.join("");
-  boxEl.classList.toggle("is-full", units.length >= capacity);
 
   $("[data-box-hint]").textContent =
     count === 0 ? "A Frosted Corner box holds six."

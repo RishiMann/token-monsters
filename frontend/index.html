@@ -78,17 +78,6 @@
       <div class="order-cards" data-order-cards aria-live="polite"></div>
     </section>
 
-    <section class="section offers-section" aria-labelledby="home-offers-title">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow"><span class="agent-dot tint-gold"></span>Personalized for you</p>
-          <h2 id="home-offers-title">Personalized <em>deals</em></h2>
-          <p class="section-lede">Offers update as you build your box. Apply one you've earned and it comes off at checkout.</p>
-        </div>
-      </div>
-      <div class="offer-rail" data-offer-rail></div>
-    </section>
-
     <!-- ── Weekly menu ──────────────────────────────────────── -->
     <section class="section" id="menu">
       <div class="section-head">
@@ -119,6 +108,17 @@
 
       <div class="product-grid" data-product-grid></div>
       <p class="grid-empty" data-grid-empty hidden>Nothing matches that filter this week — try another.</p>
+    </section>
+
+    <section class="section offers-section" aria-labelledby="home-offers-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow"><span class="agent-dot tint-gold"></span>Personalized for you</p>
+          <h2 id="home-offers-title">Personalized <em>deals</em></h2>
+          <p class="section-lede">Offers update as you build your box. Apply one you've earned and it comes off at checkout.</p>
+        </div>
+      </div>
+      <div class="offer-rail" data-offer-rail></div>
     </section>
 
     <section class="section" id="seasonal" aria-labelledby="seasonal-calendar-title">
@@ -153,20 +153,12 @@
   <aside class="bag-drawer" id="bag-drawer" data-drawer aria-label="Your box" hidden>
     <header class="drawer-head">
       <div>
-        <p class="eyebrow">Your box</p>
+        <p class="eyebrow">Your order</p>
         <h2 data-drawer-title>Empty box</h2>
+        <p class="drawer-hint" data-box-hint>A Frosted Corner box holds six.</p>
       </div>
-      <button class="icon-button" type="button" data-close-bag aria-label="Close box">✕</button>
+      <button class="icon-button" type="button" data-close-bag aria-label="Close order">✕</button>
     </header>
-
-    <div class="box-stage">
-      <div class="box" data-box>
-        <div class="box-lid"><span class="lid-logo">Frosted Corner</span></div>
-        <div class="box-inner" data-box-slots></div>
-      </div>
-    </div>
-
-    <p class="box-hint" data-box-hint>A Frosted Corner box holds six.</p>
 
     <div class="drawer-lines" data-drawer-lines></div>
 
