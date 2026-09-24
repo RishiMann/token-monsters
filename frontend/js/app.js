@@ -849,12 +849,6 @@ document.querySelector("[data-clear-bag]")?.addEventListener("click", () => {
   toast("Box emptied");
 });
 
-document.querySelector("[data-checkout]")?.addEventListener("click", () => {
-  if (bag.getCount() === 0) return toast("Add something sweet first");
-  syncFulfillmentOptions();
-  checkoutDialog.showModal();
-});
-
 document.querySelector("[data-checkout-close]")?.addEventListener("click", () => checkoutDialog.close());
 
 document.querySelector("[data-checkout-form]")?.addEventListener("submit", async (event) => {
