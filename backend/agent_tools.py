@@ -526,6 +526,41 @@ def check_inventory(location=None, only_low=False, **_):
     }
 
 
+def forecast_stock(location=None, only_action=True, **_):
+    """The inventory agent's forecast: burn per day, days of cover and the suggested order, plus the drafts waiting."""
+    import replenishment
+    rows = replenishment.forecast(location or None)
+    if only_action:
+        rows = [r for r in rows if r["status"] != "ok"]
+    replenishment.refresh_drafts(location or None)
+    drafts = [o for o in replenishment.board()["drafts"] if not location or o["location"]["id"] == location
+              or o["location"]["name"].lower() == str(location).lower()]
+    return {
+        "window_days": replenishment.WINDOW_DAYS,
+        "count": len(rows),
+        "order_now": sum(1 for r in rows if r["status"] == "order_now"),
+        "items": [{"corner": r["location"]["name"], "sku": r["sku"], "name": r["name"], "unit": r["unit"],
+                   "on_hand": r["on_hand"], "on_order": r["on_order"], "burn_per_day": r["burn_per_day"],
+                   "days_of_cover": r["days_of_cover"], "stockout_date": r["stockout_date"],
+                   "lead_time_days": r["lead_time_days"], "suggested_qty": r["suggested_qty"], "status": r["status"]}
+                  for r in rows[:40]],
+        "drafts": [{"id": o["id"], "corner": o["location"]["name"], "total": o["total"],
+                    "lines": [f"{l['quantity']} {l['unit']} {l['name']} — {l['reason']}" for l in o["lines"]]}
+                   for o in drafts],
+    }
+
+
+def approve_supply_order(order_id=None, **_):
+    """Sends a drafted supply order to HQ, only when the franchisee asks."""
+    import replenishment
+    try:
+        order = replenishment.approve(str(order_id or ""))
+    except replenishment.SupplyError as exc:
+        return {"ok": False, "why": str(exc)}
+    return {"ok": True, "id": order["id"], "corner": order["location"]["name"], "total": order["total"],
+            "eta": order["eta"], "status": order["statusLabel"]}
+
+
 def get_sales_insights(days=7, **_):
     """Revenue, orders and top flavors over a recent window."""
     days = max(1, min(int(days), 90))
@@ -708,6 +743,15 @@ SCHEMAS = {
         "Live stock levels against reorder points across the network, or for one corner.",
         {"location": {"type": "string", "description": "Corner id or name, e.g. scottsdale. Omit for all."},
          "only_low": {"type": "boolean", "description": "True to return only items at or below their reorder point."}}),
+    "forecast_stock": _schema(
+        "forecast_stock",
+        "The inventory agent's forecast per corner and SKU: burn per day from the last two weeks of sales, days of cover, stockout date, lead time, the suggested order quantity, and the draft supply orders waiting for approval. Use it for any 'when will we run out' or 'what should we order' question.",
+        {"location": {"type": "string", "description": "Corner id or name, e.g. frisco. Omit for all corners."},
+         "only_action": {"type": "boolean", "description": "True (default) to return only SKUs that need attention."}}),
+    "approve_supply_order": _schema(
+        "approve_supply_order",
+        "Send a drafted supply order (an id like SO-1055 from forecast_stock) to HQ. Only when the franchisee asks you to.",
+        {"order_id": {"type": "string", "description": "The draft's id."}}, ["order_id"]),
     "get_sales_insights": _schema(
         "get_sales_insights",
         "Revenue, order volume, regional split and top-selling flavors over a recent window.",
@@ -740,6 +784,8 @@ IMPLEMENTATIONS = {
     "remove_from_box": remove_from_box,
     "apply_offer": apply_offer,
     "check_inventory": check_inventory,
+    "forecast_stock": forecast_stock,
+    "approve_supply_order": approve_supply_order,
     "get_sales_insights": get_sales_insights,
     "get_event_menus": get_event_menus,
     "plan_party": plan_party,

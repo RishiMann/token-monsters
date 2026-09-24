@@ -254,6 +254,48 @@ class AppHandler(SimpleHTTPRequestHandler):
     # ── Orders: tracking and the console board ──────────────────────
 
     ORDER_PATH = re.compile(r"^/api/orders/(\d+)(?:/(advance|status|cancel|dismiss))?$")
+    SUPPLY_PATH = re.compile(r"^/api/supply/([A-Za-z0-9-]+)/(approve|ship|deliver|dismiss)$")
+
+    def _supply_action(self, order_id, action, body):
+        """Console only: approve a draft (franchisee), ship and deliver (HQ), or dismiss a draft."""
+        user = self._session_user()
+        if not user:
+            return self._json({"error": "not signed in"}, status=401)
+        if user.get("role") != "admin":
+            return self._json({"error": "forbidden"}, status=403)
+        try:
+            import replenishment
+            if action == "approve":
+                payload = replenishment.approve(order_id, note=str(body.get("note") or "")[:200])
+            elif action == "ship":
+                payload = replenishment.ship(order_id)
+            elif action == "deliver":
+                payload = replenishment.deliver(order_id)
+            else:
+                payload = replenishment.dismiss(order_id)
+            self._json({"order": payload})
+        except Exception as exc:
+            try:
+                import replenishment as r
+                if isinstance(exc, r.SupplyError):
+                    return self._json({"error": str(exc)}, status=400)
+            except ImportError:
+                pass
+            print(f"supply failed: {exc!r}", file=sys.stderr, flush=True)
+            self._json({"error": OFFLINE_MESSAGE, "demo": True}, status=503)
+
+    def _supply_draft(self, body):
+        """Console only: (re)build the agent's draft for one corner, or all."""
+        user = self._session_user()
+        if not user or user.get("role") != "admin":
+            return self._json({"error": "forbidden"}, status=403)
+        try:
+            import replenishment
+            ids = replenishment.refresh_drafts(str(body.get("location") or "") or None)
+            self._json({"drafts": [replenishment.get(i) for i in ids]})
+        except Exception as exc:
+            print(f"supply draft failed: {exc!r}", file=sys.stderr, flush=True)
+            self._json({"error": OFFLINE_MESSAGE, "demo": True}, status=503)
 
     def _get_orders(self):
         """GET /api/orders/mine (session) and GET /api/orders/<id>?t=<token> (owner, token or admin)."""
@@ -362,7 +404,7 @@ class AppHandler(SimpleHTTPRequestHandler):
                 buckets[label] = buckets.get(label, 0) + float(row["revenue"])
             weekly = [{"label": label, "revenue": round(total, 2)}
                       for label, total in sorted(buckets.items())]
-            import orders
+            import orders, replenishment
             return self._json({
                 "locations": locations,
                 "inventory": agent_tools.check_inventory()["items"],
@@ -370,6 +412,7 @@ class AppHandler(SimpleHTTPRequestHandler):
                 "insights": agent_tools.get_sales_insights(days=7),
                 "weekly": weekly,
                 "orders": orders.board(),
+                "replenishment": replenishment.board(),
             })
         except Exception as exc:
             print(f"operations failed: {exc}")
@@ -387,8 +430,14 @@ class AppHandler(SimpleHTTPRequestHandler):
         }
         handler = routes.get(self.path)
         action = self.ORDER_PATH.match(self.path)
+        supply = self.SUPPLY_PATH.match(self.path)
         if self.path == "/api/orders/track":
             handler = self._track_orders
+        elif self.path == "/api/supply/draft":
+            handler = self._supply_draft
+        elif supply:
+            supply_id, supply_verb = supply.group(1), supply.group(2)
+            handler = lambda body: self._supply_action(supply_id, supply_verb, body)
         elif action and action.group(2):
             order_id, verb = int(action.group(1)), action.group(2)
             handler = lambda body: self._order_action(order_id, verb, body)

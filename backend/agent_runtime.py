@@ -46,7 +46,7 @@ CUSTOMER_TOOLS = [
     "present_items",
 ]
 ACTION_TOOLS = {"add_to_box": "add", "remove_from_box": "remove", "apply_offer": "apply_offer"}
-FRANCHISE_TOOLS = ["check_inventory", "get_sales_insights"]     # only for admins
+FRANCHISE_TOOLS = ["check_inventory", "forecast_stock", "approve_supply_order", "get_sales_insights"]   # admins only
 
 SYSTEM = (
     "You are the Corner Concierge for Frosted Corner, a dessert brand with 40+ "
@@ -96,9 +96,10 @@ SYSTEM = (
 )
 
 FRANCHISE_NOTE = (
-    "\n\nThis customer is a franchise administrator. You also have check_inventory "
-    "and get_sales_insights for stock and sales questions; answer those with numbers "
-    "from the tools."
+    "\n\nThis customer is a franchise administrator. You also have check_inventory, "
+    "forecast_stock (burn per day, days of cover, what to order, and the drafted supply "
+    "orders waiting), approve_supply_order (send a draft to HQ, only when asked) and "
+    "get_sales_insights. Answer stock and sales questions with numbers from the tools."
 )
 
 # Where the request came from, so the model knows what the customer is looking at.
@@ -265,6 +266,10 @@ def _summary(name, payload, args=None):
     if name == "get_order_status":
         return (f"Checked orders — {payload['active']} in progress" if payload.get("count")
                 else "Checked orders — none to show")
+    if name == "forecast_stock":
+        return f"Forecast stock — {payload['order_now']} to order now, {len(payload.get('drafts', []))} draft{'' if len(payload.get('drafts', [])) == 1 else 's'} waiting"
+    if name == "approve_supply_order":
+        return f"Sent {payload['id']} to HQ (${payload['total']:.2f})" if payload.get("ok") else f"Could not approve: {payload.get('why')}"
     if name == "check_inventory":
         return f"Checked stock — {payload['critical']} critical"
     if name == "get_sales_insights":

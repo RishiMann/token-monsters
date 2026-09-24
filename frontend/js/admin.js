@@ -88,6 +88,24 @@ async function boot() {
     }, POLL_MS);
   }
 
+  // Supply orders: approve a draft, ship and deliver, or drop a draft.
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-supply]");
+    if (!button) return;
+    const id = button.dataset.supplyId;
+    const verb = button.dataset.supply;
+    button.disabled = true;
+    const response = await fetch(`/api/supply/${id}/${verb}`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      credentials: "same-origin", body: "{}"
+    }).catch(() => null);
+    const payload = response ? await response.json().catch(() => ({})) : {};
+    if (!response?.ok) { button.disabled = false; return toast(payload.error || "That change did not go through"); }
+    toast({ approve: `${id} sent to HQ`, ship: `${id} is on its way`, deliver: `${id} delivered — stock is on the shelf`, dismiss: `${id} set aside` }[verb]);
+    const next = await loadOperations();
+    if (next && !next.error) render(next);
+  });
+
   // Moving an order along, or cancelling it, then re-reading everything so
   // the stock rows show what came back.
   $("[data-board]").addEventListener("click", async (event) => {
@@ -113,15 +131,71 @@ async function boot() {
 
 function render(ops) {
   renderBoard(ops.orders);
+  renderReplenishment(ops.replenishment);
   renderInventory(ops.inventory || []);
   renderLocations(ops.locations || []);
-  renderSupply(ops.supplyOrders || []);
+  renderSupply(ops.replenishment?.orders || ops.supplyOrders || []);
   renderSales({ ...(ops.insights || {}), channels: ops.orders?.channels }, ops.weekly || []);
   const stamp = `Live · updated ${new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`;
   document.querySelectorAll("[data-live], [data-board-live]").forEach((el) => { el.textContent = stamp; });
 }
 
 const FULFILLMENT = { pickup: "Pickup", delivery: "Delivery" };
+
+/* ── Replenishment: the inventory agent's forecast and drafts ── */
+const FORECAST_LABEL = { order_now: "Order now", soon: "Order this cycle", inbound: "Order inbound", ok: "Covered" };
+const FORECAST_PILL = { order_now: "critical", soon: "low", inbound: "inbound", ok: "ok" };
+const qty = (n, unit) => `${Number(n) % 1 === 0 ? Number(n) : Number(n).toFixed(2)} ${unit}`;
+
+function renderReplenishment(rep) {
+  const panel = $("[data-replenishment-panel]");
+  if (!panel) return;
+  if (!rep) {
+    panel.hidden = true;                       // demo figures have no sales to forecast from
+    return;
+  }
+  panel.hidden = false;
+  const drafts = rep.drafts || [];
+  const empty = $("[data-drafts-empty]");
+  empty.hidden = drafts.length > 0;
+  $("[data-drafts]").innerHTML = drafts.map((d) => `
+    <article class="draft-card">
+      <div class="draft-head">
+        <div>
+          <p class="eyebrow">Suggested order · ${esc(d.id)}</p>
+          <strong>${esc(d.location.name)}</strong>
+          <small>${d.lines.length} line${d.lines.length === 1 ? "" : "s"} · lands by ${esc(d.eta)} if sent today</small>
+        </div>
+        <strong class="draft-total">${money2(d.total)}</strong>
+      </div>
+      <ul class="draft-lines">
+        ${d.lines.map((l) => `
+          <li><span class="draft-qty">${esc(qty(l.quantity, l.unit))}</span> <strong>${esc(l.name)}</strong>
+              <small>${esc(l.reason)} · ${money2(l.quantity * l.unitCost)}</small></li>`).join("")}
+      </ul>
+      <div class="board-actions">
+        <button class="chip chip-solid" type="button" data-supply="approve" data-supply-id="${esc(d.id)}">Approve &amp; send to HQ</button>
+        <button class="chip" type="button" data-supply="dismiss" data-supply-id="${esc(d.id)}">Not now</button>
+      </div>
+    </article>`).join("");
+
+  const rows = rep.forecast || [];
+  $("[data-forecast]").innerHTML = rows.map((r) => `
+    <tr class="${r.status === "ok" ? "is-final" : ""}">
+      <td>${esc(r.location.name)}</td>
+      <td>${esc(r.name)}<small class="row-sub"><code>${esc(r.sku)}</code></small></td>
+      <td class="num">${esc(r.on_hand)} ${esc(r.unit)}${r.on_order ? `<small class="row-sub">+${esc(r.on_order)} on order</small>` : ""}</td>
+      <td class="num">${esc(r.burn_per_day)}</td>
+      <td class="num">${r.days_of_cover == null ? "—" : esc(r.days_of_cover)}</td>
+      <td>${r.stockout_date ? esc(r.stockout_date) : "—"}</td>
+      <td class="num">${esc(r.lead_time_days)}d</td>
+      <td class="num">${r.suggested_qty ? esc(qty(r.suggested_qty, r.unit)) : "—"}</td>
+      <td><span class="pill pill-${FORECAST_PILL[r.status]}">${FORECAST_LABEL[r.status]}</span></td>
+    </tr>`).join("");
+  const s = rep.summary || {};
+  $("[data-forecast-details]").querySelector("summary").textContent =
+    `Forecast by corner and ingredient · ${s.order_now || 0} to order now · ${s.soon || 0} this cycle · ${money2(s.inbound_value || 0)} inbound`;
+}
 
 function renderBoard(board) {
   const stats = $("[data-board-stats]");
@@ -195,16 +269,23 @@ function renderInventory(rows) {
       <td class="num">${esc(row.lead_time_days)}d</td>
       <td><span class="pill pill-${row.status}">${STATUS_LABEL[row.status]}</span></td>
       <td>${row.status === "critical"
-        ? `<button class="chip" type="button" data-order="${esc(row.name)} at ${esc(row.location)}">Order</button>`
+        ? `<button class="chip" type="button" data-order="${esc(row.location)}" title="Have the agent draft the order for this corner">Draft order</button>`
         : ""}</td>
     </tr>`).join("");
 
   $("[data-inventory]").querySelectorAll("[data-order]").forEach((button) =>
-    button.addEventListener("click", () => {
-      button.textContent = "Requested ✓";
-      button.classList.add("is-active");
+    button.addEventListener("click", async () => {
       button.disabled = true;
-      toast(`Supply request for ${button.dataset.order} sent to HQ`);
+      const response = await fetch("/api/supply/draft", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        credentials: "same-origin", body: JSON.stringify({ location: button.dataset.order })
+      }).catch(() => null);
+      const payload = response ? await response.json().catch(() => ({})) : {};
+      if (!response?.ok) { button.disabled = false; return toast(payload.error || "Could not draft that order"); }
+      toast(payload.drafts?.length ? `Draft for ${button.dataset.order} is ready above — approve it to send` : `${button.dataset.order} is covered; nothing to draft`);
+      const next = await loadOperations();
+      if (next && !next.error) render(next);
+      $("[data-replenishment-panel]")?.scrollIntoView({ behavior: "smooth", block: "start" });
     })
   );
 }
@@ -229,16 +310,28 @@ function renderLocations(locations) {
 }
 
 function renderSupply(orders) {
-  $("[data-supply]").innerHTML = orders.map((order) => `
-    <tr>
-      <td><code>${esc(order.id)}</code></td>
-      <td>${esc(order.location)}</td>
+  // Prefer the replenishment service's shape (with lines and actions); the
+  // demo figures still arrive in the older flat shape.
+  // The rows live in [data-supply-rows]; [data-supply] is the action buttons.
+  $("[data-supply-rows]").innerHTML = orders.map((order) => {
+    const location = order.location?.name || order.location;
+    const lines = Array.isArray(order.lines)
+      ? order.lines.map((l) => `${qty(l.quantity, l.unit)} ${l.name}`).join(" · ")
+      : `${order.lines} line${order.lines === 1 ? "" : "s"}`;
+    const status = order.status;
+    return `
+    <tr class="${status === "delivered" ? "is-final" : ""}">
+      <td><code>${esc(order.id)}</code>${order.source === "agent" ? `<small class="row-sub">by the agent</small>` : ""}</td>
+      <td>${esc(location)}</td>
       <td>${esc(order.placed)}</td>
       <td>${esc(order.eta)}</td>
-      <td class="num">${esc(order.lines)}</td>
+      <td><small>${esc(lines)}</small></td>
       <td class="num">${money2(order.total)}</td>
-      <td><span class="pill pill-${order.status === "delivered" ? "ok" : order.status === "in-transit" ? "inbound" : "low"}">${esc(order.status.replace("-", " "))}</span></td>
-    </tr>`).join("");
+      <td><span class="pill pill-${status === "delivered" ? "ok" : status === "in-transit" ? "inbound" : "low"}">${esc(order.statusLabel || status.replace("-", " "))}</span></td>
+      <td>${order.nextAction
+        ? `<button class="chip" type="button" data-supply="${esc(order.nextAction)}" data-supply-id="${esc(order.id)}">${esc(order.nextLabel)}</button>` : ""}</td>
+    </tr>`;
+  }).join("");
 }
 
 /** Watch-outs are computed from the stock rows already on the page. */
