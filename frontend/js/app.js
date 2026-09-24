@@ -19,6 +19,7 @@ import { recommend, offersFor, receipt } from "./agent-engine.js";
 import { resetMemory } from "./concierge.js";
 import { initItemDetail, open as openItem } from "./item-detail.js";
 import { initCalendar } from "./calendar.js";
+import { initTracker, rememberOrder } from "./orders.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -837,9 +838,13 @@ document.querySelector("[data-checkout-form]")?.addEventListener("submit", async
   event.preventDefault();
   const method = fulfillment();
   const windowLabel = $("select[name=window]", checkoutDialog).value;
+  const name = $("input[name=name]", checkoutDialog)?.value.trim() || "";
+  const address = $("input[name=address]", checkoutDialog)?.value.trim() || "";
+  const note = $("textarea[name=note]", checkoutDialog)?.value.trim() || "";
   const bill = renderCheckout();
   const button = $('button[type="submit"]', checkoutDialog);
   button.disabled = true;
+  try { localStorage.setItem("fc-name", name); } catch { /* storage refused */ }
 
   // Place the order for real: the server records it, prices it again, and
   // takes the ingredients out of the corner's stock. Without a database it
@@ -854,10 +859,18 @@ document.querySelector("[data-checkout-form]")?.addEventListener("submit", async
         lines: latestBox.lines.map((line) => ({ id: line.item.id, quantity: line.qty })),
         fulfillment: method,
         window: windowLabel,
+        name,
+        address,
+        note,
         appliedOffer: latestBox.appliedOffer
       })
     });
     if (response.ok) placed = await response.json();
+    else if (response.status === 400) {
+      const { error } = await response.json().catch(() => ({}));
+      button.disabled = false;
+      return toast(error || "That order could not be placed");
+    }
   } catch {
     placed = null;
   }
@@ -868,8 +881,13 @@ document.querySelector("[data-checkout-form]")?.addEventListener("submit", async
   openBag(false);
   if (placed) {
     const low = (placed.stock || []).filter((row) => row.status !== "ok");
-    toast(`Order #${placed.id} placed · ${money(placed.total)} · stock updated at ${placed.location}`
+    toast(`Order #${placed.id} placed · ${money(placed.total)} · stock updated at ${placed.location?.name || "the corner"}`
       + (low.length ? ` — ${low[0].name} now ${low[0].status}` : ""));
+    // Follow it: the card appears at the top of the page and updates as the corner moves it.
+    rememberOrder(placed);
+    tracker.refresh().then(() => {
+      $("[data-orders-section]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   } else {
     toast(`Demo order placed for ${method}, ${windowLabel.toLowerCase()} · ${money(bill.total)}`
       + (bill.applied ? ` after ${bill.applied.title.toLowerCase()}` : ""));
@@ -877,6 +895,13 @@ document.querySelector("[data-checkout-form]")?.addEventListener("submit", async
 });
 
 /* ── Boot ──────────────────────────────────────────────────── */
+// Orders this browser placed (and, once signed in, the account's) as live cards.
+const tracker = initTracker($("[data-order-cards]"), { section: $("[data-orders-section]"), onToast: toast });
+// The name on the order: the signed-in customer's, else whatever they used last time.
+try {
+  const nameInput = $("input[name=name]", checkoutDialog);
+  if (nameInput) nameInput.value = localStorage.getItem("fc-name") || "";
+} catch { /* storage refused */ }
 renderMenu();
 // Restore the box from the last visit, dropping anything no longer on sale.
 bag.hydrate((id) => (isOnSale(id) ? findItem(id) : null));
@@ -891,6 +916,10 @@ userReady.then(() => refreshAgents(bag.snapshot()));
   // The session lives in an HttpOnly cookie, so only the server can read it.
   const user = await userReady;
   if (!user) return;
+
+  const nameInput = $("input[name=name]", checkoutDialog);
+  if (nameInput && !nameInput.value) nameInput.value = user.name;
+  tracker.refresh();                      // the session cookie now adds the account's orders
 
   link.href = homeFor(user);
   $("[data-account-label]").textContent = user.name.split(" ")[0];

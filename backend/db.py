@@ -31,6 +31,11 @@ class DatabaseUnavailable(RuntimeError):
 
 LOCAL_DEFAULT = "postgresql:///frostedcorner"
 
+# DATABASE_URL is the setting. App Service exposes anything entered under
+# "Connection strings" with a type prefix instead, so those spellings count too.
+URL_NAMES = ("DATABASE_URL", "POSTGRESQLCONNSTR_DATABASE_URL", "CUSTOMCONNSTR_DATABASE_URL",
+             "SQLAZURECONNSTR_DATABASE_URL", "SQLCONNSTR_DATABASE_URL")
+
 
 def database_url():
     """DATABASE_URL, falling back to a local database during development.
@@ -39,12 +44,18 @@ def database_url():
     developer machine. That means `createdb frostedcorner` and running the
     server is enough locally, with no environment variable to remember.
     """
-    url = os.environ.get("DATABASE_URL")
-    if url:
-        return url
+    for name in URL_NAMES:
+        url = os.environ.get(name)
+        if url:
+            return url.strip()
     if "PORT" in os.environ:
         return None
     return LOCAL_DEFAULT
+
+
+def database_url_source():
+    """Which environment variable supplied the URL, for /api/health."""
+    return next((n for n in URL_NAMES if os.environ.get(n)), None)
 
 
 def _sqlite_path():
@@ -261,26 +272,49 @@ CREATE TABLE IF NOT EXISTS preferences (
     PRIMARY KEY (user_id, key)
 );
 
--- user_id is NULL for a guest checkout.
+-- user_id is NULL for a guest checkout; a guest follows the order with its
+-- tracking token instead. status walks placed -> preparing -> ready |
+-- out_for_delivery -> completed, or cancelled; seeded history is 'fulfilled'.
 CREATE TABLE IF NOT EXISTS orders (
-    id           BIGSERIAL PRIMARY KEY,
-    user_id      BIGINT REFERENCES users(id) ON DELETE CASCADE,
-    placed_at    DATE NOT NULL,
-    channel      TEXT NOT NULL DEFAULT 'app',
-    status       TEXT NOT NULL DEFAULT 'fulfilled',
-    fulfillment  TEXT,
-    location_id  TEXT,
-    offer_id     TEXT,
-    total        NUMERIC(10,2)
+    id             BIGSERIAL PRIMARY KEY,
+    user_id        BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    placed_at      DATE NOT NULL,
+    channel        TEXT NOT NULL DEFAULT 'app',
+    status         TEXT NOT NULL DEFAULT 'fulfilled',
+    fulfillment    TEXT,
+    location_id    TEXT,
+    offer_id       TEXT,
+    total          NUMERIC(10,2),
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at     TIMESTAMPTZ,
+    promised_at    TIMESTAMPTZ,
+    completed_at   TIMESTAMPTZ,
+    window_label   TEXT,
+    address        TEXT,
+    contact_name   TEXT,
+    note           TEXT,
+    tracking_token TEXT
 );
 CREATE INDEX IF NOT EXISTS orders_user_idx ON orders(user_id);
+CREATE INDEX IF NOT EXISTS orders_status_idx ON orders(status);
 
 CREATE TABLE IF NOT EXISTS order_items (
-    order_id  BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-    item_id   TEXT NOT NULL,
-    quantity  INT NOT NULL DEFAULT 1,
+    order_id    BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    item_id     TEXT NOT NULL,
+    quantity    INT NOT NULL DEFAULT 1,
+    unit_price  NUMERIC(10,2),
     PRIMARY KEY (order_id, item_id)
 );
+
+-- Every status change, so the customer sees a timeline rather than a word.
+CREATE TABLE IF NOT EXISTS order_events (
+    id        BIGSERIAL PRIMARY KEY,
+    order_id  BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    status    TEXT NOT NULL,
+    at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    note      TEXT
+);
+CREATE INDEX IF NOT EXISTS order_events_order_idx ON order_events(order_id);
 
 CREATE TABLE IF NOT EXISTS locations (
     id            TEXT PRIMARY KEY,
@@ -355,6 +389,22 @@ MIGRATIONS = [
     "ALTER TABLE orders ADD COLUMN offer_id TEXT",
     "ALTER TABLE orders ADD COLUMN total NUMERIC(10,2)",
     "ALTER TABLE orders ALTER COLUMN user_id DROP NOT NULL",   # PostgreSQL only
+    # Order tracking. SQLite cannot default a new column to now(), so the
+    # timestamp columns are added bare and filled from placed_at below.
+    "ALTER TABLE orders ADD COLUMN created_at TIMESTAMPTZ",
+    "ALTER TABLE orders ADD COLUMN updated_at TIMESTAMPTZ",
+    "ALTER TABLE orders ADD COLUMN promised_at TIMESTAMPTZ",
+    "ALTER TABLE orders ADD COLUMN completed_at TIMESTAMPTZ",
+    "ALTER TABLE orders ADD COLUMN window_label TEXT",
+    "ALTER TABLE orders ADD COLUMN address TEXT",
+    "ALTER TABLE orders ADD COLUMN contact_name TEXT",
+    "ALTER TABLE orders ADD COLUMN note TEXT",
+    "ALTER TABLE orders ADD COLUMN tracking_token TEXT",
+    "ALTER TABLE order_items ADD COLUMN unit_price NUMERIC(10,2)",
+    "UPDATE orders SET created_at = placed_at WHERE created_at IS NULL",
+    # Orders placed before tracking existed were fulfilled on the spot.
+    "UPDATE orders SET status = 'completed' WHERE status = 'placed' AND updated_at IS NULL",
+    "CREATE INDEX IF NOT EXISTS orders_status_idx ON orders(status)",
 ]
 
 

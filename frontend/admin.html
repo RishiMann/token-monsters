@@ -38,12 +38,39 @@
       </section>
 
       <div class="tab-row" role="tablist" aria-label="Console sections">
-        <button class="tab is-active" type="button" role="tab" aria-selected="true" data-tab="inventory">Inventory &amp; supplies</button>
+        <button class="tab is-active" type="button" role="tab" aria-selected="true" data-tab="orders">Live orders <span class="tab-count" data-board-count hidden></span></button>
+        <button class="tab" type="button" role="tab" aria-selected="false" data-tab="inventory">Inventory &amp; supplies</button>
         <button class="tab" type="button" role="tab" aria-selected="false" data-tab="insights">Order &amp; sales insights</button>
       </div>
 
+      <!-- ── Live orders ───────────────────────────────────── -->
+      <section class="tab-panel" data-panel="orders">
+        <div class="stat-row board-stats" data-board-stats></div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Orders board</h2>
+            <span class="panel-tag"><span class="agent-dot tint-pink"></span>Orders Agent</span>
+          </div>
+          <p class="panel-lede">Every order placed on the storefront lands here as it is placed. Move it along as the kitchen does — the customer's page follows within seconds, and a cancellation puts the ingredients back.<span class="admin-live" data-board-live hidden></span></p>
+          <div class="table-wrap">
+            <table class="data-table board-table">
+              <thead>
+                <tr>
+                  <th scope="col">Order</th><th scope="col">Placed</th><th scope="col">Customer</th>
+                  <th scope="col">Box</th><th scope="col">Get it</th><th scope="col" class="num">Total</th>
+                  <th scope="col">Status</th><th scope="col"><span class="visually-hidden">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody data-board></tbody>
+            </table>
+          </div>
+          <p class="board-empty" data-board-empty hidden>Nothing in progress. Place an order on the storefront and it appears here within a few seconds.</p>
+        </div>
+      </section>
+
       <!-- ── Inventory ─────────────────────────────────────── -->
-      <section class="tab-panel" data-panel="inventory">
+      <section class="tab-panel" data-panel="inventory" hidden>
         <div class="stat-row" data-inv-stats></div>
 
         <div class="panel">

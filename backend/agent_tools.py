@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 """Tools the agents can call.
 
 Every tool reads live rows from PostgreSQL apart from the catalog tools, which
@@ -332,12 +333,12 @@ def analyze_purchase_history(user_id=None, cart=None, **_):
         """SELECT oi.item_id, sum(oi.quantity) AS units, count(DISTINCT o.id) AS orders,
                   max(o.placed_at) AS last_ordered
            FROM orders o JOIN order_items oi ON oi.order_id = o.id
-           WHERE o.user_id = %s
+           WHERE o.user_id = %s AND o.status <> 'cancelled'
            GROUP BY oi.item_id ORDER BY units DESC""",
         (user_id,),
     )
     total = db.query(
-        "SELECT count(*) AS n, max(placed_at) AS last FROM orders WHERE user_id = %s",
+        "SELECT count(*) AS n, max(placed_at) AS last FROM orders WHERE user_id = %s AND status <> 'cancelled'",
         (user_id,), one=True,
     )
 
@@ -598,6 +599,44 @@ def plan_party(guests=12, dietary=None, **_):
     }
 
 
+def get_order_status(user_id=None, order_refs=None, **_):
+    """Orders in progress (and the latest finished ones) for this customer.
+
+    Signed-in customers are matched by account; a guest's browser sends the
+    references of the orders it placed. Nothing else is visible.
+    """
+    import orders as order_service          # lazy: orders imports this module
+    found = order_service.lookup(order_refs if isinstance(order_refs, list) else [])
+    if user_id:
+        seen = {o["id"] for o in found}
+        mine = [o for o in order_service.for_user(user_id, limit=20) if o["id"] not in seen and o["status"] != "fulfilled"]
+        found += [o for o in mine if o["active"]] + [o for o in mine if not o["active"]][:2]
+    found.sort(key=lambda o: (not o["active"], -(o["id"] or 0)))
+    now = datetime.now(timezone.utc)
+
+    def minutes(iso):
+        if not iso:
+            return None
+        return int(round((datetime.fromisoformat(iso) - now).total_seconds() / 60))
+
+    compact = []
+    for o in found[:6]:
+        due = minutes(o["promisedAt"]) if o["active"] else None
+        compact.append({
+            "id": o["id"], "status": o["status"], "status_label": o["statusLabel"], "headline": o["headline"],
+            "active": o["active"], "fulfillment": o["fulfillment"], "corner": o["location"]["name"],
+            "window": o["window"],
+            # Relative times only: the server does not know the customer's clock.
+            "ready_in_minutes": max(due, 0) if due is not None else None,
+            "placed_minutes_ago": -minutes(o["placedAt"]) if o["placedAt"] else None,
+            "total": o["total"], "can_cancel": o["canCancel"],
+            "items": [f"{i['quantity']} × {i['name']}" for i in o["items"]],
+            "last_update": o["events"][-1]["note"] if o["events"] else None,
+        })
+    return {"signed_in": bool(user_id), "count": len(compact),
+            "active": sum(1 for o in compact if o["active"]), "orders": compact}
+
+
 def present_items(item_ids=None, **_):
     ids = [i for i in (item_ids or []) if item_by_id(i)]
     return {"presented": ids, "ok": True}
@@ -679,6 +718,9 @@ SCHEMAS = {
         {"guests": {"type": "integer", "description": "Number of guests."},
          "dietary": {"type": "array", "items": {"type": "string"}, "description": "e.g. vegan, nut-free."}},
         ["guests"]),
+    "get_order_status": _schema(
+        "get_order_status",
+        "The customer's orders in progress and their latest finished ones: status, where it is, when it should be ready or arrive, and what is in it. The only way to answer where an order is; say plainly if there are none."),
     "present_items": _schema(
         "present_items",
         "Show these menu items to the customer as cards they can add to their box. Call once, last, with the ids you recommend.",
@@ -701,5 +743,6 @@ IMPLEMENTATIONS = {
     "get_sales_insights": get_sales_insights,
     "get_event_menus": get_event_menus,
     "plan_party": plan_party,
+    "get_order_status": get_order_status,
     "present_items": present_items,
 }

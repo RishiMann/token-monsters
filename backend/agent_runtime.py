@@ -42,6 +42,7 @@ CUSTOMER_TOOLS = [
     "get_event_menus",                                           # seasonal
     "plan_party",                                                # planner
     "add_to_box", "remove_from_box", "apply_offer",              # actions on the box
+    "get_order_status",                                          # order tracking
     "present_items",
 ]
 ACTION_TOOLS = {"add_to_box": "add", "remove_from_box": "remove", "apply_offer": "apply_offer"}
@@ -66,6 +67,10 @@ SYSTEM = (
     "price_box: the receipt with a discount and delivery applied.\n"
     "- get_event_menus: seasonal menus with today's status and each item's release date.\n"
     "- plan_party: serving math for a headcount. Never do that arithmetic yourself.\n"
+    "- get_order_status: where the customer's orders are right now (received, preparing, "
+    "ready, on its way, done) and when they should be ready. Use it for any question about "
+    "an order they placed; never guess a status. Give times as \"in about N minutes\" "
+    "from ready_in_minutes, never as a raw timestamp.\n"
     "- present_items: show items as cards the customer can add. Call it once, last, "
     "whenever you name items to buy.\n"
     "- add_to_box / remove_from_box / apply_offer: act on the box when the customer asks "
@@ -121,6 +126,7 @@ CHIPS = {
     "price_box": ["Take me to checkout"],
     "get_event_menus": ["Show the calendar", "Add a seasonal treat"],
     "search_menu": ["Add the first one", "What's seasonal?"],
+    "get_order_status": ["Where's my order?", "Can I cancel it?"],
 }
 
 
@@ -256,6 +262,9 @@ def _summary(name, payload, args=None):
         if payload.get("ok"):
             return f"Applied {payload['title']} (saves ${payload['discount']:.2f})" if payload.get("applied") else "Cleared the applied offer"
         return f"Could not apply the offer: {payload.get('why')}"
+    if name == "get_order_status":
+        return (f"Checked orders — {payload['active']} in progress" if payload.get("count")
+                else "Checked orders — none to show")
     if name == "check_inventory":
         return f"Checked stock — {payload['critical']} critical"
     if name == "get_sales_insights":
@@ -274,7 +283,7 @@ def _compact(name, payload):
     return None
 
 
-def run(surface="concierge", text="", cart=None, user=None, history=None):
+def run(surface="concierge", text="", cart=None, user=None, history=None, order_refs=None):
     """One conversational turn. Returns {message, items, trace, data, chips, model, surface}."""
     client = _client()
     deployment = _deployment()
@@ -332,7 +341,7 @@ def run(surface="concierge", text="", cart=None, user=None, history=None):
                     args = json.loads(call.arguments or "{}")
                     if not isinstance(args, dict):
                         raise ValueError("arguments were not an object")
-                    payload = impl(cart=cart, user_id=user_id, **args)
+                    payload = impl(cart=cart, user_id=user_id, order_refs=order_refs, **args)
                     if call.name == "present_items":
                         presented = payload.get("presented", [])
                 except (json.JSONDecodeError, ValueError) as exc:
