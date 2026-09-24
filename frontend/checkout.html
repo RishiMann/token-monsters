@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Check out your Frosted Corner box: pickup or delivery, the deals your order has earned, and the total." />
+  <title>Checkout | Frosted Corner</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="announcement"><span data-announce>Free delivery over $45</span></div>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Frosted Corner, home">
+      <span class="brand-mark"><img src="assets/logo.svg" alt="" width="42" height="42" /></span>
+      <span class="brand-word"><strong>Frosted</strong><small>Corner</small></span>
+    </a>
+    <nav class="main-nav" aria-label="Main">
+      <a href="index.html#menu">Menu</a>
+      <a href="offers.html">Offers &amp; deals</a>
+      <a href="catering.html">Catering</a>
+      <a href="subscriptions.html">Subscribe</a>
+      <a href="account.html">Profile</a>
+    </nav>
+    <div class="header-actions">
+      <a class="bag-button" href="index.html#menu" aria-label="Back to the menu">
+        <span class="bag-glyph" aria-hidden="true">🧁</span>
+        <span>Box</span>
+        <span class="bag-count" data-bag-count>0</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main" class="section checkout-page">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Checkout</p>
+        <h1 data-checkout-heading>Your <em>order</em></h1>
+        <p class="section-lede" data-checkout-lede>Pick how to get it, and see exactly which deals this order has earned.</p>
+      </div>
+      <a class="chip" href="index.html#menu">← Keep shopping</a>
+    </div>
+
+    <!-- After placing: the live card for the order just placed. -->
+    <section class="checkout-placed" data-placed hidden aria-live="polite">
+      <div class="order-cards" data-order-cards></div>
+      <p class="checkout-placed-note">You can follow it here or on the <a href="index.html">menu page</a>; it updates on its own.</p>
+    </section>
+
+    <form class="checkout-layout" data-checkout-page-form novalidate>
+      <div class="checkout-main">
+        <section class="checkout-block">
+          <h2>What's in the box <span class="checkout-count" data-count-label></span></h2>
+          <div class="checkout-lines" data-lines></div>
+          <p class="drawer-hint" data-box-hint></p>
+        </section>
+
+        <section class="checkout-block">
+          <h2>How to get it</h2>
+          <div class="fulfillment-options" role="group" aria-label="Fulfillment method">
+            <label class="fulfillment-option is-selected"><input type="radio" name="fulfillment" value="pickup" checked />
+              <strong>Pickup</strong><small>Ready in about 20 minutes</small></label>
+            <label class="fulfillment-option"><input type="radio" name="fulfillment" value="delivery" />
+              <strong>Delivery</strong><small>Free over $45 · 30–45 minutes</small></label>
+          </div>
+          <div class="checkout-fields">
+            <label class="checkout-field">Name for the order<input name="name" type="text" autocomplete="name" placeholder="Who's it for?" required /></label>
+            <label class="checkout-field" data-address-field hidden>Delivery address<input name="address" type="text" placeholder="123 Corner Street" autocomplete="street-address" /></label>
+            <label class="checkout-field">Preferred window<select name="window">
+                <option>As soon as possible</option>
+                <option>Today, 5:00–5:30 PM</option>
+                <option>Today, 6:00–6:30 PM</option>
+              </select></label>
+            <label class="checkout-field">Note for the corner (optional)<textarea name="note" rows="2" placeholder="Candles, a gift note, anything to flag…"></textarea></label>
+          </div>
+        </section>
+
+        <section class="checkout-block">
+          <div class="checkout-block-head">
+            <h2>Personalized deals for this order</h2>
+            <span class="checkout-eligible" data-eligible-summary></span>
+          </div>
+          <p class="section-lede">Checked against exactly what's in the box right now. Apply one you've earned; free delivery comes on by itself.</p>
+          <div class="offer-rail checkout-offers" data-offer-rail></div>
+        </section>
+      </div>
+
+      <aside class="checkout-side">
+        <div class="checkout-summary-card">
+          <h2>Total</h2>
+          <div class="checkout-receipt" data-checkout-receipt aria-live="polite"></div>
+          <p class="checkout-applied" data-applied-note></p>
+          <button class="button button-primary full" type="submit" data-place>Place order</button>
+          <p class="checkout-note">You'll see it move — received, preparing, ready — as soon as it's placed.</p>
+        </div>
+      </aside>
+    </form>
+  </main>
+
+  <div class="toast" data-toast role="status" aria-live="polite"></div>
+  <script type="module" src="js/checkout.js"></script>
+</body>
+</html>

@@ -138,11 +138,11 @@ test("six-count bundle: 10% with one flavor, 15% with three", () => {
   assert.equal(three.percent, 15);
 });
 
-test("party box at twelve adds the free flight", () => {
+test("party box at twelve adds the free tasting sampler", () => {
   const b = basket(line("brown-butter", 6), line("lemon-cloud", 6));
   const party = evaluateOffers(offers, b, ctx).find((o) => o.id === "offer-party");
   assert.equal(party.eligible, true);
-  assert.equal(party.addon.name, "Flavor flight");
+  assert.equal(party.addon.name, "Tasting sampler");
   const short = evaluateOffers(offers, basket(line("brown-butter", 10)), ctx).find((o) => o.id === "offer-party");
   assert.match(short.why, /Add 2 more/);
 });

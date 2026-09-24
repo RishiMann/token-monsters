@@ -2633,9 +2633,10 @@ input[type="range"]::-moz-range-thumb {
   padding-bottom: 2px;
   scroll-snap-type: x proximity;
 }
+.picks-sentinel { height: 1px; margin-top: -1px; }
 .picks-panel.is-stuck .pick-card {
-  flex: 0 0 auto;
-  width: min(300px, 78vw);
+  flex: 1 1 220px;
+  min-width: min(220px, 78vw);
   grid-template-columns: 56px 1fr;
   gap: 10px;
   padding: 8px;
@@ -3888,3 +3889,36 @@ input[type="range"]::-moz-range-thumb {
   font: inherit; resize: vertical; min-height: 54px; background: #fff;
 }
 .checkout-note { font-size: .78rem; color: var(--ink-soft); text-align: center; margin-top: 8px; }
+
+/* ── Full checkout page ─────────────────────────────────────── */
+.checkout-page h1 { font-size: clamp(2rem, 4vw, 2.8rem); }
+.checkout-layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start;
+}
+.checkout-main { display: grid; gap: 22px; min-width: 0; }
+.checkout-block {
+  background: var(--card, #fff); border: 1px solid var(--line, #F1DDE5); border-radius: var(--r-lg, 22px);
+  padding: 22px 24px; display: grid; gap: 14px;
+}
+.checkout-block h2 { font-size: 1.35rem; }
+.checkout-block-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.checkout-count { font-size: .9rem; color: var(--ink-soft); font-weight: 500; }
+.checkout-eligible { font-size: .8rem; font-weight: 700; color: #1f7a5c; background: #e6f6ef; padding: 5px 11px; border-radius: 999px; }
+.checkout-lines { display: grid; gap: 8px; }
+.checkout-lines .line-item { background: var(--cream); }
+.line-photo { width: 56px; height: 42px; object-fit: cover; border-radius: 10px; flex: none; }
+.checkout-fields { display: grid; gap: 12px; }
+.checkout-offers { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.checkout-side { position: sticky; top: calc(var(--header-h, 72px) + 16px); }
+.checkout-summary-card {
+  background: var(--card, #fff); border: 1px solid var(--line, #F1DDE5); border-radius: var(--r-lg, 22px);
+  padding: 22px 24px; display: grid; gap: 12px; box-shadow: var(--shadow-sm);
+}
+.checkout-summary-card h2 { font-size: 1.35rem; }
+.checkout-applied { font-size: .82rem; color: #1f7a5c; min-height: 1em; }
+.checkout-placed { margin-bottom: 28px; display: grid; gap: 12px; }
+.checkout-placed-note { font-size: .88rem; color: var(--ink-soft); }
+@media (max-width: 900px) {
+  .checkout-layout { grid-template-columns: 1fr; }
+  .checkout-side { position: static; }
+}

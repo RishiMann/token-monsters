@@ -296,11 +296,18 @@ function refreshAgents(snapshot) {
   if (!picksPanel || !header) return;
   const setHeaderHeight = () =>
     document.documentElement.style.setProperty("--header-h", `${header.offsetHeight}px`);
+  // Measure a sentinel just above the panel, not the panel itself: compacting
+  // the panel changes its own height, and measuring that would flip the state
+  // back and forth at the threshold.
+  const sentinel = document.createElement("div");
+  sentinel.className = "picks-sentinel";
+  sentinel.setAttribute("aria-hidden", "true");
+  picksPanel.before(sentinel);
   let ticking = false;
   const update = () => {
     ticking = false;
-    if (picksPanel.hidden) return;
-    const stuck = picksPanel.getBoundingClientRect().top <= header.offsetHeight + 9 && window.scrollY > 0;
+    if (picksPanel.hidden) { picksPanel.classList.remove("is-stuck"); return; }
+    const stuck = sentinel.getBoundingClientRect().top < header.offsetHeight + 8;
     picksPanel.classList.toggle("is-stuck", stuck);
   };
   const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
@@ -750,7 +757,7 @@ function renderBox(snapshot) {
   $("[data-box-hint]").textContent =
     count === 0 ? "A Frosted Corner box holds six."
     : count < capacity ? `${capacity - count} slot${capacity - count === 1 ? "" : "s"} left in this box.`
-    : count === capacity ? "Box is full — nicely done."
+    : count === capacity ? "One full box of six."
     : `${Math.ceil(count / capacity)} boxes for this order.`;
 
   linesWrap.innerHTML = lines.length
