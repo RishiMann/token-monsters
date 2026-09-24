@@ -98,6 +98,44 @@ def _open_postgres(url):
     return pool
 
 
+RECOVERED = None   # path a corrupt SQLite file was moved to at boot, for /api/health
+
+
+def _set_aside_if_corrupt(path):
+    """If the SQLite file fails its integrity check, rename it and start fresh.
+
+    A corrupt file would otherwise take the whole account system down for
+    good: every schema statement fails and nothing can repair it. The file is
+    kept beside the new one under a timestamped name, never deleted.
+    """
+    global RECOVERED
+    import sqlite3
+    from datetime import datetime
+
+    if not path.exists() or path.stat().st_size == 0:
+        return
+    verdict = None
+    try:
+        probe = sqlite3.connect(str(path), timeout=30)
+        try:
+            verdict = probe.execute("PRAGMA quick_check").fetchone()[0]
+        finally:
+            probe.close()
+    except sqlite3.DatabaseError as exc:
+        verdict = str(exc)
+    if verdict == "ok":
+        return
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    moved = path.with_name(f"{path.name}.corrupt-{stamp}")
+    path.rename(moved)
+    for suffix in ("-wal", "-shm", "-journal"):
+        sidecar = path.with_name(path.name + suffix)
+        if sidecar.exists():
+            sidecar.rename(moved.with_name(moved.name + suffix))
+    RECOVERED = f"{moved.name} ({verdict})"
+    print(f"SQLite file failed its integrity check ({verdict}); moved to {moved.name} and starting fresh.")
+
+
 def _open_sqlite():
     """A file-backed fallback so the app still works with no PostgreSQL.
 
@@ -113,6 +151,7 @@ def _open_sqlite():
 
     path = _sqlite_path()
     path.parent.mkdir(parents=True, exist_ok=True)
+    _set_aside_if_corrupt(path)
 
     import threading
 
@@ -124,7 +163,10 @@ def _open_sqlite():
                 str(path), timeout=30, check_same_thread=False
             )
             self_inner._conn.execute("PRAGMA foreign_keys = ON")
-            self_inner._conn.execute("PRAGMA journal_mode = WAL")
+            # The rollback journal, not WAL: App Service keeps /home on a
+            # network share, where WAL's shared-memory file corrupts the database.
+            self_inner._conn.execute("PRAGMA journal_mode = DELETE")
+            self_inner._conn.execute("PRAGMA synchronous = FULL")
             self_inner._lock = threading.Lock()
 
         @contextmanager
