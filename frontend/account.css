@@ -235,13 +235,18 @@
 .favorite-price { font-size: .78rem; color: var(--ink-soft); }
 
 /* ── Customer: orders + event ───────────────────────────────── */
-.order-list { display: grid; gap: 9px; }
+.order-list { display: grid; gap: 9px; min-width: 0; }
 .order-row {
-  display: flex; align-items: center; gap: 14px;
+  display: grid; gap: 6px; min-width: 0;
   background: var(--cream); border-radius: var(--r-md); padding: 12px 14px;
 }
-.order-date { font-weight: 700; font-size: .84rem; width: 92px; flex: none; }
-.order-items { flex: 1; font-size: .85rem; color: var(--ink-soft); }
+.order-row.is-active { box-shadow: inset 4px 0 0 var(--pink); }
+.order-row-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.order-date { font-weight: 700; font-size: .84rem; white-space: nowrap; }
+.order-date small { font-weight: 500; color: var(--ink-soft); margin-left: 4px; }
+.order-items { font-size: .85rem; color: var(--ink); line-height: 1.45; overflow-wrap: anywhere; }
+.order-where { font-size: .76rem; color: var(--ink-soft); }
+.order-more { justify-self: start; margin-top: 4px; }
 
 .event-saved {
   display: flex; align-items: center; justify-content: space-between;
@@ -360,8 +365,6 @@
 }
 @media (max-width: 560px) {
   .role-toggle { grid-template-columns: 1fr; }
-  .order-row { flex-wrap: wrap; }
-  .order-date { width: auto; }
   .bar-value { font-size: .6rem; }
 }
 
@@ -406,7 +409,8 @@ tr.is-final td { opacity: .6; }
 
 /* Profile: orders with their status */
 .order-row .order-pill { margin-left: auto; }
-.order-total { font-weight: 700; font-size: .84rem; white-space: nowrap; }
+.order-total { font-weight: 700; font-size: .84rem; white-space: nowrap; margin-left: auto; }
+.order-row .order-total + .order-pill { margin-left: 0; }
 .tracker-panel .order-cards { grid-template-columns: 1fr; }
 
 .panel-wide { grid-column: 1 / -1; }
@@ -429,3 +433,12 @@ tr.is-final td { opacity: .6; }
 .draft-qty { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .forecast-details summary { cursor: pointer; font-weight: 600; font-size: .9rem; color: var(--ink-soft); padding: 8px 0; }
 .forecast-table { min-width: 760px; }
+
+/* Narrow screens: the header must never push the page sideways. */
+@media (max-width: 640px) {
+  .header-actions { min-width: 0; }
+  .session-chip { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (max-width: 480px) {
+  .session-chip { display: none; }
+}

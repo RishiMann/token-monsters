@@ -2522,6 +2522,11 @@ input[type="range"]::-moz-range-thumb {
     overflow-x: auto;
     flex-wrap: nowrap;
     padding-bottom: 4px;
+    /* Scroll inside its own width; never widen the page. */
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    -webkit-overflow-scrolling: touch;
   }
 
   .filter-row .chip {
