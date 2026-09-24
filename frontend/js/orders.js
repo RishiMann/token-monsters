@@ -73,6 +73,30 @@ export async function fetchTracked() {
   }
 }
 
+const DISMISSED_KEY = "fc-orders-dismissed";
+
+function readDismissed() {
+  try { return new Set(JSON.parse(localStorage.getItem(DISMISSED_KEY) || "[]")); } catch { return new Set(); }
+}
+
+/** Put a finished order away for good: recorded on the order itself, and remembered here too. */
+export async function dismissOrder(id) {
+  try {
+    const set = readDismissed(); set.add(id);
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify([...set].slice(-50)));
+  } catch { /* storage refused */ }
+  forgetOrder(id);
+  const ref = readRefs().find((r) => r.id === id);
+  try {
+    await fetch(`/api/orders/${id}/dismiss`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ token: ref?.token || null })
+    });
+  } catch { /* offline: the local memory still hides it */ }
+}
+
 export async function cancelOrder(id) {
   const ref = readRefs().find((r) => r.id === id);
   const response = await fetch(`/api/orders/${id}/cancel`, {
@@ -165,7 +189,7 @@ export function initTracker(root, { section = null, onToast = () => {}, compact 
   if (!root) return { refresh: async () => [], destroy() {} };
   let timer = null;
   let orders = [];
-  let dismissed = new Set();
+  let dismissed = readDismissed();
 
   const wrap = section || root;
 
@@ -178,7 +202,7 @@ export function initTracker(root, { section = null, onToast = () => {}, compact 
       const ended = o.completedAt || o.updatedAt;
       if (!o.active && ended && Date.now() - new Date(ended) > STALE_MS) { dismissed.add(o.id); forgetOrder(o.id); }
     }
-    const visible = orders.filter((o) => !dismissed.has(o.id));
+    const visible = orders.filter((o) => !dismissed.has(o.id) && !o.dismissed);
     wrap.hidden = visible.length === 0;
     root.innerHTML = visible.map((o) => orderCard(o, { compact })).join("");
     root.dataset.active = String(visible.filter((o) => o.active).length);
@@ -222,8 +246,8 @@ export function initTracker(root, { section = null, onToast = () => {}, compact 
     if (dismiss) {
       const id = Number(dismiss.dataset.dismissOrder);
       dismissed.add(id);
-      forgetOrder(id);
       paint();
+      dismissOrder(id);
     }
   });
 
