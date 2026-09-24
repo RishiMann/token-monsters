@@ -376,12 +376,12 @@ OFFERS = [
     {
         "id": "offer-party",
         "label": "Because this is a big box",
-        "title": "Party Box: free flavor flight",
-        "detail": "Twelve or more treats and we add a six-piece flavor flight to the order, free.",
-        "reason": "Past a dozen you are feeding a room, and the flight helps people choose.",
-        "value": "Free flight ($9)",
+        "title": "Party Box: free tasting sampler",
+        "detail": "Twelve or more treats and we add a six-piece tasting sampler to the order, free.",
+        "reason": "Past a dozen you are feeding a room, and the sampler helps people choose.",
+        "value": "Free sampler ($9)",
         "tint": "berry", "emoji": "🎉",
-        "rule": {"type": "free-addon", "minItems": 12, "addon": {"name": "Flavor flight", "value": 9}},
+        "rule": {"type": "free-addon", "minItems": 12, "addon": {"name": "Tasting sampler", "value": 9}},
     },
     {
         "id": "offer-season",

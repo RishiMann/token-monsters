@@ -103,6 +103,15 @@ class AppHandler(SimpleHTTPRequestHandler):
     def log_message(self, fmt, *args):  # keep the access log terse
         super().log_message(fmt, *args)
 
+    def end_headers(self):
+        # Pages, scripts and styles must revalidate on every load, or a browser
+        # keeps running last week's modules against this week's API. Images
+        # keep the default heuristic caching.
+        path = self.path.split("?", 1)[0]
+        if not path.startswith("/api/") and (path.endswith((".js", ".css", ".html", "/")) or "." not in path.rsplit("/", 1)[-1]):
+            self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
     # ── GET ──────────────────────────────────────────────────────────
 
     def do_GET(self):
