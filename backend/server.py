@@ -244,7 +244,7 @@ class AppHandler(SimpleHTTPRequestHandler):
 
     # ── Orders: tracking and the console board ──────────────────────
 
-    ORDER_PATH = re.compile(r"^/api/orders/(\d+)(?:/(advance|status|cancel))?$")
+    ORDER_PATH = re.compile(r"^/api/orders/(\d+)(?:/(advance|status|cancel|dismiss))?$")
 
     def _get_orders(self):
         """GET /api/orders/mine (session) and GET /api/orders/<id>?t=<token> (owner, token or admin)."""
@@ -283,16 +283,19 @@ class AppHandler(SimpleHTTPRequestHandler):
             self._order_failure(exc)
 
     def _order_action(self, order_id, action, body):
-        """advance / status: console only. cancel: the owner, the placing browser, or the console."""
+        """advance / status: console only. cancel / dismiss: the owner, the placing browser, or the console."""
         try:
             import orders
             user = self._session_user()
             is_admin = bool(user) and user.get("role") == "admin"
             note = str(body.get("note") or "")[:200] or None
-            if action == "cancel":
+            if action in ("cancel", "dismiss"):
                 if not orders.authorized(order_id, user, body.get("token")):
                     return self._json({"error": "not your order"}, status=403)
-                order = orders.cancel(order_id, by="console" if is_admin else "customer", note=note)
+                if action == "dismiss":
+                    order = orders.dismiss(order_id)
+                else:
+                    order = orders.cancel(order_id, by="console" if is_admin else "customer", note=note)
             else:
                 if not is_admin:
                     return self._json({"error": "forbidden"}, status=403)

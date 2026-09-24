@@ -154,6 +154,19 @@ class OrderTests(unittest.TestCase):
         self.assertTrue(all(o["status"] != "fulfilled" for o in recent))   # seeded history stays out
         self.assertGreater(len(orders.for_user(1)), len(recent))
 
+    def test_dismiss_hides_a_finished_order_for_good(self):
+        placed = orders.place([{"id": "brown-butter", "quantity": 1}], user={"id": 1, "name": "Alex"})
+        with self.assertRaises(orders.OrderError):
+            orders.dismiss(placed["id"])                      # still in progress
+        orders.cancel(placed["id"], by="console")
+        self.assertIn(placed["id"], [o["id"] for o in orders.recent_for_user(1)])
+        self.assertTrue(orders.dismiss(placed["id"])["dismissed"])
+        self.assertNotIn(placed["id"], [o["id"] for o in orders.recent_for_user(1)])
+        self.assertIn(placed["id"], [o["id"] for o in orders.for_user(1)])     # history keeps it
+        guest = orders.place([{"id": "brown-butter", "quantity": 1}])
+        orders.cancel(guest["id"]); orders.dismiss(guest["id"])
+        self.assertEqual(orders.lookup([{"id": guest["id"], "token": guest["token"]}]), [])
+
     def test_board_lists_active_orders_and_todays_counts(self):
         placed = orders.place([{"id": "brown-butter", "quantity": 1}])
         board = orders.board()

@@ -335,7 +335,8 @@ CREATE TABLE IF NOT EXISTS orders (
     address        TEXT,
     contact_name   TEXT,
     note           TEXT,
-    tracking_token TEXT
+    tracking_token TEXT,
+    dismissed_at   TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS orders_user_idx ON orders(user_id);
 CREATE INDEX IF NOT EXISTS orders_status_idx ON orders(status);
@@ -443,6 +444,7 @@ MIGRATIONS = [
     "ALTER TABLE orders ADD COLUMN note TEXT",
     "ALTER TABLE orders ADD COLUMN tracking_token TEXT",
     "ALTER TABLE order_items ADD COLUMN unit_price NUMERIC(10,2)",
+    "ALTER TABLE orders ADD COLUMN dismissed_at TIMESTAMPTZ",   # the customer put a finished order away
     "UPDATE orders SET created_at = placed_at WHERE created_at IS NULL",
     # Orders placed before tracking existed were fulfilled on the spot.
     "UPDATE orders SET status = 'completed' WHERE status = 'placed' AND updated_at IS NULL",

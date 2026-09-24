@@ -278,7 +278,8 @@ def place(lines, fulfillment="pickup", applied_offer=None, user=None, channel="w
 _ORDER_SQL = """
     SELECT o.id, o.user_id, o.placed_at, o.channel, o.status, o.fulfillment, o.location_id, o.offer_id,
            o.total, o.created_at, o.updated_at, o.promised_at, o.completed_at, o.window_label, o.address,
-           o.contact_name, o.note, o.tracking_token, l.name AS location_name, u.name AS user_name, u.email
+           o.contact_name, o.note, o.tracking_token, o.dismissed_at,
+           l.name AS location_name, u.name AS user_name, u.email
     FROM orders o
     LEFT JOIN locations l ON l.id = o.location_id
     LEFT JOIN users u ON u.id = o.user_id
@@ -310,6 +311,7 @@ def _shape(row, items, events):
         "headline": _pick(HEADLINES.get(status, ""), fulfillment).format(corner=corner),
         "nextAction": _pick(NEXT_ACTION.get(status), fulfillment) if status in NEXT_ACTION else None,
         "active": status not in FINAL,
+        "dismissed": row.get("dismissed_at") is not None,
         "canCancel": status in CUSTOMER_CANCELLABLE,
         "consoleCanCancel": status in CONSOLE_CANCELLABLE,
         "fulfillment": fulfillment,
@@ -411,7 +413,7 @@ def recent_for_user(user_id, hours=2, limit=10):
     """What a customer's page should follow: orders in progress, plus ones that finished within `hours`."""
     since = (_now() - timedelta(hours=hours)).isoformat()
     return [o for o in for_user(user_id, limit=50)
-            if o["active"] or (o["completedAt"] and o["completedAt"] >= since)][:limit]
+            if o["active"] or (o["completedAt"] and o["completedAt"] >= since and not o["dismissed"])][:limit]
 
 
 def lookup(refs):
@@ -424,10 +426,21 @@ def lookup(refs):
             continue
         try:
             if authorized(order_id, token=ref.get("token")):
-                out.append(get(order_id))
+                order = get(order_id)
+                if not order["dismissed"]:
+                    out.append(order)
         except OrderError:
             continue
     return out
+
+
+def dismiss(order_id):
+    """The customer puts a finished order away for good. Only a finished order can be dismissed."""
+    row = _row(order_id)
+    if row["status"] not in FINAL:
+        raise OrderError("that order is still in progress")
+    db.execute("UPDATE orders SET dismissed_at = %s WHERE id = %s AND dismissed_at IS NULL", (_now(), order_id))
+    return get(order_id)
 
 
 def board(hours=2, limit=60):
