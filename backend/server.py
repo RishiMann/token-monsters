@@ -10,10 +10,12 @@ interface instead of loopback.
 
 import json
 import os
+import re
 import sys
 from datetime import date, timedelta
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 
 def _load_dotenv(path):
@@ -107,6 +109,9 @@ class AppHandler(SimpleHTTPRequestHandler):
         if self.path.startswith("/api/me"):
             return self._me()
 
+        if self.path.startswith("/api/orders"):
+            return self._get_orders()
+
         if self.path.startswith("/api/operations"):
             return self._operations()
 
@@ -134,6 +139,7 @@ class AppHandler(SimpleHTTPRequestHandler):
         try:
             import db
             payload["driver"] = db.driver()
+            payload["database_setting"] = db.database_url_source()
             payload["users"] = (db.query(
                 "SELECT count(*) AS n FROM users", one=True) or {}).get("n")
         except Exception as exc:
@@ -187,7 +193,7 @@ class AppHandler(SimpleHTTPRequestHandler):
             """
             SELECT o.id, o.placed_at, i.item_id, i.quantity
             FROM orders o JOIN order_items i ON i.order_id = o.id
-            WHERE o.user_id = %s
+            WHERE o.user_id = %s AND o.status <> 'cancelled'
             ORDER BY o.placed_at DESC
             """,
             (user_id,),
@@ -218,23 +224,80 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self._json({"error": str(exc)}, status=503)
 
     def _orders(self, user_id):
-        import db
-        rows = db.query(
-            """SELECT o.id, o.placed_at, o.channel, oi.item_id, oi.quantity
-               FROM orders o JOIN order_items oi ON oi.order_id = o.id
-               WHERE o.user_id = %s ORDER BY o.placed_at DESC""",
-            (user_id,),
-        )
-        orders = {}
-        for row in rows:
-            order = orders.setdefault(row["id"], {
-                "id": row["id"],
-                "date": str(row["placed_at"])[:10],
-                "channel": row["channel"],
-                "items": [],
-            })
-            order["items"].append({"id": row["item_id"], "quantity": row["quantity"]})
-        return list(orders.values())[:10]
+        import orders
+        return orders.for_user(user_id, limit=12)
+
+    # ── Orders: tracking and the console board ──────────────────────
+
+    ORDER_PATH = re.compile(r"^/api/orders/(\d+)(?:/(advance|status|cancel))?$")
+
+    def _get_orders(self):
+        """GET /api/orders/mine (session) and GET /api/orders/<id>?t=<token> (owner, token or admin)."""
+        parts = urlsplit(self.path)
+        try:
+            import orders
+            if parts.path == "/api/orders/mine":
+                user = self._session_user()
+                if not user:
+                    return self._json({"error": "not signed in"}, status=401)
+                return self._json({"orders": orders.for_user(user["id"])})
+            match = self.ORDER_PATH.match(parts.path)
+            if not match or match.group(2):
+                return self.send_error(404)
+            order_id = int(match.group(1))
+            token = (parse_qs(parts.query).get("t") or [None])[0]
+            if not orders.authorized(order_id, self._session_user(), token):
+                return self._json({"error": "not your order"}, status=403)
+            return self._json({"order": orders.get(order_id)})
+        except Exception as exc:
+            return self._order_failure(exc)
+
+    def _track_orders(self, body):
+        """POST /api/orders/track {refs: [{id, token}]} — what a browser remembered placing."""
+        try:
+            import orders
+            refs = body.get("refs")
+            found = orders.lookup(refs if isinstance(refs, list) else [])
+            user = self._session_user()
+            if user:
+                seen = {o["id"] for o in found}
+                found += [o for o in orders.recent_for_user(user["id"]) if o["id"] not in seen]
+            found.sort(key=lambda o: (not o["active"], -(o["id"] or 0)))
+            self._json({"orders": found})
+        except Exception as exc:
+            self._order_failure(exc)
+
+    def _order_action(self, order_id, action, body):
+        """advance / status: console only. cancel: the owner, the placing browser, or the console."""
+        try:
+            import orders
+            user = self._session_user()
+            is_admin = bool(user) and user.get("role") == "admin"
+            note = str(body.get("note") or "")[:200] or None
+            if action == "cancel":
+                if not orders.authorized(order_id, user, body.get("token")):
+                    return self._json({"error": "not your order"}, status=403)
+                order = orders.cancel(order_id, by="console" if is_admin else "customer", note=note)
+            else:
+                if not is_admin:
+                    return self._json({"error": "forbidden"}, status=403)
+                if action == "advance":
+                    order = orders.advance(order_id, note=note)
+                else:
+                    order = orders.set_status(order_id, str(body.get("status") or ""), note=note)
+            self._json({"order": order})
+        except Exception as exc:
+            self._order_failure(exc)
+
+    def _order_failure(self, exc):
+        try:
+            import orders
+            if isinstance(exc, orders.OrderError):
+                return self._json({"error": str(exc)}, status=400 if "not found" not in str(exc) else 404)
+        except ImportError:
+            pass
+        print(f"orders failed: {exc!r}", file=sys.stderr, flush=True)
+        self._json({"error": OFFLINE_MESSAGE, "demo": True}, status=503)
 
     def _operations(self):
         """Franchise console data. Admin only — this is the server-side check."""
@@ -272,12 +335,14 @@ class AppHandler(SimpleHTTPRequestHandler):
                 buckets[label] = buckets.get(label, 0) + float(row["revenue"])
             weekly = [{"label": label, "revenue": round(total, 2)}
                       for label, total in sorted(buckets.items())]
+            import orders
             return self._json({
                 "locations": locations,
                 "inventory": agent_tools.check_inventory()["items"],
                 "supplyOrders": supply,
                 "insights": agent_tools.get_sales_insights(days=7),
                 "weekly": weekly,
+                "orders": orders.board(),
             })
         except Exception as exc:
             print(f"operations failed: {exc}")
@@ -294,6 +359,12 @@ class AppHandler(SimpleHTTPRequestHandler):
             "/api/orders": self._place_order,
         }
         handler = routes.get(self.path)
+        action = self.ORDER_PATH.match(self.path)
+        if self.path == "/api/orders/track":
+            handler = self._track_orders
+        elif action and action.group(2):
+            order_id, verb = int(action.group(1)), action.group(2)
+            handler = lambda body: self._order_action(order_id, verb, body)
         if not handler:
             return self.send_error(404)
         try:
@@ -346,6 +417,10 @@ class AppHandler(SimpleHTTPRequestHandler):
                 fulfillment=str(body.get("fulfillment") or "pickup"),
                 applied_offer=body.get("appliedOffer") or None,
                 user=self._session_user(),
+                window=str(body.get("window") or ""),
+                address=str(body.get("address") or ""),
+                contact_name=str(body.get("name") or ""),
+                note=str(body.get("note") or ""),
             )
             self._json(payload, status=201)
         except Exception as exc:
@@ -367,6 +442,7 @@ class AppHandler(SimpleHTTPRequestHandler):
 
         user = self._session_user()
         history = body.get("history")
+        refs = body.get("orders")
         try:
             payload = run(
                 surface=str(body.get("agent") or "concierge"),
@@ -374,6 +450,7 @@ class AppHandler(SimpleHTTPRequestHandler):
                 cart=body.get("cart") or {},
                 user=user,
                 history=history if isinstance(history, list) else None,
+                order_refs=refs if isinstance(refs, list) else None,
             )
             self._json(payload)
         except AgentUnavailable as exc:

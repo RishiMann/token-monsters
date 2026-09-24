@@ -66,6 +66,18 @@
   </header>
 
   <main id="main">
+    <!-- ── Orders in progress (shown only when there are any) ── -->
+    <section class="section orders-section" data-orders-section hidden aria-labelledby="orders-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow"><span class="agent-dot tint-pink"></span>Your orders</p>
+          <h2 id="orders-title">Where your box <em>is</em></h2>
+          <p class="section-lede">Live from the corner. This updates on its own as your order moves from received to ready.</p>
+        </div>
+      </div>
+      <div class="order-cards" data-order-cards aria-live="polite"></div>
+    </section>
+
     <section class="section offers-section" aria-labelledby="home-offers-title">
       <div class="section-head">
         <div>
@@ -206,6 +218,8 @@
         <label class="fulfillment-option"><input type="radio" name="fulfillment" value="delivery" />
           <strong>Delivery</strong><small>Free over $45 · 30–45 minutes</small></label>
       </div>
+      <label class="checkout-field">Name for the order<input name="name" type="text" autocomplete="name"
+          placeholder="Who's it for?" required /></label>
       <label class="checkout-field" data-address-field hidden>Delivery address<input name="address" type="text"
           placeholder="123 Corner Street" autocomplete="street-address" /></label>
       <label class="checkout-field">Preferred window<select name="window">
@@ -213,7 +227,10 @@
           <option>Today, 5:00–5:30 PM</option>
           <option>Today, 6:00–6:30 PM</option>
         </select></label>
-      <button class="button button-primary full" type="submit">Place demo order</button>
+      <label class="checkout-field">Note for the corner (optional)<textarea name="note" rows="2"
+          placeholder="Candles, a gift note, anything to flag…"></textarea></label>
+      <button class="button button-primary full" type="submit">Place order</button>
+      <p class="checkout-note">You'll see it move — received, preparing, ready — right here on the page.</p>
     </form>
   </dialog>
 

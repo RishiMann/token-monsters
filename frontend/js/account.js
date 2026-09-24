@@ -2,6 +2,7 @@
 
 import { requireRole, signOut, isDemo } from "./auth.js";
 import { demoProfile } from "./demo-data.js";
+import { initTracker } from "./orders.js";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (v) =>
@@ -48,12 +49,29 @@ async function boot() {
     return;
   }
 
-  const menu = [...(storefront.weeklyMenu || []), ...(storefront.plantBased || [])];
+  const menu = [
+    ...(storefront.weeklyMenu || []), ...(storefront.plantBased || []),
+    ...(storefront.eventMenus || []).flatMap((m) => m.items || [])
+  ];
   const byId = (id) => menu.find((i) => i.id === id);
 
   renderFavorites(me.history?.favorites || [], byId);
   renderOrders(me.orders || [], byId);
   renderPreferences(me.preferences || {});
+
+  // Orders still moving through the corner, as live cards; the list below
+  // re-reads itself whenever one of them changes status.
+  if (!isDemo()) {
+    initTracker($("[data-order-cards]"), {
+      section: $("[data-tracker-panel]"),
+      compact: true,
+      onToast: async (message) => {
+        toast(message);
+        const fresh = await fetch("/api/me", { credentials: "same-origin" }).then((r) => r.json()).catch(() => null);
+        if (fresh && !fresh.error) renderOrders(fresh.orders || [], byId);
+      }
+    });
+  }
 }
 
 function renderFavorites(favorites, byId) {
@@ -90,14 +108,18 @@ function renderOrders(orders, byId) {
   }
   wrap.innerHTML = orders.map((order) => {
     const names = (order.items || []).map((line) => {
-      const item = byId(line.id);
-      return item ? `${item.name}${line.quantity > 1 ? ` ×${line.quantity}` : ""}` : null;
+      const name = line.name || byId(line.id)?.name;
+      return name ? `${name}${line.quantity > 1 ? ` ×${line.quantity}` : ""}` : null;
     }).filter(Boolean);
+    const status = (order.status || "fulfilled").replace(/_/g, "-");
+    const label = order.statusLabel || order.channel || "";
     return `
-      <article class="order-row">
-        <div class="order-date">${esc(order.date)}</div>
-        <div class="order-items">${esc(names.join(" · ")) || "—"}</div>
-        <span class="chip">${esc(order.channel)}</span>
+      <article class="order-row${order.active ? " is-active" : ""}">
+        <div class="order-date">${esc(order.date)}<br /><small>#${esc(order.id)}</small></div>
+        <div class="order-items">${esc(names.join(" · ")) || "—"}
+          ${order.fulfillment ? `<br /><small>${esc(order.fulfillment)} · ${esc(order.location?.name || "")}</small>` : ""}</div>
+        ${order.total != null ? `<span class="order-total">${money(order.total)}</span>` : ""}
+        <span class="order-pill status-${esc(status)}">${esc(label)}</span>
       </article>`;
   }).join("");
 }

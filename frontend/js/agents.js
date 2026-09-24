@@ -12,6 +12,7 @@
 import { fullMenu, agents as roster } from "./data.js";
 import { recommend } from "./agent-engine.js";
 import { respond as concierge } from "./concierge.js";
+import { trackedRefs } from "./orders.js";
 
 /** Simulated round-trip so the UI exercises its real loading states. */
 const think = (ms = 420) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -124,7 +125,9 @@ async function askBackend(agentId, input) {
       agent: agentId,
       text: input.text || input.occasion || "",
       cart,
-      history: Array.isArray(input.history) ? input.history : []
+      history: Array.isArray(input.history) ? input.history : [],
+      // Orders this browser placed, so "where's my order?" can be answered for a guest too.
+      orders: trackedRefs()
     })
   });
 

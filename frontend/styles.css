@@ -3893,3 +3893,70 @@ input[type="range"]::-moz-range-thumb {
 .picks-panel.is-fresh .picks-head strong { animation: rise .35s ease both; }
 .admin-live { font-size: .74rem; color: var(--ink-soft); margin-left: 10px; }
 .admin-live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #1f9d6b; margin-right: 6px; animation: pulse-dot 1.6s ease-in-out infinite; }
+
+/* ── Orders in progress ─────────────────────────────────────── */
+.orders-section { padding-top: clamp(24px, 4vw, 40px); padding-bottom: 0; }
+.orders-section .section-head { margin-bottom: 20px; }
+.order-cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
+.order-card {
+  background: var(--card, #fff); border: 1px solid var(--line, #F1DDE5); border-radius: var(--r-lg, 22px);
+  padding: 18px 20px; display: grid; gap: 14px; box-shadow: var(--shadow-sm);
+  border-left: 5px solid var(--pink);
+  animation: rise .4s ease both;
+}
+.order-card.status-preparing { border-left-color: var(--gold, #F5C451); }
+.order-card.status-ready, .order-card.status-out-for-delivery { border-left-color: var(--mint, #7ED3B2); }
+.order-card.is-final { border-left-color: var(--line, #F1DDE5); opacity: .82; }
+.order-card.status-cancelled { border-left-color: #C9A0AA; }
+.order-card-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+.order-card-head > div { display: grid; gap: 4px; }
+.order-headline { font-family: var(--font-display, "Fraunces", serif); font-size: 1.15rem; line-height: 1.2; }
+.order-when { font-size: .84rem; color: var(--ink-soft); }
+.order-pill {
+  flex: none; font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  padding: 6px 11px; border-radius: 999px; background: var(--pink-wash); color: #93203E; white-space: nowrap;
+}
+.order-pill.status-preparing { background: #FDEBCF; color: #8A5A17; }
+.order-pill.status-ready, .order-pill.status-out-for-delivery { background: #DCF0E8; color: #226B52; }
+.order-pill.status-completed { background: var(--cream); color: var(--ink-soft); }
+.order-pill.status-cancelled { background: #EEE4E7; color: #6B565C; }
+
+.order-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+.order-step { display: grid; justify-items: center; gap: 5px; text-align: center; font-size: .74rem; color: var(--ink-soft); position: relative; }
+.order-step i {
+  width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid var(--line, #F1DDE5);
+  position: relative; z-index: 1; transition: all .25s ease;
+}
+.order-step::before {
+  content: ""; position: absolute; top: 6px; left: -50%; right: 50%; height: 2px; background: var(--line, #F1DDE5);
+}
+.order-step:first-child::before { display: none; }
+.order-step.is-done i { background: var(--pink); border-color: var(--pink); }
+.order-step.is-done::before { background: var(--pink); }
+.order-step.is-current i { border-color: var(--pink); box-shadow: 0 0 0 4px var(--pink-soft); animation: pulse 1.4s ease-in-out infinite; }
+.order-step.is-current::before { background: var(--pink); }
+.order-step.is-current span, .order-step.is-done span { color: var(--ink); font-weight: 600; }
+.order-step small { font-size: .68rem; min-height: 1em; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 4px var(--pink-soft); } 50% { box-shadow: 0 0 0 7px transparent; } }
+
+.order-lines { display: flex; flex-wrap: wrap; gap: 8px; }
+.order-line {
+  display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 600;
+  background: var(--cream); border-radius: 999px; padding: 4px 12px 4px 4px;
+}
+.order-line img { width: 36px; height: 27px; object-fit: cover; border-radius: 999px; }
+.order-card-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: .84rem; color: var(--ink-soft); }
+.order-card-foot strong { color: var(--ink); font-size: .95rem; }
+.order-updated { margin-left: auto; font-size: .76rem; }
+.order-card-foot .text-button { font-size: .8rem; }
+@media (max-width: 560px) {
+  .order-step span { font-size: .66rem; }
+  .order-updated { margin-left: 0; }
+}
+
+/* Checkout: the name / note fields share the existing field style. */
+.checkout-field textarea {
+  width: 100%; border: 1px solid var(--line, #F1DDE5); border-radius: 12px; padding: 10px 12px;
+  font: inherit; resize: vertical; min-height: 54px; background: #fff;
+}
+.checkout-note { font-size: .78rem; color: var(--ink-soft); text-align: center; margin-top: 8px; }

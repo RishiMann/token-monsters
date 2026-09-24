@@ -385,3 +385,30 @@
 
 /* ── Stock table: which corner a row belongs to ─────────────── */
 .row-sub { display: block; font-size: .72rem; color: var(--ink-soft); margin-top: 2px; }
+
+/* ── Console: live orders board ─────────────────────────────── */
+.board-stats .stat.is-live strong { color: #226B52; }
+.board-table td { vertical-align: top; }
+.board-items { display: grid; gap: 2px; font-size: .8rem; color: var(--ink-soft); }
+.board-customer small { display: block; font-size: .74rem; color: var(--ink-soft); }
+.board-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.board-actions .chip { white-space: nowrap; }
+.board-actions .chip-solid { background: var(--ink); color: #fff; border-color: var(--ink); }
+.pill-placed { background: #FFE0EA; color: #93203E; }
+.pill-preparing { background: #FDEBCF; color: #8A5A17; }
+.pill-ready, .pill-out_for_delivery { background: #DCF0E8; color: #226B52; }
+.pill-completed { background: #EEE9EB; color: #6B565C; }
+.pill-cancelled { background: #EEE4E7; color: #6B565C; }
+tr.is-final td { opacity: .6; }
+.board-empty { padding: 20px 0; color: var(--ink-soft); font-size: .9rem; }
+.board-when { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.board-when small { display: block; color: var(--ink-soft); font-size: .74rem; }
+
+/* Profile: orders with their status */
+.order-row .order-pill { margin-left: auto; }
+.order-total { font-weight: 700; font-size: .84rem; white-space: nowrap; }
+.tracker-panel .order-cards { grid-template-columns: 1fr; }
+
+.panel-wide { grid-column: 1 / -1; }
+.tab-count { display: inline-block; min-width: 20px; padding: 1px 7px; border-radius: 999px; background: var(--pink); color: #fff; font-size: .72rem; margin-left: 6px; }
+.tab.is-active .tab-count { background: #fff; color: var(--ink); }

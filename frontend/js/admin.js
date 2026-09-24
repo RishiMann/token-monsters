@@ -28,6 +28,13 @@ function stockStatus(row) {
 }
 
 const STATUS_LABEL = { ok: "Healthy", low: "Getting low", inbound: "Order inbound", critical: "Below reorder point" };
+const POLL_MS = 10000;
+const clock = (iso) => (iso ? new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "");
+
+async function loadOperations() {
+  return fetch("/api/operations", { credentials: "same-origin" })
+    .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+}
 
 async function boot() {
   const session = await requireRole("admin");
@@ -55,8 +62,7 @@ async function boot() {
     })
   );
 
-  const fetched = await fetch("/api/operations", { credentials: "same-origin" })
-    .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const fetched = await loadOperations();
 
   // Without a database the server cannot answer, so demo figures stand in.
   const ops = (!fetched || fetched.error) ? demoOperations() : fetched;
@@ -74,23 +80,91 @@ async function boot() {
   // Stock moves with every order placed on the storefront, so keep the console
   // current while it is open. Demo figures are static, so only poll the real thing.
   if (fetched && !fetched.error) {
-    const live = $("[data-live]");
-    if (live) live.hidden = false;
+    document.querySelectorAll("[data-live], [data-board-live]").forEach((el) => { el.hidden = false; });
     setInterval(async () => {
-      const next = await fetch("/api/operations", { credentials: "same-origin" })
-        .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      if (document.hidden) return;
+      const next = await loadOperations();
       if (next && !next.error) render(next);
-    }, 15000);
+    }, POLL_MS);
   }
+
+  // Moving an order along, or cancelling it, then re-reading everything so
+  // the stock rows show what came back.
+  $("[data-board]").addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-advance], [data-cancel]");
+    if (!button) return;
+    const id = button.dataset.advance || button.dataset.cancel;
+    const verb = button.dataset.advance ? "advance" : "cancel";
+    button.disabled = true;
+    const response = await fetch(`/api/orders/${id}/${verb}`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      credentials: "same-origin", body: "{}"
+    }).catch(() => null);
+    const payload = response ? await response.json().catch(() => ({})) : {};
+    if (!response?.ok) {
+      button.disabled = false;
+      return toast(payload.error || "That change did not go through");
+    }
+    toast(`Order #${id} → ${payload.order.statusLabel.toLowerCase()}`);
+    const next = await loadOperations();
+    if (next && !next.error) render(next);
+  });
 }
 
 function render(ops) {
+  renderBoard(ops.orders);
   renderInventory(ops.inventory || []);
   renderLocations(ops.locations || []);
   renderSupply(ops.supplyOrders || []);
-  renderSales(ops.insights || {}, ops.weekly || []);
-  const live = $("[data-live]");
-  if (live) live.textContent = `Live · updated ${new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`;
+  renderSales({ ...(ops.insights || {}), channels: ops.orders?.channels }, ops.weekly || []);
+  const stamp = `Live · updated ${new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`;
+  document.querySelectorAll("[data-live], [data-board-live]").forEach((el) => { el.textContent = stamp; });
+}
+
+const FULFILLMENT = { pickup: "Pickup", delivery: "Delivery" };
+
+function renderBoard(board) {
+  const stats = $("[data-board-stats]");
+  const body = $("[data-board]");
+  const empty = $("[data-board-empty]");
+  const count = $("[data-board-count]");
+  if (!board) {
+    // Demo figures have no orders table.
+    stats.innerHTML = "";
+    body.innerHTML = "";
+    empty.hidden = false;
+    empty.textContent = "Live orders need the database — this console is showing demo figures.";
+    return;
+  }
+  const orders = board.orders || [];
+  const active = orders.filter((o) => o.active);
+  const by = board.today?.byStatus || {};
+  stats.innerHTML = [
+    { value: active.length, label: "in progress now", tone: active.length ? "live" : "" },
+    { value: (by.placed || 0), label: "waiting to start", tone: by.placed ? "alert" : "" },
+    { value: board.today?.orders || 0, label: "orders today" },
+    { value: money2(board.today?.revenue || 0), label: "revenue today" }
+  ].map((s) => `
+    <div class="stat ${s.tone ? `is-${s.tone}` : ""}"><strong>${esc(s.value)}</strong><small>${esc(s.label)}</small></div>`).join("");
+  count.hidden = active.length === 0;
+  count.textContent = active.length;
+  empty.hidden = orders.length > 0;
+  empty.textContent = "Nothing in progress. Place an order on the storefront and it appears here within a few seconds.";
+
+  body.innerHTML = orders.map((order) => `
+    <tr class="${order.active ? "" : "is-final"}">
+      <td><code>#${esc(order.id)}</code></td>
+      <td class="board-when">${esc(clock(order.placedAt))}<small>${order.active && order.promisedAt ? `due ${esc(clock(order.promisedAt))}` : esc(order.date)}</small></td>
+      <td class="board-customer">${esc(order.customer)}<small>${order.signedIn ? esc(order.email || "account") : "guest"}${order.note ? ` · “${esc(order.note)}”` : ""}</small></td>
+      <td><div class="board-items">${(order.items || []).map((i) => `<span>${i.quantity} × ${esc(i.name)}</span>`).join("")}</div></td>
+      <td>${esc(FULFILLMENT[order.fulfillment] || order.fulfillment)}<small class="row-sub">${esc(order.location?.name || "")}${order.window && order.window !== "As soon as possible" ? ` · ${esc(order.window)}` : ""}${order.address ? ` · ${esc(order.address)}` : ""}</small></td>
+      <td class="num">${money2(order.total)}</td>
+      <td><span class="pill pill-${esc(order.status)}">${esc(order.statusLabel)}</span></td>
+      <td><div class="board-actions">
+        ${order.nextAction ? `<button class="chip chip-solid" type="button" data-advance="${esc(order.id)}">${esc(order.nextAction)}</button>` : ""}
+        ${order.consoleCanCancel ? `<button class="chip" type="button" data-cancel="${esc(order.id)}">Cancel</button>` : ""}
+      </div></td>
+    </tr>`).join("");
 }
 
 let LOW_STOCK = [];
@@ -209,7 +283,15 @@ function renderSales(sales, weekly) {
       <div class="rank-bar"><i style="width:${Math.round((Number(region.revenue) / topRegion) * 100)}%"></i></div>
     </div>`).join("");
 
-  $("[data-channels]").innerHTML = `<p class="empty">Channel mix moves to the orders table next.</p>`;
+  const channels = (sales.channels || []);
+  const topChannel = Math.max(...channels.map((c) => c.orders), 1);
+  $("[data-channels]").innerHTML = channels.length
+    ? channels.map((c) => `
+      <div class="rank-row">
+        <div class="rank-head"><span>${esc(c.channel)}</span><span>${esc(c.orders)} orders</span></div>
+        <div class="rank-bar"><i style="width:${Math.round((c.orders / topChannel) * 100)}%"></i></div>
+      </div>`).join("")
+    : `<p class="empty">No orders in the last 7 days.</p>`;
 
   renderWatchouts();
 }

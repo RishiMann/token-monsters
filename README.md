@@ -96,70 +96,43 @@ same engine through its tools.
 
 ### Orders and stock
 
-Checkout posts to `POST /api/orders`. `backend/orders.py` resolves the lines
-against today's menu, prices the box again with the same offer rules (an
-offer the box has not earned is ignored), records the order (guest orders
-carry no user), then takes each unit's `uses` ingredients out of the
-customer's home corner — one six-count box per six units — and adds to the
-day's item and corner sales. The admin console re-reads stock every 15
-seconds while it is open, so an order placed in another tab shows up there.
+Checkout places a real order (`POST /api/orders`). The server resolves the
+lines against today's menu, prices the box again with the same offer rules the
+browser used (an offer the box has not earned is ignored), records the order
+with its line prices, and takes each item's `uses` ingredients out of the
+customer's home corner plus one six-count box per six units. The day's item and
+corner sales move with it.
 
-Every item's `uses` (kg or L per unit, keyed by the SKUs in `seed.py`) is
-derived in `tools/expand_catalog.py` from its allergens and flavor family;
-edit an item in `storefront.json` for anything more exact. Without a
-database the endpoint answers 503 and checkout stays a demo.
+The order then walks a short lifecycle that the franchise console advances:
 
-```bash
-.venv/bin/python -m unittest tests/test_orders.py   # against a throwaway SQLite database
-```
+| Pickup | Delivery |
+| --- | --- |
+| received → preparing → ready for pickup → picked up | received → preparing → on its way → delivered |
 
-### Growing the catalog
+Every change is appended to `order_events`, so the customer sees a timeline.
+The customer can cancel while the order is still *received*; the console can
+also cancel while it is *preparing*. Cancelling puts the ingredients, boxes and
+sales back.
 
-```bash
-.venv/bin/python tools/expand_catalog.py   # profiles, new items, release dates, offer rules (idempotent)
-.venv/bin/python tools/fetch_photos.py     # photos from tools/photos.json -> frontend/assets/desserts/
-node --test tests/storefront.test.mjs      # engine, offers and seasons against the real catalog
-```
+**Following an order.** The storefront shows "Where your box is" at the top of
+the page as soon as an order is placed, with the progress steps, the promised
+time (the corner's lead time, or the chosen window) and what is in the box. It
+re-reads the server every 10 seconds while anything is in progress. A guest's
+browser keeps the order id and a tracking token in `localStorage`
+(`fc-orders`); a signed-in customer's orders come back by session as well, and
+the profile page lists them with their status. The concierge answers "where's
+my order?" with the `get_order_status` tool, which sees the same orders.
 
-Photos come from Pexels under the Pexels License; every source is listed in
-`frontend/assets/desserts/ATTRIBUTION.md`. To add an item, give it a
-`profile` (see `PROFILES` in `tools/expand_catalog.py`), map a photo in
-`tools/photos.json`, and run both tools.
+**Moving an order.** Sign in as `hq@frostedcorner.com` and open *Live orders*
+in the console: every order lands there as it is placed, with a button for its
+next step and a cancel. The console re-reads every 10 seconds, so the stock
+rows on the inventory tab show what each order took.
 
-### Configuring the model
-
-Locally, copy `.env.example` to `.env` (gitignored) and fill it in; the
-server loads it on start. On App Service, add the same names under
-Settings → Environment variables:
-
-```
-AZURE_OPENAI_ENDPOINT    https://<resource>.services.ai.azure.com/openai/v1/
-AZURE_OPENAI_DEPLOYMENT  gpt-5-mini
-AZURE_OPENAI_API_KEY     the key (or omit it and grant the app's managed identity access)
-AZURE_OPENAI_REASONING   optional: minimal | low | medium (default low)
-```
-
-A pasted endpoint ending in `/responses` is accepted. Until these are set the
-storefront runs entirely on the rule-based path. gpt-5 models reject
-`temperature`, so the runtime never sends it.
-
-The model can act on the box through `add_to_box`, `remove_from_box` and
-`apply_offer`; the server holds no cart, so each action is applied to the
-cart for the rest of that turn (so `price_box` sees it) and echoed back as
-`actions` for the browser to mirror. A turn the model drops (a 502) asks the
-customer to repeat rather than switching to the rule-based brain
-mid-conversation.
-
-Azure's default content filter on the Foundry resource rejects some innocent
-phrasings before the model sees them — "take the fudge out" is blocked as
-profanity-adjacent while "remove the fudge" passes. The chat says so and asks
-for other words. To loosen it, give the deployment a custom content filter
-in Foundry (Safety + security → Content filters) with a higher prompt
-threshold for the hate category.
-
-```bash
-.venv/bin/python -m unittest tests/test_agent_runtime.py   # the tool loop, with a stub model
-```
+Endpoints: `POST /api/orders` (place; returns the order and its token),
+`POST /api/orders/track` (`{refs: [{id, token}]}` plus the session's orders),
+`GET /api/orders/mine`, `GET /api/orders/<id>?t=<token>`,
+`POST /api/orders/<id>/cancel` (owner, token or console),
+`POST /api/orders/<id>/advance` and `POST /api/orders/<id>/status` (console).
 
 ## Deployment (Azure App Service)
 
@@ -181,9 +154,11 @@ explicitly to override either behavior.
 
 ## Database (PostgreSQL)
 
-Accounts, sessions, preferences, orders, inventory and sales live in
-PostgreSQL. The catalog stays in `backend/storefront.json` because it is not
-mutable.
+Accounts, sessions, preferences, orders (with their status history), inventory
+and sales live in PostgreSQL. The catalog stays in `backend/storefront.json`
+because it is not mutable. One database holds everything on purpose: placing an
+order writes the order, takes the ingredients out of the corner's stock and
+records the sale together, and cancelling puts them back together.
 
 Each machine runs its own local database, so the data on your laptop is yours
 alone. Nothing is shared and nothing leaves the machine.
@@ -207,6 +182,27 @@ database:
 ```powershell
 & "C:\Program Files\PostgreSQL\17\bin\createdb.exe" -U postgres frostedcorner
 ```
+
+### Point the app at it
+
+The server reads `DATABASE_URL`. The easiest place to keep it is a `.env` file
+in the repository root (it is gitignored; copy `.env.example`):
+
+```
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/frostedcorner
+```
+
+That is the whole setup on a Windows laptop with the EDB installer: the
+`postgres` user, the password you chose, port 5432, database `frostedcorner`.
+On macOS with a passwordless Homebrew server the variable can be left out and
+the server connects to `postgresql:///frostedcorner` on its own. Any other
+PostgreSQL works the same way — Docker, for example:
+
+```bash
+docker run -d --name frostedcorner-pg -e POSTGRES_PASSWORD=frosted -e POSTGRES_DB=frostedcorner -p 5432:5432 postgres:16
+```
+
+with `DATABASE_URL=postgresql://postgres:frosted@localhost:5432/frostedcorner`.
 
 ### Run it
 
@@ -236,9 +232,11 @@ $env:DATABASE_URL = "postgresql://postgres:YOUR_PASSWORD@localhost:5432/frostedc
 .\.venv\Scripts\python.exe .\backend\server.py
 ```
 
-On boot the server creates the schema and seeds it. Both steps are idempotent
-— the schema uses `CREATE TABLE IF NOT EXISTS` and the seed only fills empty
-tables — so restarting never duplicates or overwrites anything. If the
+On boot the server creates the schema, applies any column additions a
+database from an earlier version is missing, and seeds it. All three steps are
+idempotent — the schema uses `CREATE TABLE IF NOT EXISTS`, migrations fail
+harmlessly where they already applied, and the seed only fills empty tables —
+so restarting never duplicates or overwrites anything. If the
 database is unreachable the storefront still serves; only accounts and the
 operations console go dark, and the console prints what to fix.
 
