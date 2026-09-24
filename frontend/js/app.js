@@ -316,6 +316,24 @@ function refreshAgents(snapshot) {
   window.addEventListener("scroll", onScroll, { passive: true });
 })();
 
+// Minimize: the panel folds to its one-line header (still sticky, still
+// updating) until it is opened again. The choice is remembered.
+(function minimizePicks() {
+  const button = $("[data-picks-min]");
+  if (!picksPanel || !button) return;
+  const apply = (minimized) => {
+    picksPanel.classList.toggle("is-minimized", minimized);
+    button.setAttribute("aria-expanded", String(!minimized));
+    button.textContent = minimized ? "Show picks" : "Hide";
+    button.title = minimized ? "Show the picks again" : "Hide the picks while you browse";
+    try { localStorage.setItem("fc-picks-min", minimized ? "1" : ""); } catch { /* storage refused */ }
+  };
+  let minimized = false;
+  try { minimized = localStorage.getItem("fc-picks-min") === "1"; } catch { /* storage refused */ }
+  apply(minimized);
+  button.addEventListener("click", () => apply(!picksPanel.classList.contains("is-minimized")));
+})();
+
 $("[data-picks-trace-toggle]")?.addEventListener("click", (event) => {
   const open = picksTrace.hidden;
   picksTrace.hidden = !open;
