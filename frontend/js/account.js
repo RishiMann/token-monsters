@@ -100,28 +100,45 @@ function renderFavorites(favorites, byId) {
   }).join("");
 }
 
+const SHOW_ORDERS = 3;
+let ordersExpanded = false;
+
 function renderOrders(orders, byId) {
   const wrap = $("[data-orders]");
   if (!orders.length) {
     wrap.innerHTML = `<p class="empty">No boxes yet.</p>`;
     return;
   }
-  wrap.innerHTML = orders.map((order) => {
+  const row = (order) => {
     const names = (order.items || []).map((line) => {
       const name = line.name || byId(line.id)?.name;
       return name ? `${name}${line.quantity > 1 ? ` ×${line.quantity}` : ""}` : null;
     }).filter(Boolean);
     const status = (order.status || "fulfilled").replace(/_/g, "-");
     const label = order.statusLabel || order.channel || "";
+    const where = [order.fulfillment, order.location?.name].filter(Boolean).join(" · ");
     return `
       <article class="order-row${order.active ? " is-active" : ""}">
-        <div class="order-date">${esc(order.date)}<br /><small>#${esc(order.id)}</small></div>
-        <div class="order-items">${esc(names.join(" · ")) || "—"}
-          ${order.fulfillment ? `<br /><small>${esc(order.fulfillment)} · ${esc(order.location?.name || "")}</small>` : ""}</div>
-        ${order.total != null ? `<span class="order-total">${money(order.total)}</span>` : ""}
-        <span class="order-pill status-${esc(status)}">${esc(label)}</span>
+        <div class="order-row-top">
+          <span class="order-date">${esc(order.date)} <small>#${esc(order.id)}</small></span>
+          ${order.total != null ? `<span class="order-total">${money(order.total)}</span>` : ""}
+          <span class="order-pill status-${esc(status)}">${esc(label)}</span>
+        </div>
+        <p class="order-items">${esc(names.join(" · ")) || "—"}</p>
+        ${where ? `<small class="order-where">${esc(where)}</small>` : ""}
       </article>`;
-  }).join("");
+  };
+  // Three at a glance; the rest behind "View more" so the page stays short.
+  const shown = ordersExpanded ? orders : orders.slice(0, SHOW_ORDERS);
+  const hidden = orders.length - SHOW_ORDERS;
+  wrap.innerHTML = shown.map(row).join("") + (hidden > 0 ? `
+    <button class="chip order-more" type="button" data-orders-more aria-expanded="${ordersExpanded}">
+      ${ordersExpanded ? "Show fewer" : `View ${hidden} more`}
+    </button>` : "");
+  wrap.querySelector("[data-orders-more]")?.addEventListener("click", () => {
+    ordersExpanded = !ordersExpanded;
+    renderOrders(orders, byId);
+  });
 }
 
 function renderPreferences(prefs) {
